@@ -75,9 +75,27 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
     }
   }, [activeTabId]);
 
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onNativeWheel = (e: WheelEvent) => {
+      if (el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        e.stopPropagation();
+        el.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX;
+      }
+    };
+    el.addEventListener("wheel", onNativeWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onNativeWheel);
+    };
+  }, []);
+
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (scrollRef.current) {
-      scrollRef.current.scrollLeft += e.deltaY;
+      e.preventDefault();
+      e.stopPropagation();
+      scrollRef.current.scrollLeft += e.deltaY || e.deltaX;
       scrollRef.current.scrollTop = 0;
     }
   };
@@ -139,14 +157,14 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
             context.setTabScope("container");
           }}
           className={cn(
-            "flex items-center gap-1 shrink-0 mr-1 text-3xs font-semibold uppercase tracking-wider mb-1.5 px-2 py-0.5 rounded transition-all cursor-pointer",
+            "flex items-center justify-center shrink-0 mr-1.5 size-7 rounded-sm transition-all cursor-pointer mb-1 border",
             isGroupContainerSelected
-              ? "bg-primary text-primary-foreground shadow-2xs font-bold"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/80 bg-background/60 border border-border/60",
+              ? "bg-primary-foreground text-primary-foreground border-primary shadow-xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/80 bg-background/80 border-border/70",
           )}
           title="Click to select Tab Group Container properties"
         >
-          <Layers className="size-3 text-info" />
+          <Layers className="size-3.5 text-info" />
         </button>
 
         {isHoveringHeader && (

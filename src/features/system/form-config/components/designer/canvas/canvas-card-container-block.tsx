@@ -38,7 +38,7 @@ export interface CardContainerBlockProps {
   onConvertSectionZone?: (
     sectionId: string,
     targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
+    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
   ) => void;
   disabled?: boolean;
 }

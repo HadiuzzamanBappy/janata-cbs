@@ -64,6 +64,10 @@ export function useCanvasDrag({
       if (overData?.type === "field") {
         targetSecId = overData.sectionId as string;
         targetFieldId = overId;
+      } else if (overData?.type === "tab-header-strip-item") {
+        targetSecId = overData.sectionId as string;
+        const targetSec = sections.find((s) => s.id === targetSecId);
+        insertAtIndex = (targetSec?.fields || []).length;
       } else if (overData?.type === "section-dropzone") {
         targetSecId = overData.sectionId as string;
       } else if (overData?.type === "section") {

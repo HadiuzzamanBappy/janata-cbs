@@ -196,7 +196,8 @@ export function DesignerCanvas(props: DesignerCanvasProps = {}) {
       if (dataStr) {
         const parsed = JSON.parse(dataStr);
         if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
-          onConvertSectionZone(parsed.sectionId, "card");
+          const sectionInsertIndex = getBlockGapSectionIndex(blocks, sections, finalGap);
+          onConvertSectionZone(parsed.sectionId, "card", { insertIndex: sectionInsertIndex });
           return;
         }
         if (onDropPaletteItem) {

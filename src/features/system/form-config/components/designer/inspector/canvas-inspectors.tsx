@@ -123,13 +123,7 @@ export function ContainerInspector({
       // A cleared input removes the setting, so the card falls back to its style preset
       const finalVal =
         fieldKey === "columns" ? Number(value) || 1 : value === "" ? undefined : value;
-      let updated = setFieldValue(section as Record<string, unknown>, fieldKey, finalVal);
-      if (isTab && fieldKey === "title") {
-        updated = {
-          ...updated,
-          groupTitle: String(value || ""),
-        };
-      }
+      const updated = setFieldValue(section as Record<string, unknown>, fieldKey, finalVal);
       onUpdateSection(updated as Partial<FormSection>);
     },
     [section, isTab, onUpdateSection],

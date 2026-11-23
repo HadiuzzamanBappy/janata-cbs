@@ -1,5 +1,6 @@
 "use client";
 
+import { useDroppable } from "@dnd-kit/core";
 import { ExternalLink, X } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,16 @@ export function TabStripItem(props: TabStripItemProps) {
   const onDropPaletteItem = context.handleDropPaletteItem;
   const universalTabNumber = index + 1;
 
+  const { setNodeRef, isOver: isDndOver } = useDroppable({
+    id: `tab-strip-${tab.id}`,
+    data: {
+      type: "tab-header-strip-item",
+      tabId: tab.id,
+      sectionId: tab.id,
+    },
+    disabled,
+  });
+
   const handleDragStart = (e: React.DragEvent) => {
     if (disabled) return;
     e.stopPropagation();
@@ -84,15 +95,23 @@ export function TabStripItem(props: TabStripItemProps) {
       if (!dataStr) return;
       const parsed = JSON.parse(dataStr) as DragPayload;
 
-      // Field / Variable dropped onto this tab button
-      if (parsed.type === "palette-field" || parsed.field) {
-        onDropPaletteItem?.(parsed, tab.id);
+      // Field / Variable dropped onto this tab button: append to bottom of this tab and activate it
+      if (
+        parsed.type === "palette-field" ||
+        parsed.type === "palette-variable" ||
+        parsed.field ||
+        parsed.element
+      ) {
+        onSelect();
+        onDropPaletteItem?.(parsed, tab.id, (tab.fields || []).length);
         return;
       }
       if (parsed.type === "canvas-field" && typeof parsed.fieldId === "string") {
         const sourceSecId = String(parsed.sectionId || "");
         if (sourceSecId && onMoveFieldAcrossSections) {
-          onMoveFieldAcrossSections(sourceSecId, tab.id, parsed.fieldId);
+          onSelect();
+          const targetIndex = (tab.fields || []).length;
+          onMoveFieldAcrossSections(sourceSecId, tab.id, parsed.fieldId, undefined, targetIndex);
         }
         return;
       }
@@ -105,8 +124,10 @@ export function TabStripItem(props: TabStripItemProps) {
           return;
         }
         if (itemGroupId !== groupId) {
+          const targetIdx = index + 1;
           onConvertSectionZone?.(parsed.sectionId, "tab", {
             groupId: groupId,
+            insertIndex: targetIdx,
             groupTitle:
               typeof parsed.groupTitle === "string"
                 ? parsed.groupTitle
@@ -151,6 +172,7 @@ export function TabStripItem(props: TabStripItemProps) {
 
   return (
     <div
+      ref={setNodeRef}
       role="tab"
       data-tab-id={tab.id}
       aria-selected={isActive}
@@ -171,14 +193,15 @@ export function TabStripItem(props: TabStripItemProps) {
         }
       }}
       className={cn(
-        "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-8 px-0",
+        "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-9 px-0",
         isActive
-          ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t-sm -mb-px"
+          ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs overflow-hidden after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t-sm -mb-px"
           : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t-sm border border-transparent",
         isSelected &&
           context.tabScope === "item" &&
           "ring-1 ring-primary border-primary text-foreground font-bold",
-        isOverThisTab && "ring-2 ring-primary border-primary bg-primary/20 scale-102",
+        (isOverThisTab || isDndOver) &&
+          "ring-2 ring-primary border-primary bg-primary/20 scale-102",
       )}
     >
       {/* Primary Tab Select Button */}
@@ -196,7 +219,7 @@ export function TabStripItem(props: TabStripItemProps) {
           >
             {universalTabNumber}
           </Badge>
-          <span>{tab.groupTitle || tab.title || "Tab"}</span>
+          <span>{tab.title || tab.groupTitle || "Tab"}</span>
           {tab.containerConfig?.badge && (
             <span
               className={cn(
@@ -247,8 +270,8 @@ export function TabStripItem(props: TabStripItemProps) {
                 ? "text-muted-foreground hover:text-foreground hover:bg-muted/80"
                 : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/80 group-hover:text-muted-foreground",
             )}
-            title={`Close tab ${tab.groupTitle || tab.title || "Tab"}`}
-            aria-label={`Close tab ${tab.groupTitle || tab.title || "Tab"}`}
+            title={`Close tab ${tab.title || tab.groupTitle || "Tab"}`}
+            aria-label={`Close tab ${tab.title || tab.groupTitle || "Tab"}`}
           >
             <X className="size-3.5" />
           </button>

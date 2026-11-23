@@ -118,7 +118,7 @@ export function TabGroupContainer({
               onClick={() => onTabChange(groupId, tab.id)}
               className={buttonClass}
             >
-              <span>{tab.groupTitle || tab.title || "Tab"}</span>
+              <span>{tab.title || tab.groupTitle || "Tab"}</span>
               {tabErrorCount > 0 && (
                 <Badge
                   variant="destructive"

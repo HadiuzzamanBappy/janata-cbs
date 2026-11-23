@@ -27,7 +27,7 @@ export interface CanvasFlowProps {
   onConvertSectionZone?: (
     sectionId: string,
     targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
+    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onMoveFieldAcrossSections?: (
@@ -78,8 +78,9 @@ export function CanvasFlow(props: CanvasFlowProps) {
         const nextGapIndex = idx + 1;
 
         if (block.type === "tab-group") {
+          const firstTabId = block.tabSections[0]?.id || "";
           return (
-            <React.Fragment key={`tab-group-${block.groupId}`}>
+            <React.Fragment key={`tab-group-${block.groupId}-${firstTabId}-${idx}`}>
               <div data-canvas-block={idx} className="w-full">
                 <TabGroupBlock
                   groupId={block.groupId}

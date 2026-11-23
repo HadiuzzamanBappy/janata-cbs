@@ -49,18 +49,24 @@ export function findFieldSpecByKey(sections: FormSection[], key: string): FormEl
 
 export function buildRenderBlocks(sections: FormSection[]): RenderBlock[] {
   const blocks: RenderBlock[] = [];
+  const groupBlockMap = new Map<
+    string,
+    { type: "tab-group"; groupId: string; tabSections: FormSection[] }
+  >();
 
   for (const sec of sections) {
     const isTab = sec.containerType === "tab";
 
     if (isTab) {
       const grpId = sec.groupId?.trim() || "default_tab_group";
-      const lastBlock = blocks[blocks.length - 1];
+      const existingBlock = groupBlockMap.get(grpId);
 
-      if (lastBlock && lastBlock.type === "tab-group" && lastBlock.groupId === grpId) {
-        lastBlock.tabSections.push(sec);
+      if (existingBlock) {
+        existingBlock.tabSections.push(sec);
       } else {
-        blocks.push({ type: "tab-group", groupId: grpId, tabSections: [sec] });
+        const newBlock = { type: "tab-group" as const, groupId: grpId, tabSections: [sec] };
+        groupBlockMap.set(grpId, newBlock);
+        blocks.push(newBlock);
       }
     } else {
       blocks.push({ type: "single", section: sec });

@@ -72,7 +72,7 @@ export interface DesignerContextValue {
   onConvertSectionZone?: (
     sectionId: string,
     targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
+    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
   ) => void;
   onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
@@ -124,7 +124,7 @@ export interface DesignerProviderProps {
   onConvertSectionZone?: (
     sectionId: string,
     targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
+    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
   ) => void;
   onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;

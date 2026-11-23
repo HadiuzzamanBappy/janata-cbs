@@ -26,7 +26,7 @@ export interface TabGroupDropParams {
   onConvertSectionZone?: (
     sectionId: string,
     targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
+    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
   ) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;

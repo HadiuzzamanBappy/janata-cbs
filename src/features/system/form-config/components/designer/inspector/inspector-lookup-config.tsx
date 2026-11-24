@@ -1,7 +1,7 @@
 /**
  * @fileoverview Lookup and options configuration sub-panel for Form Designer.
- * Supports Static Options lists (O), Model Entity Lookups (M), and Local Catalogs (L).
- * Rendered purely through Form Engine using standard JSON specifications.
+ * Minimal, unified FormRenderer implementation for Static Options (O) and Lookup (M)
+ * with a clean in-form choice between Flat List and Array List.
  *
  * @module features/system/form-config/components/designer/inspector/inspector-lookup-config
  */
@@ -11,10 +11,9 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormElement } from "@/lib/data-schemas";
+import type { FormElement, FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import {
-  DROPDOWN_ARRAY_SECTION,
   DROPDOWN_LOOKUP_SECTION,
   DROPDOWN_OPTIONS_SECTION,
   DROPDOWN_SOURCE_SELECTOR_SECTION,
@@ -28,9 +27,7 @@ export interface InspectorLookupConfigProps {
 }
 
 /**
- * InspectorLookupConfig: Configures static options lists (O), model lookups (M),
- * or local CBS catalog tables (L) for dropdown, radio-group, and segmented selectors.
- * Fully managed through Form Engine schemas with multi-object repeating support.
+ * InspectorLookupConfig: Simple, unified inspector with an inline Flat List vs Array List selector.
  */
 export function InspectorLookupConfig({
   selectedField,
@@ -41,39 +38,88 @@ export function InspectorLookupConfig({
   const cleanModel = modelName.trim();
   const hasModel = Boolean(cleanModel);
   const param = (selectedField.PARAMETER || {}) as Record<string, unknown>;
-  const paramType = hasModel ? "M" : (param.type as string) || "O";
+
+  // Source Type: If field has a model, locked to "M"; otherwise "O" or "M"
+  const isLookup = hasModel || param.type === "M" || param.type === "A";
+  const sourceMode = isLookup ? "M" : "O";
+
+  // Lookup Type: Flat List vs Array List (derived directly from param)
+  const isArray = param.type === "A" || Boolean(param.recordId);
+  const [lookupType, setLookupType] = React.useState<"flat" | "array">(isArray ? "array" : "flat");
+
+  React.useEffect(() => {
+    if (param.type === "A" || param.recordId) {
+      setLookupType("array");
+    } else {
+      setLookupType("flat");
+    }
+  }, [param.type, param.recordId]);
 
   const handleFieldChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
-      // Invariant: Model columns cannot change their source away from Model (M)
-      // or change their physical Target Model
+      // Invariant: Model columns cannot change away from Model (M)
       if (hasModel) {
         if (fieldKey === "PARAMETER.type" && value !== "M") return;
         if (fieldKey === "PARAMETER.modelName" && value !== cleanModel) return;
       }
-      let updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
 
-      // Smart defaults when switching to Category / Array Mode A
-      if (fieldKey === "PARAMETER.type" && value === "A") {
-        const p = (updated.PARAMETER || {}) as Record<string, unknown>;
-        updated = {
-          ...updated,
+      // Inline choice: Flat List vs Array List
+      if (fieldKey === "_lookupType") {
+        const nextType = value === "array" ? "array" : "flat";
+        setLookupType(nextType);
+
+        const currentParam = (selectedField.PARAMETER || {}) as Record<string, unknown>;
+        const existingData = Array.isArray(currentParam.data) ? currentParam.data : [];
+
+        onUpdateField({
           PARAMETER: {
-            ...p,
-            type: "A",
-            modelName: p.modelName || "LOOKUP",
-            arrayField: p.arrayField || "itemArray",
-            codeField: p.codeField || "itemCode",
-            displayField: p.displayField || "itemLabel",
+            ...currentParam,
+            type: nextType === "array" ? "A" : "M",
+            data: existingData,
+            modelName: hasModel ? cleanModel : (currentParam.modelName as string) || "",
+            // Retain condition across both flat and array modes
+            condition: (currentParam.condition as string) || "",
+            recordId: nextType === "array" ? (currentParam.recordId as string) || "" : undefined,
+            arrayField:
+              nextType === "array" ? (currentParam.arrayField as string) || "" : undefined,
           },
-        };
+        });
+        return;
       }
 
+      // Switching source between Static (O) and Lookup (M)
+      if (fieldKey === "PARAMETER.type") {
+        const currentParam = (selectedField.PARAMETER || {}) as Record<string, unknown>;
+        const existingData = Array.isArray(currentParam.data) ? currentParam.data : [];
+
+        if (value === "M") {
+          onUpdateField({
+            PARAMETER: {
+              ...currentParam,
+              type: lookupType === "array" ? "A" : "M",
+              data: existingData,
+              modelName: hasModel ? cleanModel : (currentParam.modelName as string) || "",
+            },
+          });
+          return;
+        }
+
+        onUpdateField({
+          PARAMETER: {
+            ...currentParam,
+            type: "O",
+            data: existingData,
+          },
+        });
+        return;
+      }
+
+      const updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
       onUpdateField({
         PARAMETER: updated.PARAMETER as FormElement["PARAMETER"],
       });
     },
-    [selectedField, onUpdateField, hasModel, cleanModel],
+    [selectedField, onUpdateField, hasModel, cleanModel, lookupType],
   );
 
   const sourceSection = React.useMemo(() => {
@@ -83,12 +129,16 @@ export function InspectorLookupConfig({
       fields: DROPDOWN_SOURCE_SELECTOR_SECTION.fields.map((f) => ({
         ...f,
         DISABLED: true,
-        ENRICHTEXT: `Dropdown source locked to Model for ${cleanModel}.`,
+        ENRICHTEXT: `Locked to Model for ${cleanModel}.`,
       })),
     };
   }, [hasModel, cleanModel]);
 
-  const activeSection = React.useMemo(() => {
+  const activeSection = React.useMemo<FormSection>(() => {
+    if (sourceMode === "O") {
+      return DROPDOWN_OPTIONS_SECTION;
+    }
+
     if (hasModel) {
       return {
         ...DROPDOWN_LOOKUP_SECTION,
@@ -97,50 +147,35 @@ export function InspectorLookupConfig({
             return {
               ...f,
               DISABLED: true,
-              ENRICHTEXT: `Target Model is defined by database schema (${cleanModel}) and cannot be changed here.`,
+              ENRICHTEXT: `Model is defined by database schema (${cleanModel}).`,
             };
           }
           return f;
         }),
       };
     }
-    return paramType === "O"
-      ? DROPDOWN_OPTIONS_SECTION
-      : paramType === "A"
-        ? DROPDOWN_ARRAY_SECTION
-        : DROPDOWN_LOOKUP_SECTION;
-  }, [hasModel, paramType, cleanModel]);
+
+    return DROPDOWN_LOOKUP_SECTION;
+  }, [sourceMode, hasModel, cleanModel]);
 
   const effectiveValues = React.useMemo(() => {
     const currentParam = (selectedField.PARAMETER || {}) as Record<string, unknown>;
+    const effectiveParam = { ...currentParam };
+
     if (hasModel) {
-      if (currentParam.type === "M" && currentParam.modelName === cleanModel) {
-        return selectedField as Record<string, unknown>;
-      }
-      return {
-        ...selectedField,
-        PARAMETER: {
-          ...currentParam,
-          type: "M",
-          modelName: cleanModel,
-        },
-      };
+      effectiveParam.modelName = cleanModel;
     }
-    if (paramType === "A") {
-      return {
-        ...selectedField,
-        PARAMETER: {
-          modelName: "LOOKUP",
-          arrayField: "itemArray",
-          codeField: "itemCode",
-          displayField: "itemLabel",
-          ...currentParam,
-          type: "A",
-        },
-      };
+
+    if (sourceMode === "M") {
+      effectiveParam.type = "M"; // Ensures segmented selector displays "M"
     }
-    return selectedField as Record<string, unknown>;
-  }, [selectedField, hasModel, cleanModel, paramType]);
+
+    return {
+      ...selectedField,
+      _lookupType: lookupType,
+      PARAMETER: effectiveParam,
+    };
+  }, [selectedField, hasModel, cleanModel, sourceMode, lookupType]);
 
   return (
     <div className="space-y-2">

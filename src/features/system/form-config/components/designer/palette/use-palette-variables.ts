@@ -111,38 +111,19 @@ export function usePaletteVariables({
         }
       }
 
-      // 2. Type / Placed Filter
+      // 2. Placed Status Filter
+      if (typeFilter === "placed") {
+        if (item.kind === "single") {
+          return usedFieldNames.has(item.property.NAME);
+        }
+        return item.children.every((c) => usedFieldNames.has(c.NAME));
+      }
+
       if (typeFilter === "unplaced") {
         if (item.kind === "single") {
           return !usedFieldNames.has(item.property.NAME);
         }
         return item.children.some((c) => !usedFieldNames.has(c.NAME));
-      }
-
-      if (typeFilter === "text") {
-        if (item.kind === "single") {
-          const t = (item.property.TYPE || "Text").toUpperCase();
-          return t.includes("TEXT") || t.includes("CHAR") || t.includes("STRING");
-        }
-        return true;
-      }
-
-      if (typeFilter === "number") {
-        if (item.kind === "single") {
-          const t = (item.property.TYPE || "").toUpperCase();
-          return (
-            t.includes("NUM") || t.includes("AMOUNT") || t.includes("INT") || t.includes("DECIMAL")
-          );
-        }
-        return true;
-      }
-
-      if (typeFilter === "date") {
-        if (item.kind === "single") {
-          const t = (item.property.TYPE || "").toUpperCase();
-          return t.includes("DATE") || t.includes("TIME");
-        }
-        return true;
       }
 
       return true;

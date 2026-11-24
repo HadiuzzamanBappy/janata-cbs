@@ -116,23 +116,25 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
     {
       SN: "7",
       NAME: "DEFAULTVALUE",
-      LABEL: "Default Value",
+      LABEL: "Default Initial Value",
       TYPE: "String",
       STRUCTURE: "S",
       LENGTH: 60,
       WIDTH: "full",
-      ENRICHTEXT: "Pre-filled for new records; the operator can change it.",
+      ENRICHTEXT:
+        "Pre-filled for new records; operator can change it. For dropdowns/lookups, enter the option Code (e.g. 'M', '1001').",
       VISIBLE_WHEN: { field: "FIXEDVALUE", operator: "falsy" },
     },
     {
       SN: "8",
       NAME: "FIXEDVALUE",
-      LABEL: "Fixed Constant Value",
+      LABEL: "Fixed Constant Value (Locked)",
       TYPE: "String",
       STRUCTURE: "S",
       LENGTH: 60,
       WIDTH: "full",
-      ENRICHTEXT: "Always written on input and shown read-only. Replaces the default value.",
+      ENRICHTEXT:
+        "Permanent value written on input and locked read-only (operator cannot edit). Replaces default value.",
     },
   ],
 };

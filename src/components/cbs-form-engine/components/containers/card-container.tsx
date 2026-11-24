@@ -84,19 +84,20 @@ export function CardContainer({
       return isViewMode ? "space-y-1.5" : "space-y-2";
     }
 
-    const isAccordionCollapsed = isCollapsible && collapsed;
-
-    if (isAccordionCollapsed) {
-      return cn(
-        "rounded border border-transparent bg-muted/20 hover:bg-muted/35 px-2.5 py-1.5 transition-colors cursor-pointer",
-      );
-    }
-
     const borderClass = !isBordered
       ? "border-transparent"
       : bg === "subtle"
         ? "border border-border/60"
         : "border border-border/80";
+
+    const isAccordionCollapsed = isCollapsible && collapsed;
+
+    if (isAccordionCollapsed) {
+      return cn(
+        "rounded bg-muted/20 hover:bg-muted/35 p-2.5 transition-colors cursor-pointer",
+        borderClass,
+      );
+    }
 
     const bgClass =
       bg === "none" ? "bg-transparent" : bg === "subtle" ? "bg-muted/20" : "bg-card/60";

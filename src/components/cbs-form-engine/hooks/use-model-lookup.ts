@@ -60,12 +60,35 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
       });
     }
 
-    // 2. Filter by condition expression if specified
+    // 2. Extract items based strictly on configured type:
+    // - Mode A (Array Mode): unwrap from specified arrayField (or default itemArray) within target record
+    // - Mode M (Flat Mode): use records directly as options without magic auto-detect
+    let itemsToMap: unknown[] = filtered;
+    const isArrayMode = param?.type === "A" || Boolean(param?.recordId?.trim());
+
+    if (isArrayMode) {
+      const arrayKey = param?.arrayField?.trim() || "itemArray";
+      if (filtered.length > 0) {
+        const targetRecord = filtered[0] as Record<string, unknown>;
+        const nested = targetRecord[arrayKey] ?? targetRecord[arrayKey.toLowerCase()];
+        if (Array.isArray(nested)) {
+          itemsToMap = nested;
+        } else {
+          // If array mode was requested but arrayField not found on record, return empty
+          itemsToMap = [];
+        }
+      } else {
+        itemsToMap = [];
+      }
+    }
+
+    // 3. Filter items by condition expression if specified (works for flat records AND array items)
     if (param?.condition) {
       const match = param.condition.trim().match(/^(\w+)\s*(===|==)\s*['"]([^'"]+)['"]$/i);
       if (match) {
         const [, fieldKey, , expectedVal] = match;
-        filtered = filtered.filter((item) => {
+        itemsToMap = itemsToMap.filter((item) => {
+          if (typeof item !== "object" || item === null) return true;
           const rec = item as Record<string, unknown>;
           const actual =
             rec[fieldKey] ?? rec[fieldKey.toLowerCase()] ?? rec[fieldKey.toUpperCase()];
@@ -74,28 +97,11 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
       }
     }
 
-    // 3. Extract items: if Array Mode A, arrayField specified, or single-record auto-detect
-    let itemsToMap: unknown[] = filtered;
-    const arrayKey = param?.arrayField?.trim() || (param?.type === "A" ? "itemArray" : "");
-
-    if (arrayKey && filtered.length > 0) {
-      const targetRecord = filtered[0] as Record<string, unknown>;
-      const nested = targetRecord[arrayKey] ?? targetRecord[arrayKey.toLowerCase()];
-      if (Array.isArray(nested)) {
-        itemsToMap = nested;
-      }
-    } else if (filtered.length === 1) {
-      // Smart auto-detect: if a single record holds an itemArray, unwrap it automatically
-      const rec = filtered[0] as Record<string, unknown>;
-      if (Array.isArray(rec.itemArray)) {
-        itemsToMap = rec.itemArray;
-      }
-    }
-
-    const codeKey = String(param?.codeField || (param?.type === "A" ? "itemCode" : "id"));
-    const displayKey = String(
-      param?.displayField || (param?.type === "A" ? "itemLabel" : "description"),
-    );
+    // Default code & display keys
+    const rawCode = param?.codeField !== undefined ? String(param.codeField).trim() : "";
+    const rawDisplay = param?.displayField?.trim() || "";
+    const codeKey = rawCode || (isArrayMode ? "itemCode" : "id");
+    const displayKey = rawDisplay || (isArrayMode ? "itemLabel" : "name");
 
     return itemsToMap
       .map((item) => {
@@ -103,23 +109,26 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
           return { code: String(item), label: String(item) };
         }
         const rec = item as Record<string, unknown>;
-        if (rec.isActive === false) return null;
         const codeVal =
           rec[codeKey] ??
           rec[codeKey.toLowerCase()] ??
-          rec.itemCode ??
-          rec.id ??
-          rec.recordId ??
-          rec.code ??
-          "";
+          rec[codeKey.toUpperCase()] ??
+          (rawCode
+            ? ""
+            : (rec.id ?? rec.recordId ?? rec.code ?? rec.branchCode ?? rec.itemCode ?? ""));
         const labelVal =
           rec[displayKey] ??
           rec[displayKey.toLowerCase()] ??
-          rec.itemLabel ??
-          rec.name ??
-          rec.title ??
-          rec.description ??
-          codeVal;
+          rec[displayKey.toUpperCase()] ??
+          ((rawDisplay
+            ? ""
+            : (rec.name ??
+              rec.title ??
+              rec.branchTitle ??
+              rec.description ??
+              rec.itemLabel ??
+              "")) ||
+            codeVal);
         return {
           code: String(codeVal),
           label: String(labelVal || codeVal),

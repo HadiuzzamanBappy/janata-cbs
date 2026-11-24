@@ -8,9 +8,16 @@
 
 "use client";
 
-import { Boxes, ShieldCheck, Sliders } from "lucide-react";
+import { Boxes, Plus, ShieldCheck, Sliders, Trash2 } from "lucide-react";
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
@@ -114,7 +121,15 @@ export function FieldInspector({
   );
 
   const { sections } = useDesignerContext();
-  const { ruleSections, ruleValues, toRulePatch } = useFieldRuleView(field, sections);
+  const {
+    activeRules,
+    availableRules,
+    activeRuleSections,
+    ruleValues,
+    toRulePatch,
+    getAddRulePatch,
+    getRemoveRulePatch,
+  } = useFieldRuleView(field, sections);
 
   const handleFieldPropertyChange = React.useCallback(
     (fieldKey: string, rawValue: unknown) => {
@@ -274,7 +289,11 @@ export function FieldInspector({
               label: isSelectionWidget ? "Options & Data" : "Widget Config",
               icon: Boxes,
             },
-            { id: "rules", label: "Rules", icon: ShieldCheck },
+            {
+              id: "rules",
+              label: activeRules.size > 0 ? `Rules (${activeRules.size})` : "Rules",
+              icon: ShieldCheck,
+            },
           ] as const
         ).map(({ id, label, icon: Icon }) => (
           <button
@@ -342,16 +361,84 @@ export function FieldInspector({
 
       {/* 6. Tab Pane 3: Rules (Validation, Conditional Visibility, Automation) */}
       {activeTab === "rules" && (
-        <div className="space-y-4 pt-1">
-          <FormRenderer
-            frmElements={{ sections: ruleSections }}
-            values={ruleValues}
-            onChange={handleFieldPropertyChange}
-            disabled={disabled}
-            mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-            layout="stacked"
-            className="overflow-visible"
-          />
+        <div className="space-y-3 pt-1">
+          {/* Add Rule Toolbar */}
+          <div className="flex items-center justify-between pb-1 border-b border-border/50">
+            <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Configured Rules ({activeRules.size})
+            </span>
+            {availableRules.length > 0 && !disabled && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 text-2xs px-2 gap-1 cursor-pointer font-medium"
+                    >
+                      <Plus className="w-3 h-3 text-primary" />
+                      <span>Add Rule</span>
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" className="w-56 p-1 text-xs">
+                  {availableRules.map((r) => (
+                    <DropdownMenuItem
+                      key={r.kind}
+                      onClick={() => onUpdateField(getAddRulePatch(r.kind))}
+                      className="cursor-pointer flex flex-col items-start gap-0.5 py-1.5 px-2"
+                    >
+                      <span className="font-semibold text-foreground">{r.title}</span>
+                      <span className="text-3xs text-muted-foreground">{r.description}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {/* Empty State when no rules are configured */}
+          {activeRuleSections.length === 0 ? (
+            <div className="rounded border border-dashed border-border/70 p-4 text-center space-y-1.5 bg-muted/10">
+              <ShieldCheck className="w-5 h-5 text-muted-foreground/40 mx-auto" />
+              <p className="text-2xs text-muted-foreground font-medium">
+                No active rules on this field.
+              </p>
+              <p className="text-3xs text-muted-foreground/60 max-w-55 mx-auto">
+                Click <span className="font-semibold text-foreground">+ Add Rule</span> to attach
+                validation, conditional visibility, cascades, or automation.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {activeRuleSections.map(({ kind, section }) => (
+                <div key={section.id} className="relative group">
+                  <div className="absolute right-2.5 top-2 z-10">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onUpdateField(getRemoveRulePatch(kind))}
+                      disabled={disabled}
+                      className="h-4 w-4 p-0 text-muted-foreground/60 hover:text-destructive hover:bg-transparent cursor-pointer"
+                      title="Remove this rule"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                  <FormRenderer
+                    frmElements={{ sections: [section] }}
+                    values={ruleValues}
+                    onChange={handleFieldPropertyChange}
+                    disabled={disabled}
+                    mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+                    layout="stacked"
+                    className="overflow-visible"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

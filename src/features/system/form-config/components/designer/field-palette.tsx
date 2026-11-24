@@ -152,25 +152,19 @@ export function FieldPalette({
             <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as PaletteTypeFilter)}>
               <SelectTrigger
                 size="sm"
-                className="h-7 w-18 text-3xs py-0 px-2 shrink-0 bg-background/80 border-border/60 font-mono shadow-none rounded-md [&_svg]:size-3"
+                className="h-7 w-23 text-3xs py-0 px-2 shrink-0 bg-background/80 border-border/60 font-medium shadow-none rounded-md [&_svg]:size-3 cursor-pointer"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent align="end" className="text-xs min-w-31.25">
-                <SelectItem value="all" className="text-xs">
+              <SelectContent align="end" className="text-xs min-w-32">
+                <SelectItem value="all" className="text-xs cursor-pointer">
                   All ({resolvedProperties.length})
                 </SelectItem>
-                <SelectItem value="unplaced" className="text-xs">
-                  Unplaced ({Math.max(0, resolvedProperties.length - placedCount)})
+                <SelectItem value="placed" className="text-xs cursor-pointer">
+                  Placed ({placedCount})
                 </SelectItem>
-                <SelectItem value="text" className="text-xs">
-                  Text
-                </SelectItem>
-                <SelectItem value="number" className="text-xs">
-                  Number
-                </SelectItem>
-                <SelectItem value="date" className="text-xs">
-                  Date
+                <SelectItem value="unplaced" className="text-xs cursor-pointer">
+                  Not Placed ({Math.max(0, resolvedProperties.length - placedCount)})
                 </SelectItem>
               </SelectContent>
             </Select>

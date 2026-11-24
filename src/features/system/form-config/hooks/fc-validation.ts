@@ -14,7 +14,7 @@ import {
   type ModelConfigRecord,
 } from "@/lib/data-schemas";
 
-export type FormConfigTabKey = "general" | "formDesigner" | "preview" | "json";
+export type FormConfigTabKey = "general" | "formDesigner" | "routines" | "preview" | "json";
 
 export interface FormConfigValidationError extends CbsScreenValidationError<FormConfigTabKey> {
   readonly id: string;
@@ -41,11 +41,12 @@ function mapZodIssuesToFcValidationErrors(
   return issues.map((issue, idx) => {
     const path = issue.path;
     if (path[0] !== "frmElements" || path[1] !== "sections") {
+      const isRoutine = path[0] === "frmRoutine";
       return {
-        id: `general-${path.join(".")}-${idx}`,
-        tab: "general",
+        id: `${isRoutine ? "routines" : "general"}-${path.join(".")}-${idx}`,
+        tab: isRoutine ? "routines" : "general",
         fieldKey: path.join("."),
-        message: path[0] === "frmRoutine" ? issue.message : `General: ${issue.message}`,
+        message: isRoutine ? issue.message : `General: ${issue.message}`,
       };
     }
 

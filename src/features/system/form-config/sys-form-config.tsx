@@ -8,7 +8,7 @@
 
 "use client";
 
-import { Code, Eye, FileText, Palette } from "lucide-react";
+import { Code, Eye, FileText, Palette, Zap } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
@@ -19,9 +19,10 @@ import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
+import { FcRoutineTab } from "./components/fc-routine-tab";
 import { useFormConfig } from "./hooks/use-form-config";
 
-type FormConfigTabKey = "general" | "formDesigner" | "preview" | "json";
+type FormConfigTabKey = "general" | "formDesigner" | "routines" | "preview" | "json";
 
 export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -133,6 +134,24 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             onConvertSectionZone={convertSectionZone}
             onMergeTabGroup={mergeTabGroups}
             disabled={isReadOnly}
+          />
+        ),
+      },
+      {
+        id: "routines",
+        label: "Routines",
+        icon: <Zap className="size-3 text-muted-foreground" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "routines").length || undefined,
+        content: (
+          <FcRoutineTab
+            formData={formData}
+            setFormData={setFormData}
+            isReadOnly={isReadOnly}
+            errors={Object.fromEntries(
+              validationErrors
+                .filter((e) => e.tab === "routines")
+                .map((e) => [e.fieldKey, e.message]),
+            )}
           />
         ),
       },

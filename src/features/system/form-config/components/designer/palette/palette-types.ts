@@ -5,7 +5,7 @@ import type {
   ModelProperty,
 } from "@/lib/data-schemas";
 
-export type PaletteTypeFilter = "all" | "unplaced" | "text" | "number" | "date";
+export type PaletteTypeFilter = "all" | "placed" | "unplaced";
 
 export interface FieldPaletteProps {
   className?: string;

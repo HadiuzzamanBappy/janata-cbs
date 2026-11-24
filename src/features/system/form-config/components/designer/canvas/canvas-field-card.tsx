@@ -77,6 +77,61 @@ export function CanvasFieldCard({
       list.push({ key: "structure", label: "SINGLE", variant: "outline" });
     }
 
+    // 5. Active Rule Badges (Visible When, Disabled When, Cascade, On Change, Validation)
+    if (field.VISIBLE_WHEN) {
+      list.push({
+        key: "rule-vis",
+        label: "VIS",
+        variant: "secondary",
+        className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 font-semibold",
+      });
+    }
+
+    if (field.DISABLED_WHEN) {
+      list.push({
+        key: "rule-dis",
+        label: "DIS",
+        variant: "secondary",
+        className:
+          "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 font-semibold",
+      });
+    }
+
+    if (Array.isArray(field.CASCADE) && field.CASCADE.length > 0) {
+      list.push({
+        key: "rule-cas",
+        label: "CAS",
+        variant: "secondary",
+        className:
+          "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 font-semibold",
+      });
+    }
+
+    if (field.ON_CHANGE?.target) {
+      list.push({
+        key: "rule-chg",
+        label: "CHG",
+        variant: "secondary",
+        className:
+          "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 font-semibold",
+      });
+    }
+
+    if (
+      (field.TRANSFORM && field.TRANSFORM !== "none") ||
+      field.VALIDATION?.matches ||
+      field.VALIDATION?.min !== undefined ||
+      field.VALIDATION?.max !== undefined
+    ) {
+      list.push({
+        key: "rule-val",
+        label: "VAL",
+        variant: "secondary",
+        className:
+          "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30 font-semibold",
+      });
+    }
+
     return list;
   }, [field, matchedProp]);
 

@@ -11,7 +11,7 @@
 import * as React from "react";
 import {
   createModelProperty,
-  DEFAULT_SUB_PROPERTY_LENGTH,
+  DEFAULT_PROPERTY_LENGTH,
   type ModelConfigRecord,
   type ModelProperty,
 } from "@/lib/data-schemas";
@@ -66,7 +66,7 @@ export function useMcPropertyOps(
           const nextSn = `${parentSn}_${maxSuffix + 1}`;
           createdSn = nextSn;
           const newSubField = createModelProperty(nextSn, {
-            LENGTH: DEFAULT_SUB_PROPERTY_LENGTH,
+            LENGTH: DEFAULT_PROPERTY_LENGTH,
           });
           // Sub-properties are only offered on Array properties, so the parent type is unchanged
           return { ...p, PROP: [...currentChildren, newSubField] };

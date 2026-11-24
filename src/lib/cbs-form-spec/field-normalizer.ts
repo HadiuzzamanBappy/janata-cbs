@@ -1,23 +1,15 @@
-/**
- * @fileoverview Canonical Field Normalizer & Semantic Width Derivation
- * @module cbs-form-spec/field-normalizer
- *
- * Core Invariants:
- * - Maps physical database types and character lengths to high-density semantic width tokens.
- * - Resolves presentation widgets according to physical type compatibility and lookup capabilities.
- * - Transforms raw ModelProperty records into fully initialized FormElement structures.
- */
-
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
+  CBS_PROPERTY_STRUCTURE,
   CBS_PROPERTY_TYPE,
-  DEFAULT_SUB_PROPERTY_LENGTH,
+  DEFAULT_PROPERTY_LENGTH,
   type FormElement,
   type FormFieldParameter,
   type FormWidgetType,
   getDefaultWidgetForType,
   isWidgetCompatibleWithType,
   type ModelProperty,
+  type PropertyStructure,
   type PropertyType,
   type PropertyWidth,
   resolvePhysicalLength,
@@ -26,37 +18,22 @@ import {
   type SemanticWidthToken,
 } from "@/lib/data-schemas";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Semantic Width Derivation
-// ─────────────────────────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/* Semantic Width Derivation                                                  */
+/* -------------------------------------------------------------------------- */
 
 /**
- * Derives a responsive semantic width token ("xs".."full") from explicit width,
- * physical DB column capacity (LENGTH), or physical TYPE.
- *
- * Sizing tiers:
- * - <= 6   -> "xs"  (branch code, currency, small flags)
- * - <= 16  -> "sm"  (account numbers, dates, short codes)
- * - <= 40  -> "md"  (standard amounts, IDs, customer names)
- * - <= 80  -> "lg"  (full titles, corporate entities)
- * - <= 150 -> "xl"  (street address, narration)
- * - > 150  -> "xxl" (extended remarks)
- *
- * @param width Explicit width override ("xs".."full") if defined.
- * @param length Physical database column character capacity.
- * @param type Physical property data type ("String" | "Number" | "Date" | etc.).
- * @returns Canonical SemanticWidthToken for layout grid and input element styling.
+ * Derives a semantic width token ("xs".."full") from an explicit width override,
+ * physical DB column LENGTH (<=6 xs, <=16 sm, <=40 md, <=80 lg, <=150 xl, >150 xxl), or TYPE.
  */
 export function deriveSemanticWidth(
   width?: PropertyWidth,
   length?: number,
   type?: string,
 ): SemanticWidthToken {
-  if (
-    typeof width === "string" &&
-    (SEMANTIC_WIDTH_TOKENS as readonly string[]).includes(width.toLowerCase().trim())
-  ) {
-    return width.toLowerCase().trim() as SemanticWidthToken;
+  const normalizedWidth = typeof width === "string" ? width.toLowerCase().trim() : "";
+  if ((SEMANTIC_WIDTH_TOKENS as readonly string[]).includes(normalizedWidth)) {
+    return normalizedWidth as SemanticWidthToken;
   }
 
   if (typeof length === "number" && length > 0) {
@@ -72,41 +49,23 @@ export function deriveSemanticWidth(
   if (normType === CBS_PROPERTY_TYPE.ARRAY) return "full";
   if (normType === CBS_PROPERTY_TYPE.BOOLEAN || normType === CBS_PROPERTY_TYPE.TIME) return "xs";
   if (normType === CBS_PROPERTY_TYPE.DATE || normType === CBS_PROPERTY_TYPE.DATETIME) return "sm";
-  if (normType === CBS_PROPERTY_TYPE.NUMBER) return "md";
 
   return "md";
 }
 
-/**
- * Computes optimal semantic width token from model property attributes.
- *
- * @param prop Physical model property definition.
- * @returns Derived PropertyWidth token.
- */
-export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
-  return deriveSemanticWidth(undefined, prop.LENGTH, prop.TYPE);
-}
+/* -------------------------------------------------------------------------- */
+/* Widget Resolution                                                          */
+/* -------------------------------------------------------------------------- */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Widget Resolution
-// ─────────────────────────────────────────────────────────────────────────────
-/**
- * Resolves the presentation UI widget type based on physical type, lookups, and explicit overrides.
- * Honors explicit overrides only if they conform to COMPATIBLE_WIDGETS_FOR_TYPE.
- *
- * @param type Physical database column type.
- * @param param Lookup parameter configuration (fixed options "O", model lookup "M", list "L").
- * @param explicitWidget Explicit visual widget override from form designer.
- * @returns Canonical FormWidgetType (e.g. "text", "select", "date", "time", "switch").
- */
+/** Resolves the presentation UI widget from physical type, lookups, and compatible overrides. */
 export function resolveWidgetType(
   type?: string,
   param?: FormFieldParameter,
   explicitWidget?: string,
-  structure: "S" | "M" = "S",
+  structure: PropertyStructure = CBS_PROPERTY_STRUCTURE.SINGLE,
   options?: { length?: number; modelName?: string },
 ): FormWidgetType {
-  const normType = (type || "String").trim() as PropertyType;
+  const normType = (type || CBS_PROPERTY_TYPE.STRING).trim() as PropertyType;
   const modelName = options?.modelName || param?.modelName;
   const hasLookup =
     Boolean(
@@ -139,15 +98,11 @@ export function resolveWidgetType(
   return getDefaultWidgetForType(normType);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Parameter & FormElement Normalizers
-// ─────────────────────────────────────────────────────────────────────────────
-/**
- * Normalizes dynamic lookup or fixed option parameters into a strict FormFieldParameter.
- *
- * @param raw Unsanitized parameter dictionary from metadata or JSON schemas.
- * @returns Sanitized FormFieldParameter structure, or undefined if empty.
- */
+/* -------------------------------------------------------------------------- */
+/* Parameter & FormElement Normalizers                                        */
+/* -------------------------------------------------------------------------- */
+
+/** Normalizes lookup or fixed-option parameters into a FormFieldParameter. */
 export function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["PARAMETER"] {
   if (!raw) return undefined;
 
@@ -173,21 +128,14 @@ export function normalizeParameter(raw?: Record<string, unknown> | null): FormEl
   };
 }
 
-/**
- * Transforms a physical ModelProperty into an initialized FormElement.
- * Generates sensible defaults for layout, widgets, labels, and sub-properties.
- *
- * @param p Physical model property from ModelConfig.
- * @param idx Sequential zero-based index in the property list.
- * @returns Fully initialized FormElement.
- */
+/** Transforms a physical ModelProperty into an initialized FormElement. */
 export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormElement {
   const snStr = String(p.SN || idx + 1);
   const baseLabel = formatNameToLabel(p.NAME) || `Field #${snStr}`;
   const rawP = p as unknown as Record<string, unknown>;
   const rawParam = rawP.PARAMETER as Record<string, unknown> | undefined;
   let param = normalizeParameter(rawParam);
-  const modelName = (p.MODELNAME || (rawP.MODELNAME as string) || "").trim();
+  const modelName = (p.MODELNAME || "").trim();
 
   if (!param && modelName) {
     param = {
@@ -197,8 +145,8 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     };
   }
 
-  const normType = (p.TYPE || "String") as PropertyType;
-  const normLength = resolvePhysicalLength(normType, p.LENGTH, DEFAULT_SUB_PROPERTY_LENGTH);
+  const normType = (p.TYPE || CBS_PROPERTY_TYPE.STRING) as PropertyType;
+  const normLength = resolvePhysicalLength(normType, p.LENGTH, DEFAULT_PROPERTY_LENGTH);
   const normStructure = resolvePhysicalStructure(normType, p.STRUCTURE);
 
   const explicitWidget = rawP.WIDGET as string | undefined;
@@ -220,7 +168,7 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     STRUCTURE: normStructure,
     REQUIRED: Boolean(p.REQUIRED),
     DISABLED: false,
-    WIDTH: defaultWidthForLength(p),
+    WIDTH: deriveSemanticWidth(undefined, p.LENGTH, p.TYPE),
     WIDGET: effectiveWidget,
     PARAMETER: param,
     ...(modelName ? { MODELNAME: modelName } : {}),

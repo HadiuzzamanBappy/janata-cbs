@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { CBS_PROPERTY_TYPE, type PropertyType } from "./model-config-schema";
+import {
+  CBS_PROPERTY_STRUCTURE,
+  CBS_PROPERTY_TYPE,
+  type PropertyStructure,
+  type PropertyType,
+} from "./model-config-schema";
 
 /* ========================================================================== */
 /* 1. PRESENTATION UI WIDGET TYPES                                            */
@@ -39,7 +44,7 @@ export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidg
 } as const;
 
 export function getDefaultWidgetForType(type: PropertyType | string): FormWidgetType {
-  const normalized = (type || "String").trim();
+  const normalized = (type || CBS_PROPERTY_TYPE.STRING).trim();
   switch (normalized) {
     case CBS_PROPERTY_TYPE.NUMBER:
       return "number";
@@ -60,7 +65,7 @@ export function getDefaultWidgetForType(type: PropertyType | string): FormWidget
 
 export interface WidgetEligibilityContext {
   type: PropertyType | string;
-  structure?: "S" | "M";
+  structure?: PropertyStructure;
   length?: number;
   modelName?: string;
 }
@@ -76,11 +81,11 @@ export interface WidgetEligibilityContext {
  */
 export function getCompatibleWidgets({
   type,
-  structure = "S",
+  structure = CBS_PROPERTY_STRUCTURE.SINGLE,
   length,
   modelName,
 }: WidgetEligibilityContext): FormWidgetType[] {
-  const normType = (type || "String").trim() as PropertyType;
+  const normType = (type || CBS_PROPERTY_TYPE.STRING).trim() as PropertyType;
   const baseAllowed = COMPATIBLE_WIDGETS_FOR_TYPE[normType] || [];
 
   // Foreign key model reference: locked exclusively to select
@@ -89,15 +94,10 @@ export function getCompatibleWidgets({
   }
 
   return baseAllowed.filter((w) => {
-    // 1. checkbox-group strictly requires Multi-Value ('M')
-    if (w === "checkbox-group") return structure === "M";
-
-    // 2. Single-choice toggles strictly require Single ('S')
+    if (w === "checkbox-group") return structure === CBS_PROPERTY_STRUCTURE.MULTI;
     if (w === "checkbox" || w === "switch" || w === "radio-group" || w === "segmented") {
-      return structure === "S";
+      return structure === CBS_PROPERTY_STRUCTURE.SINGLE;
     }
-
-    // 3. Textarea requires long text capacity (LENGTH >= 80)
     if (w === "textarea") {
       return length === undefined || length >= 80;
     }
@@ -109,7 +109,7 @@ export function getCompatibleWidgets({
 export function isWidgetCompatibleWithType(
   type: PropertyType | string,
   widget: FormWidgetType | string,
-  structure: "S" | "M" = "S",
+  structure: PropertyStructure = CBS_PROPERTY_STRUCTURE.SINGLE,
   options?: { length?: number; modelName?: string },
 ): boolean {
   const normWidget = (widget || "text").trim().toLowerCase() as FormWidgetType;

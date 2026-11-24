@@ -34,27 +34,10 @@ export const SCHEMA_ROOT_KEYS = {
 const inquiryConfigPayloads = createModelPayloads(CbsControlTable.INQUIRY_CONFIG);
 
 /**
- * Fetches and unwraps a single MODEL.CONFIG metamodel record ('GMC').
- */
-/**
  * The core answered that the model does not exist (an empty success, or RECORD_NOT_FOUND / 404).
  * Any other failure is a plain Error, so a designer never mistakes an outage for a new model.
  */
 export class ModelConfigNotFoundError extends Error {}
-
-export async function loadModelConfigRecord(modelId: string): Promise<ModelConfigRecord> {
-  const cleanId = modelId.split("$")[0].split(",")[0].trim().toUpperCase();
-  const res = await sendCbsRequest<unknown>(modelConfigPayloads.get(cleanId), { silent: true });
-  const record = isApiSuccess(res) ? extractModelConfigRecord(res.data) : null;
-  if (!record) {
-    const message = res.message || `Failed to load MODEL.CONFIG for "${cleanId}"`;
-    const notFound =
-      isApiSuccess(res) || res.status === CBS_API_STATUS.RECORD_NOT_FOUND || res.statusCode === 404;
-    throw notFound ? new ModelConfigNotFoundError(message) : new Error(message);
-  }
-  // Not schema-validated on purpose: designers must be able to open invalid records to fix them.
-  return record as ModelConfigRecord;
-}
 
 /**
  * Tier: Screen Blueprints & Metadata Schemas (Sidebar Navigation, Forms, Inquiries, Metamodels).
@@ -84,7 +67,22 @@ export const schemaQueries = {
       queryKey: ["cbs", "model-config", "record", cleanId] as const,
       enabled: Boolean(cleanId),
       staleTime: 5 * 60 * 1000,
-      queryFn: () => loadModelConfigRecord(cleanId),
+      queryFn: async () => {
+        const res = await sendCbsRequest<unknown>(modelConfigPayloads.get(cleanId), {
+          silent: true,
+        });
+        const record = isApiSuccess(res) ? extractModelConfigRecord(res.data) : null;
+        if (!record) {
+          const message = res.message || `Failed to load MODEL.CONFIG for "${cleanId}"`;
+          const notFound =
+            isApiSuccess(res) ||
+            res.status === CBS_API_STATUS.RECORD_NOT_FOUND ||
+            res.statusCode === 404;
+          throw notFound ? new ModelConfigNotFoundError(message) : new Error(message);
+        }
+        // Not schema-validated on purpose: designers must be able to open invalid records to fix them.
+        return record as ModelConfigRecord;
+      },
     });
   },
 

@@ -69,6 +69,7 @@ export const modelConfigPayloads = {
       controlName: CbsControlTable.MODEL_CONFIG,
       recordFunction: CbsRecordFunction.AUTHORIZE,
       recordId: recordId.trim().toUpperCase(),
+      idempotencyKey: options?.idempotencyKey,
     };
   },
 };

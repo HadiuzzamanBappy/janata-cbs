@@ -53,17 +53,16 @@ export function apiFail(
 }
 
 export function apiError(
-  err: unknown,
+  _err: unknown,
   fallbackMessage = "Internal Server Error",
   statusCode = 500,
 ): NextResponse<ApiResponse> {
-  const message = err instanceof Error ? err.message : fallbackMessage;
   return createApiResponse(
     {
       status: CBS_API_STATUS.ERROR,
       statusCode,
-      message,
-      errors: [message],
+      message: fallbackMessage,
+      errors: [fallbackMessage],
       timestamp: new Date().toISOString(),
     },
     statusCode,

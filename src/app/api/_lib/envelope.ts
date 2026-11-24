@@ -13,7 +13,7 @@ export function buildGrpcEnvelope(session: SessionData, body: EnvelopeRequest): 
     servicePath: body.servicePath || DEFAULT_SERVICE,
     requestType: body.requestType,
     controlName: body.controlName ?? "",
-    branchCode: session.currUser.branchCode || serverConfig.centralBranch,
+    branchCode: session.currUser.branchCode,
     recordFunction: body.recordFunction ?? "",
     recordId: body.recordId ?? "",
     authLevel: body.authLevel ?? 1,

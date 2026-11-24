@@ -10,7 +10,7 @@
 
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
-  DEFAULT_SUB_PROPERTY_LENGTH,
+  DEFAULT_PROPERTY_LENGTH,
   type FormConfigRecord,
   type FormElement,
   type FormSection,
@@ -20,11 +20,7 @@ import {
   resolvePhysicalLength,
   resolvePhysicalStructure,
 } from "@/lib/data-schemas";
-import {
-  defaultWidthForLength,
-  modelPropToFormElement,
-  resolveWidgetType,
-} from "./field-normalizer";
+import { deriveSemanticWidth, modelPropToFormElement, resolveWidgetType } from "./field-normalizer";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fallback Layout Generator
@@ -98,7 +94,7 @@ export function mergeFieldWithModelProp(
   const effectiveLength = resolvePhysicalLength(
     physicalType,
     modelProp.LENGTH ?? field.LENGTH,
-    DEFAULT_SUB_PROPERTY_LENGTH,
+    DEFAULT_PROPERTY_LENGTH,
   );
   const effectiveStructure = resolvePhysicalStructure(
     physicalType,
@@ -120,7 +116,7 @@ export function mergeFieldWithModelProp(
 
     // Presentation layer attributes with sensible fallbacks
     LABEL: field.LABEL || formatNameToLabel(modelProp.NAME),
-    WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
+    WIDTH: field.WIDTH ?? deriveSemanticWidth(undefined, modelProp.LENGTH, modelProp.TYPE),
     WIDGET: resolveWidgetType(modelProp.TYPE, effectiveParam, field.WIDGET, effectiveStructure, {
       length: effectiveLength,
       modelName,

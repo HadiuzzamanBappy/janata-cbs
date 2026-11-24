@@ -81,8 +81,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     if (session.currUser.initLogin) {
       return apiFail("Password change required before accessing CBS core.", 403);
     }
+    if (!session.currUser.branchCode) {
+      return apiFail("No active branch assigned to user session.", 403);
+    }
 
-    const rawBody = await req.json();
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return apiFail("Invalid JSON request body", 400);
+    }
     const parsed = cbsWirePayloadSchema.safeParse(rawBody);
     if (!parsed.success) {
       return apiFail(

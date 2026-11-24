@@ -106,6 +106,8 @@ export const propertyWidthSchema = z.preprocess((val) => {
 export type PropertyWidth = SemanticWidthToken;
 
 export const baseFormElementSchema = baseFieldSchema.extend({
+  REQUIRED: z.boolean().optional(),
+  MODELNAME: z.string().optional(),
   LABEL: z.string().default("").optional(),
   WIDTH: propertyWidthSchema.default("md").optional(),
   DISABLED: z.boolean().default(false).optional(),
@@ -116,11 +118,11 @@ export const baseFormElementSchema = baseFieldSchema.extend({
   PARAMETER: formFieldParameterSchema.optional(),
   VISIBLE_WHEN: fieldVisibilityConditionSchema.optional(),
   DISABLED_WHEN: fieldVisibilityConditionSchema.optional(),
-  ...formWidgetShape,
   ON_CHANGE: formOnChangeRuleSchema.optional(),
   TRANSFORM: fieldTransformSchema.optional(),
   CASCADE: z.array(fieldCascadeRuleSchema).optional(),
   VALIDATION: fieldValidationRuleSchema.optional(),
+  ...formWidgetShape,
 });
 
 export type FormElement = z.infer<typeof baseFormElementSchema> & {

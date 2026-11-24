@@ -16,6 +16,7 @@ import { unwrapRecordsPayload } from "./protobuf-decoder";
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
 
 const BOOLEAN_FLAGS = ["USERDEFINEID", "READONLY", "SEARCHABLE"] as const;
+const OPTIONAL_STRINGS = ["PREFIX", "_DEVBY", "_DEVDATE"] as const;
 
 /* -------------------------------------------------------------------------- */
 /* Inbound Wire Response Parser                                               */
@@ -56,28 +57,30 @@ export function extractModelConfigRecord(rawPayload: unknown): Record<string, un
 function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
   const rawType = prop.TYPE;
   const normType = (
-    VALID_PROPERTY_TYPES.has(rawType) ? rawType : "String"
+    VALID_PROPERTY_TYPES.has(rawType) ? rawType : CBS_PROPERTY_TYPE.STRING
   ) as ModelProperty["TYPE"];
   const normStructure = resolvePhysicalStructure(normType, prop.STRUCTURE);
   const normLength = resolvePhysicalLength(normType, prop.LENGTH, DEFAULT_PROPERTY_LENGTH);
+  const canLinkModel =
+    normType === CBS_PROPERTY_TYPE.STRING || normType === CBS_PROPERTY_TYPE.NUMBER;
 
-  const sanitized: ModelProperty = {
+  return {
     SN: String(prop.SN || (index !== undefined ? index + 1 : "")).trim(),
     NAME: String(prop.NAME || "").trim(),
     TYPE: normType,
     STRUCTURE: normStructure,
     LENGTH: normLength,
     REQUIRED: Boolean(prop.REQUIRED),
-    MODELNAME: String(prop.MODELNAME || "")
-      .trim()
-      .toUpperCase(),
+    MODELNAME: canLinkModel
+      ? String(prop.MODELNAME || "")
+          .trim()
+          .toUpperCase()
+      : "",
     PROP:
       normType === CBS_PROPERTY_TYPE.ARRAY && Array.isArray(prop.PROP)
         ? prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx))
         : [],
   };
-
-  return sanitized;
 }
 
 /**
@@ -94,11 +97,13 @@ export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfi
     DESCRIPTION: String(record.DESCRIPTION || record.TABLENAME || "").trim(),
     ACCESS: rawAccess.startsWith("B") ? "B" : "G",
     SERVICEPATH: String(record.SERVICEPATH || "").trim(),
-    // Always written: 0 is a real value (no authorization), not an omitted flag.
     AUTHLEVEL: rawAuthLevel === "" || rawAuthLevel == null ? 1 : Number(rawAuthLevel),
   };
 
-  if (record.PREFIX?.trim()) result.PREFIX = record.PREFIX.trim();
+  for (const key of OPTIONAL_STRINGS) {
+    const val = record[key]?.trim();
+    if (val) result[key] = val;
+  }
   for (const flag of BOOLEAN_FLAGS) {
     if (record[flag]) result[flag] = true;
   }
@@ -107,9 +112,6 @@ export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfi
     const cleanAssoc = record.ASSOCIATES.map((a) => String(a || "").trim()).filter(Boolean);
     if (cleanAssoc.length > 0) result.ASSOCIATES = cleanAssoc;
   }
-
-  if (record._DEVBY?.trim()) result._DEVBY = record._DEVBY.trim();
-  if (record._DEVDATE?.trim()) result._DEVDATE = record._DEVDATE.trim();
 
   if (record.IDDEF) {
     const { IDPREFIX, SEQUENCELENGTH, SEQUENCERESET, SEQRESETPERIOD, IDPATTERN } = record.IDDEF;

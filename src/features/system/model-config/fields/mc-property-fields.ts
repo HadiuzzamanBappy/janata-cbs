@@ -10,7 +10,6 @@
 
 import {
   DEFAULT_PROPERTY_LENGTH,
-  DEFAULT_SUB_PROPERTY_LENGTH,
   FIXED_PROPERTY_LENGTHS,
   type FormSection,
   PROPERTY_TYPES,
@@ -76,7 +75,7 @@ export function getPropertyInspectorSections(isSubProperty: boolean = false): Fo
             {
               when: "String",
               set: {
-                LENGTH: isSubProperty ? DEFAULT_SUB_PROPERTY_LENGTH : DEFAULT_PROPERTY_LENGTH,
+                LENGTH: DEFAULT_PROPERTY_LENGTH,
                 PROP: undefined,
               },
             },

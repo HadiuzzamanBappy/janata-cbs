@@ -1,5 +1,5 @@
 import {
-  DEFAULT_SUB_PROPERTY_LENGTH,
+  DEFAULT_PROPERTY_LENGTH,
   type FormConfigRecord,
   type FormElement,
   type FormSection,
@@ -25,11 +25,7 @@ function sanitizeFormElement(field: FormElement): FormElement {
   const { id: _clientId, ...cleanField } = field as FormElement & { id?: string };
 
   const normType = (cleanField.TYPE || "String") as PropertyType;
-  const normLength = resolvePhysicalLength(
-    normType,
-    cleanField.LENGTH,
-    DEFAULT_SUB_PROPERTY_LENGTH,
-  );
+  const normLength = resolvePhysicalLength(normType, cleanField.LENGTH, DEFAULT_PROPERTY_LENGTH);
   const normStructure = resolvePhysicalStructure(normType, undefined, cleanField.STRUCTURE);
 
   const sanitized: Partial<FormElement> = {

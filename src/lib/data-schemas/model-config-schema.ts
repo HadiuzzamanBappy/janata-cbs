@@ -26,8 +26,16 @@ const propertyTypeSchema = z.enum(CBS_PROPERTY_TYPE);
 
 /** Ordered list of column types (drives the MODEL.CONFIG type selector). */
 export const PROPERTY_TYPES = propertyTypeSchema.options;
-
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
+
+/** Canonical physical column structure types: Single ("S") vs Multi ("M"). */
+export const CBS_PROPERTY_STRUCTURE = {
+  SINGLE: "S",
+  MULTI: "M",
+} as const;
+
+export const propertyStructureSchema = z.enum(CBS_PROPERTY_STRUCTURE);
+export type PropertyStructure = z.infer<typeof propertyStructureSchema>;
 
 /** Ordered list of column types allowed for nested sub-properties (excludes Array). */
 export const SUB_PROPERTY_TYPES: readonly PropertyType[] = PROPERTY_TYPES.filter(
@@ -46,9 +54,8 @@ export const FIXED_PROPERTY_LENGTHS: Readonly<Partial<Record<PropertyType, numbe
   Array: 0,
 };
 
-/** Default physical column lengths when not explicitly specified. */
+/** Default physical column length when not explicitly specified. */
 export const DEFAULT_PROPERTY_LENGTH = 50;
-export const DEFAULT_SUB_PROPERTY_LENGTH = 35;
 
 /**
  * Resolves the canonical physical column length for a given column type.
@@ -62,8 +69,9 @@ export function resolvePhysicalLength(
 ): number {
   const fixed = FIXED_PROPERTY_LENGTHS[type];
   if (fixed !== undefined) return fixed;
-  const parsed = typeof rawLength === "string" ? Number.parseInt(rawLength, 10) : rawLength;
-  return typeof parsed === "number" && !Number.isNaN(parsed) && parsed > 0 ? parsed : fallback;
+
+  const num = Math.floor(Number(rawLength));
+  return Number.isFinite(num) && num > 0 ? num : fallback;
 }
 
 /**
@@ -74,13 +82,19 @@ export function resolvePhysicalLength(
  */
 export function resolvePhysicalStructure(
   type: PropertyType,
-  modelStructure?: "S" | "M",
-  formStructure?: "S" | "M",
-): "S" | "M" {
-  if (type === CBS_PROPERTY_TYPE.BOOLEAN) return "S";
-  if (modelStructure === "S") return "S";
-  if (modelStructure === "M") return formStructure === "S" ? "S" : "M";
-  return formStructure === "M" ? "M" : "S";
+  modelStructure?: PropertyStructure,
+  formStructure?: PropertyStructure,
+): PropertyStructure {
+  if (type === CBS_PROPERTY_TYPE.BOOLEAN) return CBS_PROPERTY_STRUCTURE.SINGLE;
+  if (modelStructure === CBS_PROPERTY_STRUCTURE.SINGLE) return CBS_PROPERTY_STRUCTURE.SINGLE;
+  if (modelStructure === CBS_PROPERTY_STRUCTURE.MULTI) {
+    return formStructure === CBS_PROPERTY_STRUCTURE.SINGLE
+      ? CBS_PROPERTY_STRUCTURE.SINGLE
+      : CBS_PROPERTY_STRUCTURE.MULTI;
+  }
+  return formStructure === CBS_PROPERTY_STRUCTURE.MULTI
+    ? CBS_PROPERTY_STRUCTURE.MULTI
+    : CBS_PROPERTY_STRUCTURE.SINGLE;
 }
 
 /* ========================================================================== */
@@ -94,25 +108,26 @@ export const baseFieldSchema = z.looseObject({
     .trim()
     .min(1, "Property name is required")
     .regex(
-      /^[a-z][a-zA-Z0-9]*$/,
-      "Property name must be in camelCase (e.g. accountType, customerName)",
+      /^[a-zA-Z][a-zA-Z0-9_]*$/,
+      "Property name must start with a letter and contain only letters and numbers",
     ),
   TYPE: propertyTypeSchema.default("String"),
   STRUCTURE: z
-    .preprocess((val) => (typeof val === "string" ? val.toUpperCase() : val), z.enum(["S", "M"]))
-    .default("S"),
+    .preprocess(
+      (val) => (typeof val === "string" ? val.toUpperCase() : val),
+      propertyStructureSchema,
+    )
+    .default(CBS_PROPERTY_STRUCTURE.SINGLE),
   LENGTH: z.coerce.number().default(DEFAULT_PROPERTY_LENGTH),
   REQUIRED: z
     .union([z.boolean(), z.null()])
     .transform((v) => Boolean(v))
-    .default(false)
-    .optional(),
+    .default(false),
   MODELNAME: z
     .string()
     .trim()
     .default("")
-    .transform((v) => v.toUpperCase())
-    .optional(),
+    .transform((v) => v.toUpperCase()),
 });
 
 export type ModelProperty = z.infer<typeof baseFieldSchema> & {
@@ -134,7 +149,7 @@ export function createModelProperty(
   return {
     SN: sn,
     NAME: "",
-    TYPE: "String",
+    TYPE: CBS_PROPERTY_TYPE.STRING,
     STRUCTURE: "S",
     LENGTH: DEFAULT_PROPERTY_LENGTH,
     REQUIRED: false,
@@ -171,25 +186,7 @@ export const modelConfigRecordSchema = z.looseObject({
     .preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional())
     .default(1),
   SERVICEPATH: z.string().min(1, "Service Path is required"),
-  IDDEF: idDefSchema
-    .nullable()
-    .transform(
-      (val) =>
-        val ?? {
-          IDPREFIX: "",
-          SEQUENCELENGTH: "",
-          SEQUENCERESET: false,
-          SEQRESETPERIOD: "",
-          IDPATTERN: "",
-        },
-    )
-    .default({
-      IDPREFIX: "",
-      SEQUENCELENGTH: "",
-      SEQUENCERESET: false,
-      SEQRESETPERIOD: "",
-      IDPATTERN: "",
-    }),
+  IDDEF: z.preprocess((val) => val ?? {}, idDefSchema),
   PROPERTIES: z.array(modelPropertySchema).default([]),
   auditData: auditDataSchema.optional(),
 });
@@ -202,15 +199,14 @@ export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 
 const TABLE_NAME_PATTERN = /^[A-Z][A-Z0-9_.]*$/;
 const MODEL_ACCESS_CODES: readonly string[] = ["G", "B"];
+const MODEL_NAME_PATTERN = /^[A-Z0-9_.]+$/;
 
 const isPositiveInteger = (v: unknown): boolean => Number.isInteger(Number(v)) && Number(v) > 0;
 
-const MODEL_NAME_PATTERN = /^[A-Z0-9_.]+$/;
-
 /**
  * Save rules of a property list (top-level columns, or an Array's sub-properties): unique names,
- * a positive length on variable-length columns, a well-formed MODELNAME, no nested Array.
- * Which types may carry a MODELNAME (String, Number) is a designer-UI limit, not a save rule.
+ * a positive length on variable-length columns, a well-formed MODELNAME (String/Number only),
+ * at least one sub-property on Array, no PROP on non-Array, and no nested Array.
  */
 function checkProperties(
   props: ModelProperty[],
@@ -241,11 +237,18 @@ function checkProperties(
     }
 
     const modelName = (prop.MODELNAME || "").trim();
-    if (modelName && !MODEL_NAME_PATTERN.test(modelName)) {
-      issue(
-        "MODELNAME",
-        `Property "${label}" has invalid MODELNAME "${modelName}". Use uppercase letters, digits, dots or underscores.`,
-      );
+    if (modelName) {
+      if (prop.TYPE !== CBS_PROPERTY_TYPE.STRING && prop.TYPE !== CBS_PROPERTY_TYPE.NUMBER) {
+        issue(
+          "MODELNAME",
+          `Property "${label}" cannot define MODELNAME. MODELNAME is supported only on String and Number properties.`,
+        );
+      } else if (!MODEL_NAME_PATTERN.test(modelName)) {
+        issue(
+          "MODELNAME",
+          `Property "${label}" has invalid MODELNAME "${modelName}". Use uppercase letters, digits, dots or underscores.`,
+        );
+      }
     }
 
     if (parentName && prop.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
@@ -254,8 +257,16 @@ function checkProperties(
         `Sub-property "${label}" cannot be of type Array. Nested arrays are not supported.`,
       );
     }
-    if (!parentName && prop.PROP?.length) {
-      checkProperties(prop.PROP, [...path, "PROP"], ctx, prop.NAME || `#${prop.SN}`);
+
+    if (!parentName) {
+      const hasSubProps = Boolean(prop.PROP?.length);
+      if (prop.TYPE === CBS_PROPERTY_TYPE.ARRAY && !hasSubProps) {
+        issue("PROP", `Array property "${label}" must define at least one sub-property.`);
+      } else if (prop.TYPE !== CBS_PROPERTY_TYPE.ARRAY && hasSubProps) {
+        issue("PROP", `Property "${label}" of type ${prop.TYPE} cannot have sub-properties.`);
+      } else if (prop.TYPE === CBS_PROPERTY_TYPE.ARRAY && prop.PROP?.length) {
+        checkProperties(prop.PROP, [...path, "PROP"], ctx, prop.NAME || `#${prop.SN}`);
+      }
     }
   });
 }

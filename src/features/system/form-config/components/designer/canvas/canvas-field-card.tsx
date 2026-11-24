@@ -6,7 +6,7 @@ import { AlertTriangle, GripVertical, Minus } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { defaultWidthForLength } from "@/lib/cbs-form-spec";
+import { deriveSemanticWidth } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { type FormElement, getDefaultWidgetForType, type PropertyType } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "../context/designer-context";
@@ -57,7 +57,9 @@ export function CanvasFieldCard({
     }
 
     // 2. Width override (only if explicitly changed from default width)
-    const defaultWidth = matchedProp ? defaultWidthForLength(matchedProp) : undefined;
+    const defaultWidth = matchedProp
+      ? deriveSemanticWidth(undefined, matchedProp.LENGTH, matchedProp.TYPE)
+      : undefined;
     if (field.WIDTH && defaultWidth && field.WIDTH !== defaultWidth) {
       list.push({ key: "width", label: String(field.WIDTH).toUpperCase(), variant: "secondary" });
     }

@@ -26,7 +26,6 @@ import {
   applyFieldTransform,
   buildRenderBlocks,
   compileFormSpec,
-  defaultWidthForLength,
   deleteFieldValue,
   deriveSemanticWidth,
   evaluateFieldCascade,
@@ -107,6 +106,7 @@ const testModel: ModelConfigRecord = {
       STRUCTURE: "S",
       LENGTH: 12,
       REQUIRED: true,
+      MODELNAME: "",
     },
     {
       SN: "2",
@@ -115,6 +115,7 @@ const testModel: ModelConfigRecord = {
       STRUCTURE: "S",
       LENGTH: 50,
       REQUIRED: true,
+      MODELNAME: "",
     },
     {
       SN: "3",
@@ -123,6 +124,7 @@ const testModel: ModelConfigRecord = {
       STRUCTURE: "S",
       LENGTH: 10,
       REQUIRED: false,
+      MODELNAME: "",
     },
     {
       SN: "4",
@@ -131,6 +133,7 @@ const testModel: ModelConfigRecord = {
       STRUCTURE: "S",
       LENGTH: 10,
       REQUIRED: false,
+      MODELNAME: "",
     },
     {
       SN: "5",
@@ -139,6 +142,7 @@ const testModel: ModelConfigRecord = {
       STRUCTURE: "S",
       LENGTH: 3,
       REQUIRED: true,
+      MODELNAME: "",
     },
   ],
 };
@@ -152,15 +156,8 @@ async function runSuite() {
   console.log("================================================================================");
 
   // ── 1. Responsive Numerical & Semantic Width Mapping ──
-  console.log("\n── 1. Responsive Numerical & Semantic Width Mapping (defaultWidthForLength) ──");
-  const wShort = defaultWidthForLength({
-    SN: "1",
-    NAME: "code",
-    TYPE: "String",
-    STRUCTURE: "S",
-    LENGTH: 4,
-    REQUIRED: false,
-  });
+  console.log("\n── 1. Responsive Numerical & Semantic Width Mapping (deriveSemanticWidth) ──");
+  const wShort = deriveSemanticWidth(undefined, 4, "String");
   recordTest(
     "1.1 Maps short field length (<= 6) to 'xs' semantic token",
     { length: 4 },
@@ -168,14 +165,7 @@ async function runSuite() {
     wShort === "xs",
   );
 
-  const wLong = defaultWidthForLength({
-    SN: "2",
-    NAME: "narrative",
-    TYPE: "String",
-    STRUCTURE: "S",
-    LENGTH: 120,
-    REQUIRED: false,
-  });
+  const wLong = deriveSemanticWidth(undefined, 120, "String");
   recordTest(
     "1.2 Maps long field length (120) to 'xl' semantic token",
     { length: 120 },
@@ -183,14 +173,7 @@ async function runSuite() {
     wLong === "xl",
   );
 
-  const wDate = defaultWidthForLength({
-    SN: "3",
-    NAME: "openingDate",
-    TYPE: "Date",
-    STRUCTURE: "S",
-    LENGTH: 10,
-    REQUIRED: true,
-  });
+  const wDate = deriveSemanticWidth(undefined, 10, "Date");
   recordTest(
     "1.3 Maps Date type to 'sm' semantic token regardless of length",
     { type: "Date", length: 10 },

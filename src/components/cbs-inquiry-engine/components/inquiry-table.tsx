@@ -51,6 +51,8 @@ export type InquiryTableInfo = Pick<
 export interface InquiryTableProps {
   columns: readonly INQDef[];
   rows: readonly InquiryRow[];
+  /** Total matched rows from the server (defaults to `rows.length` when client-paged). */
+  total?: number;
   commands: readonly INQCmd[];
   info: InquiryTableInfo;
   /** 1-based page, owned by the screen (persisted with the tab). */
@@ -63,12 +65,13 @@ export interface InquiryTableProps {
 
 /**
  * The result grid of an inquiry: columns, alignment and multi-line records from `INQDef`, row
- * actions from `INQCmds`, client-side sorting, and paging by `perpageItem`. Paging is on when the
+ * actions from `INQCmds`, sorting, and paging by `perpageItem`. Paging is on when the
  * inquiry asks for it, and always above `INQUIRY_UNPAGED_MAX_ROWS` rows.
  */
 export const InquiryTable = React.memo(function InquiryTable({
   columns,
   rows,
+  total,
   commands,
   info,
   page,
@@ -85,13 +88,16 @@ export const InquiryTable = React.memo(function InquiryTable({
   );
 
   const pageSize = inquiryPageSize(info);
-  const paged = info.showPagination || rows.length > INQUIRY_UNPAGED_MAX_ROWS;
-  const totalPages = paged ? Math.max(1, Math.ceil(rows.length / pageSize)) : 1;
+  const totalCount = total ?? rows.length;
+  const paged = info.showPagination || totalCount > INQUIRY_UNPAGED_MAX_ROWS;
+  const totalPages = paged ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
   const currentPage = Math.min(Math.max(1, page), totalPages);
   const offset = paged ? (currentPage - 1) * pageSize : 0;
+  // Server-paged responses already contain only the requested page's slice.
+  const isServerSliced = total !== undefined && total > rows.length && rows.length <= pageSize;
   const pageRows = React.useMemo(
-    () => (paged ? sortedRows.slice(offset, offset + pageSize) : sortedRows),
-    [paged, sortedRows, offset, pageSize],
+    () => (paged && !isServerSliced ? sortedRows.slice(offset, offset + pageSize) : sortedRows),
+    [paged, isServerSliced, sortedRows, offset, pageSize],
   );
 
   const handleSort = React.useCallback(
@@ -136,12 +142,12 @@ export const InquiryTable = React.memo(function InquiryTable({
           )}
         </div>
 
-        {paged && rows.length > 0 && (
+        {paged && totalCount > 0 && (
           <InquiryPagination
             currentPage={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}
-            totalCount={rows.length}
+            totalCount={totalCount}
             onPageChange={onPageChange}
           />
         )}

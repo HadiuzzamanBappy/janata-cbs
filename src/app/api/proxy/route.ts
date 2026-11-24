@@ -3,7 +3,7 @@ import type { ZodType } from "zod";
 import { verifyUserRecordAccess, verifyZeroAuthAccess } from "@/lib/cbs-access";
 import { logger } from "@/lib/core-logger";
 import { normalizeAuditTimes } from "@/lib/core-utils";
-import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
+import { decodeProtobufValue, extractInquiryTotal, parseInquiryRecords } from "@/lib/data-parsers";
 import {
   type ApiResponse,
   type CbsWirePayload,
@@ -68,7 +68,8 @@ function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
   if (requestType !== CbsRequestType.INQ)
     return decoded === undefined ? res : { ...res, data: decoded };
   const rows = parseInquiryRecords(decoded);
-  const result: InquiryResult = { rows: rows.slice(0, INQUIRY_MAX_ROWS), total: rows.length };
+  const total = extractInquiryTotal(decoded, rows.length);
+  const result: InquiryResult = { rows: rows.slice(0, INQUIRY_MAX_ROWS), total };
   return { ...res, data: result };
 }
 

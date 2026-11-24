@@ -229,13 +229,23 @@ async function runSuite() {
       formRes.status === "SUCCESS" && formOut.targetModel === "USER",
     );
 
-    // 7a. Tabular Inquiry Rows (INQ): the proxy sends the resolved controller and the full filter
+    // 7a. Tabular Inquiry Rows (INQ): the proxy sends the resolved controller, paging and full filter
     const inqRes = getMockProxyResponse("INQ", "USER");
-    const inqData = (inqRes.data as Array<Record<string, unknown>> | undefined) ?? [];
+    const inqPayload =
+      (inqRes.data as { records?: Array<Record<string, unknown>>; total?: number } | undefined) ??
+      {};
+    const inqData = inqPayload.records ?? [];
     const branch = String(inqData[0]?.branchCode ?? "");
     const runFiltered = (queryString: unknown[]) =>
-      (getMockProxyResponse("INQ", "USER", "", { queryString }).data as unknown[] | undefined) ??
-      [];
+      ((
+        getMockProxyResponse("INQ", "USER", "", { queryString }).data as
+          | { records?: Array<Record<string, unknown>> }
+          | undefined
+      )?.records ?? []) as Array<Record<string, unknown>>;
+    const page2 =
+      (getMockProxyResponse("INQ", "USER", "", { queryString: [], curPage: 2, perPage: 1 }).data as
+        | { records?: Array<Record<string, unknown>>; total?: number }
+        | undefined) ?? {};
     const pinned = runFiltered([
       {
         selectFieldName: "branchCode",
@@ -264,6 +274,9 @@ async function runSuite() {
       },
       inqRes.status === "SUCCESS" &&
         inqData.length > 0 &&
+        inqPayload.total === inqData.length &&
+        (page2.records?.length ?? 0) <= 1 &&
+        page2.total === inqData.length &&
         pinned.length > 0 &&
         pinned.every((r) => r.branchCode === branch) &&
         nowhere.length === 0 &&

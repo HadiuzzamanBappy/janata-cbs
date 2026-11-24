@@ -172,7 +172,10 @@ export type InquiryOperatorCriterion = z.infer<typeof inquiryOperatorCriterionSc
  * cap from the saved inquiry, so none of them can be chosen by the browser.
  */
 export const inquiryRunDataSchema = z
-  .object({ queryString: z.array(inquiryOperatorCriterionSchema).max(100) })
+  .object({
+    queryString: z.array(inquiryOperatorCriterionSchema).max(100),
+    curPage: z.number().int().positive().default(1).optional(),
+  })
   .strict();
 
 /** One operator's filter input on the criteria screen, keyed by field name in `FilterCriteriaMap`. */

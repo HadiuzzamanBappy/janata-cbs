@@ -81,7 +81,7 @@ export async function resolveInquiryEnvelope(
       recordId: "",
       data: {
         queryString: query.queryString,
-        curPage: 1,
+        curPage: filters.data.curPage ?? 1,
         perPage: inquiryPageSize(info),
         inqType: info.inqType,
       },

@@ -25,3 +25,19 @@ export function parseInquiryRecords(rawPayload: unknown): InquiryRow[] {
     recordId: keyOf(item.recordId) || keyOf(item.id),
   }));
 }
+
+/**
+ * Extracts total matched row count from a decoded INQ payload (`total`, `totalRecords`, or
+ * `totalCount`), falling back to the decoded page length when the core omits a total.
+ */
+export function extractInquiryTotal(rawPayload: unknown, fallbackCount: number): number {
+  if (!rawPayload || typeof rawPayload !== "object" || Array.isArray(rawPayload)) {
+    return fallbackCount;
+  }
+  const obj = rawPayload as Record<string, unknown>;
+  for (const key of ["total", "totalRecords", "totalCount"] as const) {
+    const val = obj[key];
+    if (typeof val === "number" && Number.isInteger(val) && val >= 0) return val;
+  }
+  return fallbackCount;
+}

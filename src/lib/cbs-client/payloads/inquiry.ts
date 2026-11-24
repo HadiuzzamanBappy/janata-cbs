@@ -14,10 +14,11 @@ export const inquiryPayloads = {
   executeQuery: (
     inquiryId: string,
     queryString: readonly InquiryOperatorCriterion[] = [],
+    curPage = 1,
   ): CbsWirePayload => ({
     requestType: CbsRequestType.INQ,
     recordFunction: CbsRecordFunction.SEE,
     recordId: inquiryId.trim().toUpperCase(),
-    data: { queryString: [...queryString] },
+    data: { queryString: [...queryString], curPage },
   }),
 };

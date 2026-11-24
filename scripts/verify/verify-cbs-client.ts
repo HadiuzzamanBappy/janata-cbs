@@ -248,14 +248,16 @@ async function runSuite() {
     { selectFieldName: "CURRENCY", selectFieldOperator: "EQ", selectFieldValue: "BDT" },
   ]);
   recordTest(
-    "4.1 cbs.inquiry.executeQuery: names the saved inquiry (recordId) and sends only the operator's filters",
+    "4.1 cbs.inquiry.executeQuery: names the saved inquiry (recordId) and sends filters + curPage",
     'cbs.inquiry.executeQuery(" get.txns ", [CURRENCY EQ BDT])',
     inqRun,
     inqRun.requestType === CbsRequestType.INQ &&
       inqRun.recordId === "GET.TXNS" &&
       inqRun.controlName === undefined &&
       inqRun.servicePath === undefined &&
-      JSON.stringify(Object.keys(inqRun.data ?? {})) === JSON.stringify(["queryString"]) &&
+      JSON.stringify(Object.keys(inqRun.data ?? {})) ===
+        JSON.stringify(["queryString", "curPage"]) &&
+      inqRun.data?.curPage === 1 &&
       Array.isArray(inqRun.data?.queryString),
   );
 

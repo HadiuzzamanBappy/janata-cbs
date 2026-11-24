@@ -74,8 +74,17 @@ export function handleInquiry(payload: CbsWirePayload): ApiResponse {
 
   const queryString = payload.data?.queryString;
   const criteria = Array.isArray(queryString) ? (queryString as InquiryCriteriaParam[]) : [];
-  const records = (table.getList(isUna ? "INAU" : "LIVE") as Row[]).filter((row) =>
+  const matched = (table.getList(isUna ? "INAU" : "LIVE") as Row[]).filter((row) =>
     criteria.every((c) => matches(row, c)),
   );
-  return successResult(records, `Inquiry executed successfully against ${targetModel}`);
+  const rawCurPage = Number(payload.data?.curPage);
+  const rawPerPage = Number(payload.data?.perPage);
+  const curPage = Number.isInteger(rawCurPage) && rawCurPage > 0 ? rawCurPage : 1;
+  const perPage = Number.isInteger(rawPerPage) && rawPerPage > 0 ? rawPerPage : matched.length;
+  const start = (curPage - 1) * perPage;
+  const records = perPage > 0 ? matched.slice(start, start + perPage) : matched;
+  return successResult(
+    { records, total: matched.length },
+    `Inquiry executed successfully against ${targetModel}`,
+  );
 }

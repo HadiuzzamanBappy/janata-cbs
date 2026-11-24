@@ -22,9 +22,10 @@ export async function runInquiry(
   config: InquiryConfigRecord,
   criteria: FilterCriteriaMap,
   signal?: AbortSignal,
+  curPage = 1,
 ): Promise<InquiryResult> {
   const queryString = serializeCriteriaToWire(criteria, config.INQSelectField);
-  const res = await cbs.send(cbs.inquiry.executeQuery(inquiryId, queryString), {
+  const res = await cbs.send(cbs.inquiry.executeQuery(inquiryId, queryString, curPage), {
     silent: true,
     signal,
     responseSchema: inquiryResultSchema,

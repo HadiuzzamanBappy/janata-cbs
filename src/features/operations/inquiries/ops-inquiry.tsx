@@ -52,24 +52,27 @@ function OpsInquiryBody({ inquiryId, schema, tabId, className }: OpsInquiryBodyP
     schema,
   });
   const [rows, setRows] = React.useState<InquiryRow[]>([]);
+  const [total, setTotal] = React.useState(0);
   const [sort, setSort] = React.useState<InquirySort | null>(null);
   const { run, running } = useInquiryRunner(inquiryId, schema);
 
   /** Runs the query; `restore` keeps the page (a refresh or a restored tab), a new search starts over. */
   const search = React.useCallback(
-    async (searchCriteria: FilterCriteriaMap, restore: boolean) => {
-      const outcome = await run(searchCriteria);
+    async (searchCriteria: FilterCriteriaMap, restore: boolean, targetPage?: number) => {
+      const nextPage = targetPage ?? (restore ? page : 1);
+      const outcome = await run(searchCriteria, nextPage);
       if (outcome.status !== "ok") return outcome.status;
       setCriteria(searchCriteria);
       setRows(outcome.result.rows);
-      if (!restore) {
-        setPage(1);
+      setTotal(outcome.result.total);
+      setPage(nextPage);
+      if (!restore && targetPage === undefined) {
         setSort(null);
       }
       setStep(CBS_INQUIRY_STEP.RESULTS);
       return outcome.status;
     },
-    [run, setCriteria, setPage, setStep],
+    [page, run, setCriteria, setPage, setStep],
   );
 
   // A tab saved on its results (refresh, popup, dock-back) reruns its last query once, and an
@@ -123,10 +126,11 @@ function OpsInquiryBody({ inquiryId, schema, tabId, className }: OpsInquiryBodyP
           <InquiryTable
             columns={schema.INQDef}
             rows={rows}
+            total={total}
             commands={schema.INQCmds}
             info={info}
             page={page}
-            onPageChange={setPage}
+            onPageChange={(nextPage) => void search(criteria, true, nextPage)}
             sort={sort}
             onSortChange={setSort}
           />

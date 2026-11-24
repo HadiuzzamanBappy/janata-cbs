@@ -76,12 +76,12 @@ export function useMcPropertyOps(
 
   const updateField = React.useCallback(
     (sn: string, patch: Partial<ModelProperty>) => {
-      // Invariant: Committed properties cannot change NAME, TYPE, or STRUCTURE
+      // Invariant: Committed properties cannot change NAME, TYPE, STRUCTURE, or MODELNAME
       const isCommitted = committedSnSet.has(sn);
       const safePatch = isCommitted
         ? Object.fromEntries(
             Object.entries(patch).filter(
-              ([k]) => k !== "NAME" && k !== "TYPE" && k !== "STRUCTURE",
+              ([k]) => k !== "NAME" && k !== "TYPE" && k !== "STRUCTURE" && k !== "MODELNAME",
             ),
           )
         : patch;

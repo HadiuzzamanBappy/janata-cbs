@@ -1,4 +1,4 @@
-import { Boxes, ChevronDown, ChevronRight, Pin, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Pin, Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,19 +97,22 @@ export function PaletteObjectGroup({
         )}
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1 font-mono">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleCollapse(parent.SN);
-            }}
-            className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer rounded"
-            aria-label={isCollapsed ? "Expand object group" : "Collapse object group"}
-          >
-            {isCollapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
-          </button>
-
-          <Boxes className="size-3 text-primary shrink-0" />
+          {isParentPlaced ? (
+            <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
+          ) : !disabled ? (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              onClick={handleAddObjectField}
+              className="size-4 p-0 text-primary hover:bg-primary/20 rounded cursor-pointer shrink-0"
+              title="Add Object Field to Canvas"
+            >
+              <Plus className="size-3" />
+            </Button>
+          ) : (
+            <Plus className="size-3 text-muted-foreground shrink-0" />
+          )}
 
           <span className="text-3xs text-muted-foreground shrink-0">#{parent.SN}</span>
 
@@ -124,29 +127,40 @@ export function PaletteObjectGroup({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          {parent.STRUCTURE === "M" && (
+            <Badge
+              variant="outline"
+              className="text-3xs h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"
+              title="Multi-value property"
+            >
+              M
+            </Badge>
+          )}
           <Badge
             variant="outline"
-            className="text-3xs h-3.5 px-1 font-mono uppercase border-primary/40 text-primary bg-primary/10"
+            className={cn(
+              "text-3xs h-3.5 px-1 font-mono uppercase",
+              isSelected
+                ? "text-primary border-primary/50 bg-primary/10 font-bold"
+                : isParentPlaced
+                  ? "text-muted-foreground border-border/70 bg-muted/30 font-semibold"
+                  : "text-muted-foreground border-border bg-muted/20",
+            )}
           >
-            {parent.STRUCTURE === "M" ? "M-Obj" : "S-Obj"}
+            {parent.TYPE}
           </Badge>
 
-          {!disabled && !isParentPlaced && (
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              onClick={handleAddObjectField}
-              className="size-5 p-0 text-primary hover:bg-primary/20 rounded cursor-pointer"
-              title="Add Object Field to Canvas"
-            >
-              <Plus className="size-3" />
-            </Button>
-          )}
-
-          {isParentPlaced && (
-            <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse(parent.SN);
+            }}
+            className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer rounded"
+            aria-label={isCollapsed ? "Expand object group" : "Collapse object group"}
+          >
+            {isCollapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
+          </button>
         </div>
       </section>
 

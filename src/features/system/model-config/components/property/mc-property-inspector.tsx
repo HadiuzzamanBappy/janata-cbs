@@ -47,7 +47,12 @@ export function McPropertyInspector({
     return base.map((sec) => ({
       ...sec,
       fields: sec.fields.map((f) => {
-        if (f.NAME === "NAME" || f.NAME === "TYPE" || f.NAME === "STRUCTURE") {
+        if (
+          f.NAME === "NAME" ||
+          f.NAME === "TYPE" ||
+          f.NAME === "STRUCTURE" ||
+          f.NAME === "MODELNAME"
+        ) {
           return {
             ...f,
             DISABLED: true,

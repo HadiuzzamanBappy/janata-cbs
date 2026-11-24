@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface FieldGridProps {
@@ -38,17 +39,16 @@ export function FieldGrid({
   mode = CbsRecordFunction.INPUT,
   numCols,
 }: FieldGridProps) {
+  const { density: rootDensity } = useFormLayout();
   const effectiveCols = numCols || section.columns || 1;
   const isViewMode = mode !== CbsRecordFunction.INPUT;
+  const effectiveDensity = section.containerConfig?.density || rootDensity || "compact";
+  const gridGapClass = isViewMode
+    ? FORM_DENSITY_CLASSES[effectiveDensity].gridGapView
+    : FORM_DENSITY_CLASSES[effectiveDensity].gridGap;
 
   return (
-    <div
-      className={cn(
-        "grid gap-x-3 text-xs",
-        isViewMode ? "gap-y-1" : "gap-y-2",
-        getGridColsClass(effectiveCols),
-      )}
-    >
+    <div className={cn("grid text-xs", gridGapClass, getGridColsClass(effectiveCols))}>
       {section.fields.map((field, idx) => {
         // 1. Evaluate reactive visibility
         if (field.VISIBLE_WHEN && !evaluateFieldCondition(field.VISIBLE_WHEN, values)) {

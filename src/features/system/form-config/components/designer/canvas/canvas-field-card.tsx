@@ -2,11 +2,15 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AlertTriangle, GripVertical, Minus } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, GripVertical, Minus } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { deriveSemanticWidth } from "@/lib/cbs-form-spec";
+import {
+  buildRenderBlocks,
+  deriveSemanticWidth,
+  getBlockGapSectionIndex,
+} from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { type FormElement, getDefaultWidgetForType, type PropertyType } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "../context/designer-context";
@@ -153,6 +157,51 @@ export function CanvasFieldCard({
     opacity: isDragging ? 0.4 : 1,
   };
 
+  const { canMoveUp, canMoveDown, moveField } = React.useMemo(() => {
+    const sections = ctx?.sections ?? [];
+    const currentSection = sections.find((s) => s.id === sectionId);
+    const isStandalone = Boolean(
+      currentSection && !currentSection.title?.trim() && currentSection.containerType !== "tab",
+    );
+
+    if (isStandalone) {
+      const blocks = buildRenderBlocks(sections);
+      const blockIdx = blocks.findIndex((b) => b.type === "single" && b.section.id === sectionId);
+      const move = (dir: -1 | 1) => {
+        if (!ctx || blockIdx < 0) return;
+        const targetBlock = blocks[blockIdx + dir];
+        if (!targetBlock) return;
+        const targetSecId =
+          targetBlock.type === "single" ? targetBlock.section.id : targetBlock.tabSections[0]?.id;
+        if (!targetSecId) return;
+        const insertIdx =
+          dir === 1
+            ? getBlockGapSectionIndex(blocks, sections, blockIdx + 2)
+            : getBlockGapSectionIndex(blocks, sections, blockIdx - 1);
+        ctx.onReorderSections?.(sectionId, targetSecId, insertIdx);
+      };
+      return {
+        canMoveUp: blockIdx > 0,
+        canMoveDown: blockIdx >= 0 && blockIdx < blocks.length - 1,
+        moveField: move,
+      };
+    }
+
+    const fields = currentSection?.fields ?? [];
+    const fieldIdx = fields.findIndex((f) => (f.SN || f.NAME) === fieldId);
+    const move = (dir: -1 | 1) => {
+      if (!ctx || fieldIdx < 0) return;
+      const target = fields[fieldIdx + dir];
+      if (!target) return;
+      ctx.onReorderFields?.(sectionId, fieldId, String(target.SN || target.NAME));
+    };
+    return {
+      canMoveUp: fieldIdx > 0,
+      canMoveDown: fieldIdx >= 0 && fieldIdx < fields.length - 1,
+      moveField: move,
+    };
+  }, [ctx, sectionId, fieldId]);
+
   return (
     <div
       ref={setNodeRef}
@@ -224,19 +273,49 @@ export function CanvasFieldCard({
         </div>
 
         {!disabled && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            className="size-5 p-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-            title={`Remove field ${field.LABEL}`}
-          >
-            <Minus className="size-3.5 stroke-[2.5]" />
-          </Button>
+          <div className="flex items-center shrink-0">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={!canMoveUp}
+              onClick={(e) => {
+                e.stopPropagation();
+                moveField(-1);
+              }}
+              className="size-5 p-0 text-muted-foreground/60 hover:text-foreground rounded cursor-pointer"
+              title="Move up"
+            >
+              <ChevronUp className="size-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={!canMoveDown}
+              onClick={(e) => {
+                e.stopPropagation();
+                moveField(1);
+              }}
+              className="size-5 p-0 text-muted-foreground/60 hover:text-foreground rounded cursor-pointer"
+              title="Move down"
+            >
+              <ChevronDown className="size-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              className="size-5 p-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+              title={`Remove field ${field.LABEL}`}
+            >
+              <Minus className="size-3.5 stroke-[2.5]" />
+            </Button>
+          </div>
         )}
       </div>
 

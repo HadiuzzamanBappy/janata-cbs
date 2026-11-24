@@ -14,7 +14,7 @@ import { cn } from "@/lib/core-utils";
 import { CbsRecordFunction } from "@/types";
 import type { SectionCardProps } from "../../types";
 import { FieldGrid } from "../fields/field-grid";
-import { useFormLayout } from "../form-layout-context";
+import { FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
 
 export type CardContainerProps = SectionCardProps;
 
@@ -66,22 +66,24 @@ export function CardContainer({
     !hideHeader && (config.showHeader !== undefined ? config.showHeader : hasHeader);
 
   const effectiveDensity = config.density || rootDensity || "compact";
+  const densityTokens = FORM_DENSITY_CLASSES[effectiveDensity];
+  const stackGap = isViewMode ? densityTokens.stackView : densityTokens.stack;
 
   // Resolve container styling based on containerConfig
   const getContainerClasses = () => {
     // 1. Inside a Tab Group, fields sit directly in the tab body without a duplicate inner card border/background
     if (isEmbeddedTab) {
-      return isViewMode ? "space-y-1.5" : "space-y-2";
+      return stackGap;
     }
 
     // 2. Standalone field rows (untitled single-field blocks at root canvas level) render seamlessly without a card box
     if (!isExplicitContainer) {
-      return isViewMode ? "space-y-1.5" : "space-y-2";
+      return stackGap;
     }
 
     // 3. Transparent frameless containers
     if (!isBordered && bg === "none" && !shouldShowHeader) {
-      return isViewMode ? "space-y-1.5" : "space-y-2";
+      return stackGap;
     }
 
     const borderClass = !isBordered
@@ -104,13 +106,9 @@ export function CardContainer({
 
     const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
 
-    const densityClasses = {
-      compact: isViewMode ? "px-2.5 py-1.5 space-y-1.5" : "p-2.5 space-y-2",
-      normal: isViewMode ? "px-3 py-2 space-y-2" : "p-3 space-y-2.5",
-      spacious: "p-4 space-y-3",
-    }[effectiveDensity];
+    const paddingClass = isViewMode ? densityTokens.cardPaddingView : densityTokens.cardPadding;
 
-    return cn("rounded", borderClass, bgClass, shadowClass, densityClasses);
+    return cn("rounded", borderClass, bgClass, shadowClass, paddingClass, stackGap);
   };
 
   return (

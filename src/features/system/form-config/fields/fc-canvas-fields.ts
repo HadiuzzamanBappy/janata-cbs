@@ -55,7 +55,7 @@ export const ROOT_FORM_PROPERTIES_SECTION: FormSection = {
           { code: "spacious", label: "Spacious" },
         ],
       },
-      ENRICHTEXT: "Default row spacing and input height across all form containers.",
+      ENRICHTEXT: "Default row spacing and container padding across all form sections.",
     },
   ],
 };

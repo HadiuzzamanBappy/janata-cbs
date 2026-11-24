@@ -37,9 +37,9 @@ export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidg
   String: ["text", "textarea", "select", "radio-group", "segmented", "checkbox", "checkbox-group"],
   Number: ["number", "amount", "rate", "select", "radio-group", "segmented"],
   Boolean: ["switch", "checkbox", "radio-group", "segmented"],
-  Date: ["date", "datetime", "text"],
-  DateTime: ["datetime", "date", "text"],
-  Time: ["time", "text"],
+  Date: ["date"],
+  DateTime: ["datetime", "date"],
+  Time: ["time"],
   Array: [],
 } as const;
 

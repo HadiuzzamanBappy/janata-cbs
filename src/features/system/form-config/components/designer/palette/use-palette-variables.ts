@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
 import { formatNameToLabel } from "@/lib/core-utils";
-import type { ModelProperty } from "@/lib/data-schemas";
+import type { FormSection, ModelProperty } from "@/lib/data-schemas";
 import { CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
 import type { PaletteItem, PaletteTypeFilter } from "./palette-types";
 
@@ -19,12 +19,14 @@ export interface UsePaletteVariablesOptions {
   targetModel?: string;
   propsModelProperties?: ModelProperty[];
   usedFieldNames: Set<string>;
+  sections?: FormSection[];
 }
 
 export function usePaletteVariables({
   targetModel,
   propsModelProperties,
   usedFieldNames,
+  sections,
 }: UsePaletteVariablesOptions) {
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [typeFilter, setTypeFilter] = React.useState<PaletteTypeFilter>("all");
@@ -44,15 +46,23 @@ export function usePaletteVariables({
     [hasProps, propsModelProperties, fetchedRecord],
   );
 
-  const placedCount = React.useMemo(() => {
-    return modelProperties.filter((p) => usedFieldNames.has(p.NAME)).length;
-  }, [modelProperties, usedFieldNames]);
+  const placedInnerNamesByParent = React.useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const sec of sections ?? []) {
+      for (const f of sec.fields ?? []) {
+        if (f.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
+          map.set(f.NAME, new Set((f.PROP ?? []).map((p) => p.NAME)));
+        }
+      }
+    }
+    return map;
+  }, [sections]);
 
   const toggleGroupCollapse = (sn: string) => {
     setCollapsedGroups((prev) => ({ ...prev, [sn]: !prev[sn] }));
   };
 
-  const paletteItems: PaletteItem[] = React.useMemo(() => {
+  const allItems: PaletteItem[] = React.useMemo(() => {
     const objectMap = new Map<string, { parent: ModelProperty; children: ModelProperty[] }>();
     const childSet = new Set<string>();
 
@@ -88,10 +98,41 @@ export function usePaletteVariables({
         items.push({ kind: "single", property: p });
       }
     }
+    return items;
+  }, [modelProperties]);
 
+  const isItemPlaced = React.useCallback(
+    (item: PaletteItem) =>
+      usedFieldNames.has(item.kind === "single" ? item.property.NAME : item.parent.NAME),
+    [usedFieldNames],
+  );
+
+  const isItemUnplaced = React.useCallback(
+    (item: PaletteItem) => {
+      if (item.kind === "single") {
+        return !usedFieldNames.has(item.property.NAME);
+      }
+      if (!usedFieldNames.has(item.parent.NAME)) return true;
+      const placedInner = placedInnerNamesByParent.get(item.parent.NAME);
+      return placedInner ? item.children.some((c) => !placedInner.has(c.NAME)) : false;
+    },
+    [usedFieldNames, placedInnerNamesByParent],
+  );
+
+  const totalCount = allItems.length;
+  const placedCount = React.useMemo(
+    () => allItems.filter(isItemPlaced).length,
+    [allItems, isItemPlaced],
+  );
+  const unplacedCount = React.useMemo(
+    () => allItems.filter(isItemUnplaced).length,
+    [allItems, isItemUnplaced],
+  );
+
+  const paletteItems: PaletteItem[] = React.useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return items.filter((item) => {
+    return allItems.filter((item) => {
       // 1. Text Search Filter (NAME and LABEL)
       if (query) {
         if (item.kind === "single") {
@@ -112,23 +153,12 @@ export function usePaletteVariables({
       }
 
       // 2. Placed Status Filter
-      if (typeFilter === "placed") {
-        if (item.kind === "single") {
-          return usedFieldNames.has(item.property.NAME);
-        }
-        return item.children.every((c) => usedFieldNames.has(c.NAME));
-      }
-
-      if (typeFilter === "unplaced") {
-        if (item.kind === "single") {
-          return !usedFieldNames.has(item.property.NAME);
-        }
-        return item.children.some((c) => !usedFieldNames.has(c.NAME));
-      }
+      if (typeFilter === "placed") return isItemPlaced(item);
+      if (typeFilter === "unplaced") return isItemUnplaced(item);
 
       return true;
     });
-  }, [modelProperties, searchQuery, typeFilter, usedFieldNames]);
+  }, [allItems, searchQuery, typeFilter, isItemPlaced, isItemUnplaced]);
 
   return {
     modelProperties,
@@ -137,7 +167,9 @@ export function usePaletteVariables({
     setSearchQuery,
     typeFilter,
     setTypeFilter,
+    totalCount,
     placedCount,
+    unplacedCount,
     paletteItems,
     collapsedGroups,
     toggleGroupCollapse,

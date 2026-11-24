@@ -178,7 +178,7 @@ export function ObjectField({
               <div
                 className={
                   isStacked
-                    ? "w-full flex items-center justify-between text-xs select-none"
+                    ? "w-full flex items-center justify-between sm:justify-start sm:gap-2 text-xs select-none"
                     : "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none"
                 }
               >
@@ -187,7 +187,7 @@ export function ObjectField({
                 </span>
 
                 {!isReadOnly && (
-                  <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     {setCount > 1 && (
                       <Button
                         type="button"

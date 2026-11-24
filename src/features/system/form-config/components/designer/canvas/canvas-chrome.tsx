@@ -8,10 +8,11 @@
 "use client";
 
 import { DragOverlay } from "@dnd-kit/core";
-import { Folder, LayoutGrid, PanelLeft, SlidersHorizontal } from "lucide-react";
+import { Download, Folder, LayoutGrid, PanelLeft, SlidersHorizontal } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormElement, FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
@@ -130,6 +131,18 @@ export function EmptyCanvasSplash(props: EmptyCanvasSplashProps) {
   const onAddSection = props.onAddSection ?? context.onAddSection;
   const disabled = props.disabled ?? context.disabled;
 
+  const importableProperties = React.useMemo(
+    () => (context.modelProperties ?? []).filter((p) => !p.SN.includes("_")),
+    [context.modelProperties],
+  );
+
+  const handleImportAllProperties = () => {
+    if (!onAddSection || importableProperties.length === 0) return;
+    for (const prop of importableProperties) {
+      onAddSection("card", [modelPropToFormElement(prop)], "");
+    }
+  };
+
   return (
     <section
       aria-label="Empty canvas workspace"
@@ -152,23 +165,36 @@ export function EmptyCanvasSplash(props: EmptyCanvasSplashProps) {
       </p>
 
       {!disabled && onAddSection && (
-        <div className="flex flex-wrap items-center justify-center gap-2 max-w-md mt-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onAddSection("card", [], "Card Section")}
-            className="h-8 text-xs bg-background shadow-xs hover:border-primary/50"
-          >
-            + Card Container
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onAddSection("tab", [], "Tab 1", undefined, "Tab 1")}
-            className="h-8 text-xs bg-background shadow-xs hover:border-primary/50"
-          >
-            + Tab Group
-          </Button>
+        <div className="flex flex-col items-center gap-2 max-w-md mt-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onAddSection("card", [], "Card Section")}
+              className="h-8 text-xs bg-background shadow-xs hover:border-primary/50"
+            >
+              + Card Container
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onAddSection("tab", [], "Tab 1", undefined, "Tab 1")}
+              className="h-8 text-xs bg-background shadow-xs hover:border-primary/50"
+            >
+              + Tab Group
+            </Button>
+          </div>
+          {importableProperties.length > 0 && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleImportAllProperties}
+              className="h-8 text-xs gap-1.5 shadow-xs cursor-pointer"
+            >
+              <Download className="size-3.5 text-primary" />
+              Import All Properties ({importableProperties.length})
+            </Button>
+          )}
         </div>
       )}
     </section>

@@ -59,15 +59,30 @@ export function McPropertyList({
     }
   };
 
+  const typeCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of properties) {
+      counts[p.TYPE] = (counts[p.TYPE] ?? 0) + 1;
+    }
+    return counts;
+  }, [properties]);
+
+  const activeTypeFilter = typeFilter !== "ALL" && !typeCounts[typeFilter] ? "ALL" : typeFilter;
+
+  const availableTypes = React.useMemo(
+    () => PROPERTY_TYPES.filter((t) => (typeCounts[t] ?? 0) > 0),
+    [typeCounts],
+  );
+
   const filteredProperties = React.useMemo(() => {
     const term = searchFilter.trim().toLowerCase();
     return properties.filter((prop) => {
       const matchSearch =
         !term || prop.NAME.toLowerCase().includes(term) || String(prop.SN).includes(term);
-      const matchType = typeFilter === "ALL" || prop.TYPE === typeFilter;
+      const matchType = activeTypeFilter === "ALL" || prop.TYPE === activeTypeFilter;
       return matchSearch && matchType;
     });
-  }, [properties, searchFilter, typeFilter]);
+  }, [properties, searchFilter, activeTypeFilter]);
 
   return (
     <div
@@ -110,7 +125,7 @@ export function McPropertyList({
             />
           </div>
           <Select
-            value={typeFilter}
+            value={activeTypeFilter}
             onValueChange={(val: string | null) => val && setTypeFilter(val)}
           >
             <SelectTrigger
@@ -121,11 +136,11 @@ export function McPropertyList({
             </SelectTrigger>
             <SelectContent className="rounded">
               <SelectItem value="ALL" className="text-xs rounded">
-                All Types
+                All Types ({properties.length})
               </SelectItem>
-              {PROPERTY_TYPES.map((t) => (
+              {availableTypes.map((t) => (
                 <SelectItem key={t} value={t} className="text-xs rounded">
-                  {t}
+                  {t} ({typeCounts[t]})
                 </SelectItem>
               ))}
             </SelectContent>

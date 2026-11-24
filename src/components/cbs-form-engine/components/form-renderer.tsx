@@ -27,7 +27,7 @@ import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
 import { CardContainer } from "./containers/card-container";
 import { TabGroupContainer } from "./containers/tab-group-container";
-import { FormLayoutContext } from "./form-layout-context";
+import { FORM_DENSITY_CLASSES, FormLayoutContext } from "./form-layout-context";
 
 export type { FormRendererProps };
 
@@ -170,7 +170,13 @@ export function FormRenderer({
         )}
       >
         <div
-          className={cn("w-full space-y-2", hasFillBlock && "flex-1 flex flex-col min-h-0 h-full")}
+          className={cn(
+            "w-full",
+            mode !== CbsRecordFunction.INPUT
+              ? FORM_DENSITY_CLASSES[effectiveDensity].stackView
+              : FORM_DENSITY_CLASSES[effectiveDensity].stack,
+            hasFillBlock && "flex-1 flex flex-col min-h-0 h-full",
+          )}
         >
           {blocks.map((block) => {
             if (block.type === "single") {

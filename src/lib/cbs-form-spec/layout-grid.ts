@@ -153,19 +153,21 @@ export function getFieldColSpanClass(
   }
 
   if (cols === 2) {
-    return token === "xl" || token === "xxl" ? "col-span-2 w-full" : "col-span-1 w-full";
+    return token === "xl" || token === "xxl"
+      ? "col-span-1 md:col-span-2 w-full"
+      : "col-span-1 w-full";
   }
 
   if (cols === 3) {
-    if (token === "xl" || token === "xxl") return "col-span-3 w-full";
-    if (token === "lg") return "col-span-2 w-full";
+    if (token === "xl" || token === "xxl") return "col-span-1 md:col-span-3 w-full";
+    if (token === "lg") return "col-span-1 md:col-span-2 w-full";
     return "col-span-1 w-full";
   }
 
   if (cols === 4) {
-    if (token === "xxl") return "col-span-4 w-full";
-    if (token === "xl") return "col-span-3 w-full";
-    if (token === "lg") return "col-span-2 w-full";
+    if (token === "xxl") return "col-span-1 md:col-span-2 lg:col-span-4 w-full";
+    if (token === "xl") return "col-span-1 md:col-span-2 lg:col-span-3 w-full";
+    if (token === "lg") return "col-span-1 md:col-span-2 w-full";
     return "col-span-1 w-full";
   }
 

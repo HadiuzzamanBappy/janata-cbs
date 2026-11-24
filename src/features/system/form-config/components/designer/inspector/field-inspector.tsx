@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import {
+  CBS_PROPERTY_TYPE,
   FORM_WIDGET_TYPES,
   type FormElement,
   type FormWidgetType,
@@ -62,6 +63,7 @@ export function FieldInspector({
   const [activeTab, setActiveTab] = React.useState<FieldInspectorTab>("basics");
 
   const physicalType = (matchedModelProp?.TYPE || field.TYPE || "String") as PropertyType;
+  const isArrayField = physicalType === CBS_PROPERTY_TYPE.ARRAY;
   const currentWidget = (field.WIDGET || getDefaultWidgetForType(physicalType)) as FormWidgetType;
 
   const isPhysicalMulti = matchedModelProp?.STRUCTURE === "M";
@@ -166,9 +168,15 @@ export function FieldInspector({
   );
 
   const generalPropertiesSection = React.useMemo(() => {
+    const baseFields = isArrayField
+      ? FIELD_GENERAL_PROPERTIES_SECTION.fields.filter(
+          (f) => f.NAME !== "DEFAULTVALUE" && f.NAME !== "FIXEDVALUE",
+        )
+      : FIELD_GENERAL_PROPERTIES_SECTION.fields;
+
     return {
       ...FIELD_GENERAL_PROPERTIES_SECTION,
-      fields: FIELD_GENERAL_PROPERTIES_SECTION.fields.map((f) => {
+      fields: baseFields.map((f) => {
         if (f.NAME === "STRUCTURE") {
           return {
             ...f,
@@ -189,7 +197,7 @@ export function FieldInspector({
         return f;
       }),
     };
-  }, [isPhysicalMulti, isDbRequired]);
+  }, [isArrayField, isPhysicalMulti, isDbRequired]);
 
   const effectiveFieldValues = React.useMemo(() => {
     if (isDbRequired && !field.REQUIRED) {
@@ -208,6 +216,9 @@ export function FieldInspector({
     currentWidget === "radio-group" ||
     currentWidget === "segmented" ||
     currentWidget === "checkbox-group";
+
+  const hasWidgetConfig = !isArrayField && (isSelectionWidget || Boolean(contextualSection));
+  const effectiveTab = !hasWidgetConfig && activeTab === "widget" ? "basics" : activeTab;
 
   return (
     <div className="space-y-3 p-3 select-none text-xs">
@@ -238,57 +249,63 @@ export function FieldInspector({
         )}
       </div>
 
-      {/* 1. Widget Presentation Selector (Always Visible at Top of Inspector) */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label className="text-2xs font-medium text-foreground">Widget Presentation</Label>
-          <span className="text-3xs font-mono font-bold text-primary uppercase">
-            {currentWidget}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {sortedWidgets.map((w) => {
-            const isSelected = currentWidget === w;
-            const isEligible = eligibleWidgetsSet.has(w);
-            const isWidgetLocked = hasModel && w !== "select";
-            const isDisabled = disabled || !isEligible || isWidgetLocked;
+      {/* 1. Widget Presentation Selector (Inapplicable for Array object containers) */}
+      {!isArrayField && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-2xs font-medium text-foreground">Widget Presentation</Label>
+            <span className="text-3xs font-mono font-bold text-primary uppercase">
+              {currentWidget}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {sortedWidgets.map((w) => {
+              const isSelected = currentWidget === w;
+              const isEligible = eligibleWidgetsSet.has(w);
+              const isWidgetLocked = hasModel && w !== "select";
+              const isDisabled = disabled || !isEligible || isWidgetLocked;
 
-            return (
-              <button
-                key={w}
-                type="button"
-                disabled={isDisabled}
-                onClick={() => isEligible && !isWidgetLocked && onUpdateField({ WIDGET: w })}
-                title={isDisabled ? getIneligibleReason(w) : WIDGET_DISPLAY_LABELS[w] || w}
-                className={cn(
-                  "h-6 px-2 text-3xs rounded transition-all duration-150 capitalize",
-                  isSelected &&
-                    "bg-primary text-primary-foreground font-semibold shadow-2xs cursor-pointer",
-                  isEligible &&
-                    !isSelected &&
-                    !isWidgetLocked &&
-                    "border border-border/70 bg-background/60 text-muted-foreground hover:text-foreground hover:bg-muted/40 cursor-pointer",
-                  (!isEligible || isWidgetLocked) &&
-                    "border border-border/30 bg-muted/20 text-muted-foreground/40 cursor-not-allowed opacity-45 select-none",
-                )}
-              >
-                {WIDGET_DISPLAY_LABELS[w] || w}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={w}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => isEligible && !isWidgetLocked && onUpdateField({ WIDGET: w })}
+                  title={isDisabled ? getIneligibleReason(w) : WIDGET_DISPLAY_LABELS[w] || w}
+                  className={cn(
+                    "h-6 px-2 text-3xs rounded transition-all duration-150 capitalize",
+                    isSelected &&
+                      "bg-primary text-primary-foreground font-semibold shadow-2xs cursor-pointer",
+                    isEligible &&
+                      !isSelected &&
+                      !isWidgetLocked &&
+                      "border border-border/70 bg-background/60 text-muted-foreground hover:text-foreground hover:bg-muted/40 cursor-pointer",
+                    (!isEligible || isWidgetLocked) &&
+                      "border border-border/30 bg-muted/20 text-muted-foreground/40 cursor-not-allowed opacity-45 select-none",
+                  )}
+                >
+                  {WIDGET_DISPLAY_LABELS[w] || w}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 3. Three-Tab Navigation Strip (Basics | Widget Config | Rules) */}
+      {/* 3. Tab Navigation Strip (Basics | Widget Config | Rules) */}
       <div className="flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/70 gap-0.5 select-none">
         {(
           [
             { id: "basics", label: "Basics", icon: Sliders },
-            {
-              id: "widget",
-              label: isSelectionWidget ? "Options & Data" : "Widget Config",
-              icon: Boxes,
-            },
+            ...(hasWidgetConfig
+              ? [
+                  {
+                    id: "widget" as const,
+                    label: isSelectionWidget ? "Options & Data" : "Widget Config",
+                    icon: Boxes,
+                  },
+                ]
+              : []),
             {
               id: "rules",
               label: activeRules.size > 0 ? `Rules (${activeRules.size})` : "Rules",
@@ -302,7 +319,7 @@ export function FieldInspector({
             onClick={() => setActiveTab(id)}
             className={cn(
               "flex-1 h-6 text-2xs font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
-              activeTab === id
+              effectiveTab === id
                 ? "bg-background text-foreground shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground hover:bg-background/40",
             )}
@@ -314,7 +331,7 @@ export function FieldInspector({
       </div>
 
       {/* 4. Tab Pane 1: Basics (Field Identity, Width, Mandatory, Read-Only, Tooltip) */}
-      {activeTab === "basics" && (
+      {effectiveTab === "basics" && (
         <div className="space-y-2 pt-1">
           <FormRenderer
             frmElements={{ sections: [generalPropertiesSection] }}
@@ -331,7 +348,7 @@ export function FieldInspector({
       )}
 
       {/* 5. Tab Pane 2: Widget Config & Data (Contextual Config) */}
-      {activeTab === "widget" && (
+      {hasWidgetConfig && effectiveTab === "widget" && (
         <div className="space-y-2 pt-1">
           {isSelectionWidget ? (
             <InspectorLookupConfig
@@ -340,27 +357,25 @@ export function FieldInspector({
               disabled={disabled}
               modelName={modelName}
             />
-          ) : contextualSection ? (
-            <FormRenderer
-              frmElements={{ sections: [contextualSection] }}
-              values={field as Record<string, unknown>}
-              onChange={handleFieldPropertyChange}
-              disabled={disabled}
-              mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-              hideHeader
-              layout="stacked"
-              className="overflow-visible"
-            />
           ) : (
-            <div className="text-2xs text-muted-foreground/60 italic py-2">
-              Standard presentation with no additional configuration required.
-            </div>
+            contextualSection && (
+              <FormRenderer
+                frmElements={{ sections: [contextualSection] }}
+                values={field as Record<string, unknown>}
+                onChange={handleFieldPropertyChange}
+                disabled={disabled}
+                mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+                hideHeader
+                layout="stacked"
+                className="overflow-visible"
+              />
+            )
           )}
         </div>
       )}
 
       {/* 6. Tab Pane 3: Rules (Validation, Conditional Visibility, Automation) */}
-      {activeTab === "rules" && (
+      {effectiveTab === "rules" && (
         <div className="space-y-3 pt-1">
           {/* Add Rule Toolbar */}
           <div className="flex items-center justify-between pb-1 border-b border-border/50">
@@ -381,15 +396,15 @@ export function FieldInspector({
                     </Button>
                   }
                 />
-                <DropdownMenuContent align="end" className="w-56 p-1 text-xs">
+                <DropdownMenuContent align="end" className="w-auto min-w-44 p-1 text-xs">
                   {availableRules.map((r) => (
                     <DropdownMenuItem
                       key={r.kind}
                       onClick={() => onUpdateField(getAddRulePatch(r.kind))}
-                      className="cursor-pointer flex flex-col items-start gap-0.5 py-1.5 px-2"
+                      title={r.description}
+                      className="cursor-pointer py-1 px-2 text-xs font-medium"
                     >
-                      <span className="font-semibold text-foreground">{r.title}</span>
-                      <span className="text-3xs text-muted-foreground">{r.description}</span>
+                      {r.title}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>

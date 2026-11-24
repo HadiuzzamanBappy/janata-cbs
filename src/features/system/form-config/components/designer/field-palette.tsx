@@ -55,13 +55,14 @@ export function FieldPalette({
   );
 
   const {
-    modelProperties: resolvedProperties,
     loadingModel,
     searchQuery,
     setSearchQuery,
     typeFilter,
     setTypeFilter,
+    totalCount,
     placedCount,
+    unplacedCount,
     paletteItems,
     collapsedGroups,
     toggleGroupCollapse,
@@ -69,6 +70,7 @@ export function FieldPalette({
     targetModel,
     propsModelProperties: modelProperties,
     usedFieldNames,
+    sections: ctx?.sections,
   });
 
   return (
@@ -92,9 +94,9 @@ export function FieldPalette({
             >
               <Database className="size-3 text-primary shrink-0" />
               <span className="truncate">Variables</span>
-              {resolvedProperties.length > 0 && (
+              {totalCount > 0 && (
                 <span className="text-3xs font-mono opacity-70 shrink-0">
-                  ({placedCount}/{resolvedProperties.length})
+                  ({placedCount}/{totalCount})
                 </span>
               )}
             </TabsTrigger>
@@ -158,13 +160,13 @@ export function FieldPalette({
               </SelectTrigger>
               <SelectContent align="end" className="text-xs min-w-32">
                 <SelectItem value="all" className="text-xs cursor-pointer">
-                  All ({resolvedProperties.length})
+                  All ({totalCount})
                 </SelectItem>
                 <SelectItem value="placed" className="text-xs cursor-pointer">
                   Placed ({placedCount})
                 </SelectItem>
                 <SelectItem value="unplaced" className="text-xs cursor-pointer">
-                  Not Placed ({Math.max(0, resolvedProperties.length - placedCount)})
+                  Not Placed ({unplacedCount})
                 </SelectItem>
               </SelectContent>
             </Select>

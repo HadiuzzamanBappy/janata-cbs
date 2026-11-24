@@ -104,13 +104,20 @@ export function FieldRow({
       {/* Label Column: Full-width top row on mobile or when stacked, 144px (w-36) left column on desktop */}
       <div
         className={cn(
-          isStacked ? "w-full" : "w-full sm:w-36",
-          "shrink-0 flex items-center justify-between text-xs select-none font-normal",
+          isStacked
+            ? "w-full justify-between sm:justify-start sm:gap-2"
+            : "w-full sm:w-36 justify-between",
+          "shrink-0 flex items-center text-xs select-none font-normal",
           isViewMode ? "min-h-5 sm:min-h-5.5 pt-0.5" : "min-h-6 sm:min-h-7 sm:pt-1",
           labelClassName,
         )}
       >
-        <div className="flex items-center gap-1 min-w-0 flex-1">
+        <div
+          className={cn(
+            "flex items-center gap-1 min-w-0",
+            isStacked ? "flex-1 sm:flex-initial" : "flex-1",
+          )}
+        >
           {/* Desktop Mode: Tooltip on label text hover */}
           {isDesktopTooltip ? (
             <Tooltip disableHoverablePopup>

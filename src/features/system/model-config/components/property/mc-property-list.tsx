@@ -8,9 +8,8 @@
 
 "use client";
 
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,7 +22,7 @@ import {
 import { cn } from "@/lib/core-utils";
 import { CBS_PROPERTY_TYPE, type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
-import { McSubPropertyItem } from "./mc-sub-property-item";
+import { McPropertyItem } from "./mc-property-item";
 
 interface McPropertyListProps {
   properties: ModelProperty[];
@@ -142,132 +141,34 @@ export function McPropertyList({
           </div>
         ) : (
           filteredProperties.map((prop) => {
-            const isSelected = prop.SN === selectedSN;
             const isCommitted = isFieldCommitted ? isFieldCommitted(prop.SN) : true;
-            const propErrors = validationErrors.filter(
-              (err: ModelValidationErrorItem) => err.sn === prop.SN,
-            );
-            const hasError = propErrors.length > 0;
-            const badgeLabel = prop.STRUCTURE === "M" ? `${prop.TYPE} (M)` : prop.TYPE;
 
             return (
               <div key={prop.SN} className="flex flex-col">
-                <div
-                  className={cn(
-                    "relative flex items-center justify-between w-full py-1.5 px-2.5 transition-colors group select-none",
-                    hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
-                    isSelected
-                      ? hasError
-                        ? "bg-destructive/15 text-destructive border-l-3 border-l-destructive"
-                        : "bg-primary/10 text-foreground font-semibold border-l-3 border-l-primary"
-                      : hasError
-                        ? "border-l-3 border-l-destructive/80 text-foreground"
-                        : "hover:bg-muted/40 text-foreground border-l-3 border-l-transparent",
-                  )}
-                >
-                  {/* Semantic accessible selection button */}
-                  <button
-                    type="button"
-                    onClick={() => onSelectSN(prop.SN)}
-                    data-node-id={prop.SN}
-                    className="flex items-center gap-2 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
-                  >
-                    {/* Sequence Number Badge */}
-                    <span
-                      className={cn(
-                        "font-mono text-3xs px-1 py-0.5 rounded shrink-0",
-                        isSelected
-                          ? "bg-primary/15 text-primary font-bold border border-primary/25"
-                          : "bg-muted text-muted-foreground font-medium",
-                      )}
-                    >
-                      {prop.SN}
-                    </span>
-
-                    {/* Column Name */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={cn(
-                            "text-xs truncate font-mono font-medium",
-                            isSelected ? "text-foreground font-semibold" : "text-foreground",
-                          )}
-                        >
-                          {prop.NAME || "<Unnamed>"}
-                        </span>
-                        {prop.REQUIRED && (
-                          <span
-                            className="text-destructive font-bold text-3xs leading-none"
-                            title="Mandatory Column"
-                          >
-                            *
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Right Side Badges & Delete Button */}
-                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    {prop.MODELNAME && (
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "font-mono text-3xs h-4.5 px-1.5 rounded uppercase tracking-wider",
-                          isSelected
-                            ? "border-primary/40 bg-primary/20 text-primary font-bold"
-                            : "border-primary/30 bg-primary/5 text-primary",
-                        )}
-                        title={`References ${prop.MODELNAME}`}
-                      >
-                        {prop.MODELNAME}
-                      </Badge>
-                    )}
-
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "font-mono text-3xs h-4.5 px-1.5 rounded uppercase tracking-wider",
-                        isSelected
-                          ? "border-primary/30 bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground border-border/70",
-                      )}
-                    >
-                      {badgeLabel}
-                    </Badge>
-
-                    {/* Delete button (only uncommitted/draft columns can be removed) */}
-                    {!isReadOnly && onDeleteField && !isCommitted && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        title="Delete draft column"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          onDeleteField(prop.SN);
-                        }}
-                        className="size-5 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <Trash2 className="size-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                <McPropertyItem
+                  prop={prop}
+                  isSelected={prop.SN === selectedSN}
+                  isReadOnly={isReadOnly}
+                  isCommitted={isCommitted}
+                  validationErrors={validationErrors}
+                  onSelect={onSelectSN}
+                  onDelete={onDeleteField}
+                />
 
                 {/* Sub-properties container when TYPE is Array */}
                 {prop.TYPE === CBS_PROPERTY_TYPE.ARRAY && (
                   <div className="bg-muted/15 border-l-2 border-primary/30 ml-3.5 my-0.5 space-y-0.5">
                     {(prop.PROP || []).map((sub) => (
-                      <McSubPropertyItem
+                      <McPropertyItem
                         key={sub.SN}
-                        sub={sub}
+                        prop={sub}
                         isSelected={sub.SN === selectedSN}
                         isReadOnly={isReadOnly}
                         isCommitted={isFieldCommitted ? isFieldCommitted(sub.SN) : true}
                         validationErrors={validationErrors}
                         onSelect={onSelectSN}
                         onDelete={onDeleteField}
+                        isSub
                       />
                     ))}
                     {!isReadOnly && onAddSubField && (

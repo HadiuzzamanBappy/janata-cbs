@@ -18,5 +18,6 @@ export * from "./form-widget-schema";
 export * from "./inquiry-config-schema";
 export * from "./inquiry-save-schema";
 export * from "./menu-designer-schema";
+export * from "./model-config-save-schema";
 export * from "./model-config-schema";
 export * from "./screen-params-schema";

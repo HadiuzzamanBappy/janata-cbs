@@ -63,7 +63,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       const draft: ModelConfigRecord = {
         ...INITIAL_MODEL,
         TABLENAME: cleanId.replace(/[.-]/g, "_"),
-        DESCRIPTION: "",
       };
       setRawRecord(undefined);
       hydrate(draft);
@@ -93,7 +92,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           setRawRecord(record);
           hydrate(record);
           markAsCommitted(record.PROPERTIES || []);
-          setValidationErrors([]);
           setMode(targetMode);
           toast.add({
             title: "Model Loaded",
@@ -153,8 +151,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   const handleCreateNew = React.useCallback(
     (newId?: string) => {
-      const cleanId = (newId || "").trim().toUpperCase();
-      if (cleanId) fetchRecord(cleanId, CbsRecordFunction.INPUT);
+      if (newId) fetchRecord(newId, CbsRecordFunction.INPUT);
     },
     [fetchRecord],
   );

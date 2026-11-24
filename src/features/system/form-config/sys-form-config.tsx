@@ -13,7 +13,7 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsCommand } from "@/lib/cbs-command";
-import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
+import { type CbsScreenProps, type CbsScreenTab, createCopyPasteActions } from "@/lib/cbs-screen";
 import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
@@ -228,6 +228,36 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       }
       submitting={submitting || loading}
       availableItems={[]}
+      moreActions={createCopyPasteActions({
+        code: CbsControlTable.FORM_CONFIG,
+        getValues: () => ({
+          ...(formData as unknown as Record<string, unknown>),
+          _sourceModel: (targetModelRecord?.TABLENAME || recordId.split(",")[0] || "")
+            .trim()
+            .toUpperCase(),
+        }),
+        canPaste: () => !isReadOnly,
+        validatePaste: (copied) => {
+          const src = String(copied._sourceModel || "")
+            .trim()
+            .toUpperCase();
+          const dest = (targetModelRecord?.TABLENAME || recordId.split(",")[0] || "")
+            .trim()
+            .toUpperCase();
+          if (src && dest && src !== dest) {
+            return `Cannot paste ${src} layout into ${dest}.`;
+          }
+          return null;
+        },
+        onPaste: (copied) => {
+          const { _sourceModel: _ignored, ...layoutData } = copied;
+          setFormData((prev) => ({
+            ...prev,
+            ...(layoutData as Partial<typeof prev>),
+            auditData: prev.auditData,
+          }));
+        },
+      })}
       variant="system"
       tabs={tabs}
       activeTab={activeTab}

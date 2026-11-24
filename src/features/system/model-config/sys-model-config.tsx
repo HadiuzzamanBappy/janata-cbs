@@ -13,7 +13,7 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsCommand } from "@/lib/cbs-command";
-import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
+import { type CbsScreenProps, type CbsScreenTab, createCopyPasteActions } from "@/lib/cbs-screen";
 import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";
@@ -156,6 +156,24 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       onAmend={() => recordId && fetchRecord(recordId, CbsRecordFunction.INPUT)}
       submitting={submitting || loading}
       availableItems={[]}
+      moreActions={createCopyPasteActions({
+        code: CbsControlTable.MODEL_CONFIG,
+        getValues: () => formData as unknown as Record<string, unknown>,
+        canPaste: () => {
+          if (!isRecordEditable(mode)) return "Switch to Input mode to paste record data.";
+          if ((baseline.PROPERTIES?.length ?? 0) > 0) {
+            return "Cannot paste over a committed model.";
+          }
+          return true;
+        },
+        onPaste: (copied) =>
+          setFormData((prev) => ({
+            ...prev,
+            ...(copied as Partial<typeof prev>),
+            TABLENAME: prev.TABLENAME,
+            auditData: prev.auditData,
+          })),
+      })}
       variant="system"
       tabs={tabs}
       activeTab={activeTab}

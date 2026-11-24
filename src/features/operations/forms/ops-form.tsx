@@ -3,7 +3,7 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { getDefaultMoreActions } from "@/lib/cbs-screen";
+import { createCopyPasteActions, getDefaultMoreActions } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FormSkeleton } from "./components/form-skeleton";
@@ -142,7 +142,19 @@ export function OpsForm({
       submitting={mutations.submitting}
       validationErrors={validationErrors}
       availableItems={[]}
-      moreActions={getDefaultMoreActions(modelCode)}
+      moreActions={[
+        ...createCopyPasteActions({
+          code: modelCode,
+          getValues: () => values,
+          canPaste: () => screenMode === CbsRecordFunction.INPUT,
+          onPaste: (copied) =>
+            setValues({
+              ...copied,
+              ...(values.auditData !== undefined ? { auditData: values.auditData } : {}),
+            }),
+        }),
+        ...getDefaultMoreActions(modelCode),
+      ]}
     >
       <FormRenderer
         frmElements={schema.frmElements}

@@ -19,8 +19,8 @@ function escapeCss(value: string): string {
  * Generalized mapper from ZodIssue list to CBS tabbed error list.
  */
 export function mapZodIssuesToTabs<TTab extends string = string>(
-  issues: z.ZodIssue[],
-  tabResolver: (path: (string | number)[], issue: z.ZodIssue) => TTab,
+  issues: z.core.$ZodIssue[],
+  tabResolver: (path: (string | number)[], issue: z.core.$ZodIssue) => TTab,
 ): CbsScreenValidationError<TTab>[] {
   return issues.map((issue, idx) => {
     const stringOrNumberPath = issue.path.map((p) =>

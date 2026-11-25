@@ -44,7 +44,7 @@ export function InquiryFilterBar({
     onCriteriaChange({ ...criteria, [field.selectFieldName]: { ...criterionOf(field), operand } });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const emptyRequired = fields.filter(
       (f) => f.selectFieldRequired && !criterionOf(f).value.trim(),

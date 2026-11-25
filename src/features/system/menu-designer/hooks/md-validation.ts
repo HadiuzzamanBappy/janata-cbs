@@ -6,7 +6,7 @@ import type { MenuDesignerValidationError, MenuItem } from "@/lib/data-schemas";
 
 export const MAX_MENU_TREE_DEPTH = 4;
 
-export function mapMdZodIssues(issues: z.ZodIssue[]): MenuDesignerValidationError[] {
+export function mapMdZodIssues(issues: z.core.$ZodIssue[]): MenuDesignerValidationError[] {
   return mapZodIssuesToTabs<"general" | "canvas">(issues, (path) => {
     const head = path[0];
     if (head === "menuTree") return "canvas";

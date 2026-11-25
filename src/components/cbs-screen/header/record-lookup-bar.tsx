@@ -18,7 +18,7 @@ export interface RecordLookupBarProps {
   inputVal: string;
   onInputChange: (val: string) => void;
   onClear: () => void;
-  onSubmit: (e?: React.FormEvent) => void;
+  onSubmit: (e?: React.SubmitEvent<HTMLFormElement>) => void;
   onSelectRecord: (id: string) => void;
   onCreateNew?: () => void;
   matchingItems: RecordLookupItem[];

@@ -34,7 +34,8 @@
     "cache:clear": "tsx scripts/cache/cache-clear.ts",
     "cache:inspect": "tsx scripts/cache/cache-inspect.ts",
     "fixture:clean": "tsx scripts/tools/fixture-normalize.ts",
-    "knip": "knip"
+    "knip": "knip",
+    "deprecated": "tsx scripts/tools/check-deprecated.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

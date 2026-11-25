@@ -117,7 +117,7 @@ export function CbsFormHeader({
   const itemsToDisplay = lookupItems.length > 0 ? lookupItems : availableItems;
 
   // Action 1: Typing Record ID + Enter -> Load Record in Mode 'I'
-  const handlePerformSearch = (e?: React.FormEvent) => {
+  const handlePerformSearch = (e?: React.SubmitEvent<HTMLFormElement>) => {
     if (e) e.preventDefault();
     const query = inputVal.trim();
     if (!query) return;

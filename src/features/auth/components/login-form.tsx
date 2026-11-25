@@ -24,7 +24,7 @@ export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginForm
 
   const { login, loading, error } = useLogin();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const user = await login({ username, password });
     if (user && onSuccess) {

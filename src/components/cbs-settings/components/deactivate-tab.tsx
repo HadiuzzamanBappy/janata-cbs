@@ -16,7 +16,7 @@ export function DeactivateTab() {
   const [deactivateDate, setDeactivateDate] = React.useState("");
   const [reactivationDate, setReactivationDate] = React.useState("");
 
-  const handleDeactivate = async (e: React.FormEvent) => {
+  const handleDeactivate = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);

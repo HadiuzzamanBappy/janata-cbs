@@ -128,7 +128,7 @@ export function ChangePasswordForm({
   const canSubmit =
     oldPassword.length > 0 && passwordsMatch && PASSWORD_RULES.every((r) => r.test(newPassword));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);

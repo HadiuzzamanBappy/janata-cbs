@@ -134,7 +134,7 @@ export function PropertyInspector(props: PropertyInspectorProps) {
         ? ctx?.tabScope === "container"
           ? {
               icon: <Layers className="size-3.5 text-info shrink-0" />,
-              title: selectedSection.groupTitle || "Tab Group Container",
+              title: `${selectedSection.groupTitle || "Tab Group"} (Group)`,
             }
           : {
               icon: <LayoutList className="size-3.5 text-primary shrink-0" />,

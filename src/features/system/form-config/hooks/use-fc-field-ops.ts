@@ -50,7 +50,6 @@ export function useFcFieldOps(
           REQUIRED: fieldTemplate?.REQUIRED ?? false,
           DISABLED: fieldTemplate?.DISABLED ?? false,
           WIDTH: fieldTemplate?.WIDTH ?? "md",
-          POSITION: fieldTemplate?.POSITION || "",
           PARAMETER: fieldTemplate?.PARAMETER || {
             type: "O",
             data: [],

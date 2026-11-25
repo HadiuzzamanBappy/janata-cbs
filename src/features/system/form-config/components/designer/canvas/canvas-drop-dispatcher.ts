@@ -32,7 +32,6 @@ export function createNewFieldFromTemplate(
     REQUIRED: Boolean(template.REQUIRED),
     DISABLED: template.DISABLED ?? false,
     WIDTH: template.WIDTH ?? "md",
-    POSITION: template.POSITION || "",
     PARAMETER: template.PARAMETER || {
       type: "O",
       data: [],

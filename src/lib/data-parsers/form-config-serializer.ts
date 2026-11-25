@@ -12,7 +12,7 @@ import {
 /* Outbound Database Serializers & Physical Form Sanitizers                   */
 /* -------------------------------------------------------------------------- */
 
-const TEXT_OVERRIDES = ["POSITION", "ENRICHTEXT", "FIXEDVALUE", "DEFAULTVALUE"] as const;
+const TEXT_OVERRIDES = ["ENRICHTEXT", "FIXEDVALUE", "DEFAULTVALUE"] as const;
 const SECTION_STRINGS = ["title", "description", "groupId", "groupTitle"] as const;
 
 /**

@@ -236,7 +236,6 @@ async function runSuite() {
               REQUIRED: false, // Model constraint (true) must take precedence
               DISABLED: false,
               WIDTH: "md",
-              POSITION: "",
             },
           ],
         },

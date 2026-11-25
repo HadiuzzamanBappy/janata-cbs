@@ -66,7 +66,7 @@ function rulesCard(id: string, title: string, fields: FormElement[]): FormSectio
     id,
     title,
     containerType: "card",
-    containerConfig: { variant: "subtle", showHeader: true, bordered: true },
+    containerConfig: { variant: "subtle" },
     collapsible: true,
     isCollapsed: true,
     columns: 1,

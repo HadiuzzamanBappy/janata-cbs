@@ -83,26 +83,29 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
   const sectionErrors = context.getSectionErrors(section.id);
   const hasErrors = sectionErrors.length > 0;
 
-  const bg = config.background ?? "regular";
-
-  const isBordered = config.bordered !== undefined ? config.bordered : true;
-
+  const variant = config.variant ?? "default";
   const shouldShowHeader =
-    config.showHeader !== undefined
-      ? config.showHeader
-      : Boolean(section.title || section.collapsible || config.badge);
+    variant !== "ghost" && Boolean(section.title || section.collapsible || config.badge);
 
   const borderClass = hasErrors
     ? "border border-destructive/60"
-    : !isBordered
+    : variant === "ghost"
       ? "border border-dashed border-border/40"
-      : bg === "subtle"
+      : variant === "subtle"
         ? "border border-border/40"
         : "border border-border/80";
 
-  const bgClass = bg === "none" ? "bg-card/10" : bg === "subtle" ? "bg-muted/20" : "bg-card/60";
+  const bgClass =
+    variant === "ghost" || variant === "bordered"
+      ? "bg-card/10"
+      : variant === "subtle"
+        ? "bg-muted/20"
+        : variant === "elevated"
+          ? "bg-card"
+          : "bg-card/60";
 
-  const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
+  const shadowClass =
+    variant === "elevated" ? "shadow-sm" : variant === "default" ? "shadow-2xs" : "";
 
   return (
     <section

@@ -164,9 +164,9 @@ export function createModelProperty(
 
 const idDefSchema = z.object({
   IDPREFIX: z.string().default(""),
-  SEQUENCELENGTH: z.union([z.number(), z.string()]).default("").optional(),
+  SEQUENCELENGTH: z.union([z.number(), z.string()]).default(""),
   SEQUENCERESET: z.boolean().default(false),
-  SEQRESETPERIOD: z.enum(["D", "M", "Y", ""]).default("").optional(),
+  SEQRESETPERIOD: z.enum(["D", "M", "Y", ""]).default(""),
   IDPATTERN: z.string().default(""),
 });
 

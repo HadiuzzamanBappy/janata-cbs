@@ -64,6 +64,21 @@ export function useCanvasDrag({
       if (overData?.type === "field") {
         targetSecId = overData.sectionId as string;
         targetFieldId = overId;
+        if (sourceSecId !== targetSecId) {
+          const targetSec = sections.find((s) => s.id === targetSecId);
+          const fields = targetSec?.fields || [];
+          const lastField = fields[fields.length - 1];
+          const isLastField = lastField && (lastField.SN === overId || lastField.NAME === overId);
+          const translated = active.rect.current.translated;
+          if (
+            isLastField &&
+            translated &&
+            translated.top + translated.height / 2 > over.rect.top + over.rect.height / 2
+          ) {
+            targetFieldId = undefined;
+            insertAtIndex = fields.length;
+          }
+        }
       } else if (overData?.type === "tab-header-strip-item") {
         targetSecId = overData.sectionId as string;
         const targetSec = sections.find((s) => s.id === targetSecId);

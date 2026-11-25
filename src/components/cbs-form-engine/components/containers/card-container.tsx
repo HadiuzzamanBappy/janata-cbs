@@ -41,59 +41,35 @@ export function CardContainer({
   const numCols = section.columns || 1;
   const isViewMode = mode !== CbsRecordFunction.INPUT;
   const config = section.containerConfig || {};
+  const variant = config.variant ?? "default";
   const hasHeader = Boolean(section.title?.trim() || isCollapsible || config.badge);
 
-  // Check if this section is an explicit card container (titled, multi-field, collapsible, or explicitly bordered/styled)
+  // Explicit card container when titled, multi-field, collapsible, or non-default non-ghost preset
   const isExplicitContainer = Boolean(
     hasHeader ||
-      config.showHeader ||
-      config.bordered === true ||
-      config.background === "subtle" ||
+      (variant !== "default" && variant !== "ghost") ||
       (section.fields && section.fields.length > 1),
   );
 
-  // Check if embedded inside a Tab Group (via hideHeader or containerType === "tab")
+  // Embedded inside a Tab Group (via hideHeader or containerType === "tab")
   const isEmbeddedTab = hideHeader || section.containerType === "tab";
 
-  // Resolve background (explicit background wins, defaults to "regular")
-  const bg = config.background ?? "regular";
-
-  // Resolve border (explicit bordered wins, defaults to true)
-  const isBordered = config.bordered !== undefined ? config.bordered : true;
-
-  // Resolve header visibility (hideHeader prop, then config.showHeader, then whether section has a title/badge)
-  const shouldShowHeader =
-    !hideHeader && (config.showHeader !== undefined ? config.showHeader : hasHeader);
+  const shouldShowHeader = !hideHeader && variant !== "ghost" && hasHeader;
 
   const effectiveDensity = config.density || rootDensity || "compact";
   const densityTokens = FORM_DENSITY_CLASSES[effectiveDensity];
   const stackGap = isViewMode ? densityTokens.stackView : densityTokens.stack;
 
-  // Resolve container styling based on containerConfig
+  // Resolve container styling from single `containerConfig.variant`
   const getContainerClasses = () => {
-    // 1. Inside a Tab Group, fields sit directly in the tab body without a duplicate inner card border/background
-    if (isEmbeddedTab) {
+    if (isEmbeddedTab || !isExplicitContainer || (variant === "ghost" && !shouldShowHeader)) {
       return stackGap;
     }
 
-    // 2. Standalone field rows (untitled single-field blocks at root canvas level) render seamlessly without a card box
-    if (!isExplicitContainer) {
-      return stackGap;
-    }
-
-    // 3. Transparent frameless containers
-    if (!isBordered && bg === "none" && !shouldShowHeader) {
-      return stackGap;
-    }
-
-    const borderClass = !isBordered
-      ? "border-transparent"
-      : bg === "subtle"
-        ? "border border-border/60"
-        : "border border-border/80";
+    const borderClass =
+      variant === "subtle" ? "border border-border/60" : "border border-border/80";
 
     const isAccordionCollapsed = isCollapsible && collapsed;
-
     if (isAccordionCollapsed) {
       return cn(
         "rounded bg-muted/20 hover:bg-muted/35 p-2.5 transition-colors cursor-pointer",
@@ -102,9 +78,16 @@ export function CardContainer({
     }
 
     const bgClass =
-      bg === "none" ? "bg-transparent" : bg === "subtle" ? "bg-muted/20" : "bg-card/60";
+      variant === "bordered"
+        ? "bg-transparent"
+        : variant === "subtle"
+          ? "bg-muted/20"
+          : variant === "elevated"
+            ? "bg-card"
+            : "bg-card/60";
 
-    const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
+    const shadowClass =
+      variant === "elevated" ? "shadow-sm" : variant === "default" ? "shadow-2xs" : "";
 
     const paddingClass = isViewMode ? densityTokens.cardPaddingView : densityTokens.cardPadding;
 

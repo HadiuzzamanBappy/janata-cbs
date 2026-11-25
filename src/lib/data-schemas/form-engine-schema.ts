@@ -11,15 +11,15 @@ const parameterOptionItemSchema = z.object({
   label: z.string(),
 });
 
-const formFieldParameterSchema = z.looseObject({
+const formFieldParameterSchema = z.object({
   type: z.enum(["O", "M", "A"]).default("O"),
   data: z.array(parameterOptionItemSchema).default([]),
-  modelName: z.string().default("").optional(),
-  recordId: z.string().default("").optional(),
-  arrayField: z.string().default("").optional(),
-  codeField: z.union([z.string(), z.number()]).default("").optional(),
-  displayField: z.string().default("").optional(),
-  condition: z.string().default("").optional(),
+  modelName: z.string().optional(),
+  recordId: z.string().optional(),
+  arrayField: z.string().optional(),
+  codeField: z.string().optional(),
+  displayField: z.string().optional(),
+  condition: z.string().optional(),
 });
 
 export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
@@ -28,23 +28,23 @@ export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
 /* 2. REACTIVE ACTIONS & VALIDATION RULES                                     */
 /* ========================================================================== */
 
-const formOnChangeRuleSchema = z.looseObject({
+const formOnChangeRuleSchema = z.object({
   target: z.string().min(1, "Target field key is required"),
   action: z.enum(["join", "copy", "clear", "uppercase", "lowercase"]).default("copy"),
-  delimiter: z.string().default("#").optional(),
+  delimiter: z.string().optional(),
 });
 
 const fieldTransformSchema = z.enum(["uppercase", "lowercase", "trim", "stripWhitespace", "none"]);
 export type FieldTransform = z.infer<typeof fieldTransformSchema>;
 
-const fieldCascadeRuleSchema = z.looseObject({
-  when: z.any(),
-  set: z.record(z.string(), z.any()),
+const fieldCascadeRuleSchema = z.object({
+  when: z.unknown().refine((v) => v !== undefined, "Cascade 'when' condition is required"),
+  set: z.record(z.string(), z.unknown()),
 });
 export type FieldCascadeRule = z.infer<typeof fieldCascadeRuleSchema>;
 
 /** `min` / `max`: the value range for numeric fields, the length range for text fields. */
-const fieldValidationRuleSchema = z.looseObject({
+const fieldValidationRuleSchema = z.object({
   matches: z.string().optional(),
   message: z.string().optional(),
   min: z.number().optional(),
@@ -65,11 +65,16 @@ const fieldConditionOperatorSchema = z.enum([
   "falsy",
 ]);
 
-const singleFieldConditionSchema = z.looseObject({
-  field: z.string().min(1, "Target dependency field is required"),
-  operator: fieldConditionOperatorSchema.default("eq"),
-  value: z.any().optional(),
-});
+const singleFieldConditionSchema = z
+  .object({
+    field: z.string().min(1, "Target dependency field is required"),
+    operator: fieldConditionOperatorSchema.default("eq"),
+    value: z.unknown().optional(),
+  })
+  .refine((c) => c.operator === "truthy" || c.operator === "falsy" || c.value !== undefined, {
+    message: "Condition 'value' is required for this operator",
+    path: ["value"],
+  });
 type SingleFieldCondition = z.infer<typeof singleFieldConditionSchema>;
 
 export type FieldVisibilityCondition =
@@ -80,8 +85,8 @@ export type FieldVisibilityCondition =
 const fieldVisibilityConditionSchema: z.ZodType<FieldVisibilityCondition> = z.lazy(() =>
   z.union([
     singleFieldConditionSchema,
-    z.looseObject({ and: z.array(fieldVisibilityConditionSchema).min(1) }),
-    z.looseObject({ or: z.array(fieldVisibilityConditionSchema).min(1) }),
+    z.object({ and: z.array(fieldVisibilityConditionSchema).min(1) }),
+    z.object({ or: z.array(fieldVisibilityConditionSchema).min(1) }),
   ]),
 );
 
@@ -106,15 +111,21 @@ export const propertyWidthSchema = z.preprocess((val) => {
 export type PropertyWidth = SemanticWidthToken;
 
 export const baseFormElementSchema = baseFieldSchema.extend({
-  REQUIRED: z.boolean().optional(),
-  MODELNAME: z.string().optional(),
-  LABEL: z.string().default("").optional(),
-  WIDTH: propertyWidthSchema.default("md").optional(),
-  DISABLED: z.boolean().default(false).optional(),
-  POSITION: z.string().default("").optional(),
-  ENRICHTEXT: z.string().default("").optional(),
-  DEFAULTVALUE: z.string().default("").optional(),
-  FIXEDVALUE: z.string().default("").optional(),
+  REQUIRED: z
+    .union([z.boolean(), z.null()])
+    .transform((v) => (v === null ? undefined : v))
+    .optional(),
+  MODELNAME: z
+    .string()
+    .trim()
+    .transform((v) => v.toUpperCase())
+    .optional(),
+  LABEL: z.string().optional(),
+  WIDTH: propertyWidthSchema.optional(),
+  DISABLED: z.boolean().optional(),
+  ENRICHTEXT: z.string().optional(),
+  DEFAULTVALUE: z.string().optional(),
+  FIXEDVALUE: z.string().optional(),
   PARAMETER: formFieldParameterSchema.optional(),
   VISIBLE_WHEN: fieldVisibilityConditionSchema.optional(),
   DISABLED_WHEN: fieldVisibilityConditionSchema.optional(),
@@ -151,20 +162,24 @@ export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
  */
 export const containerConfigSchema = z.object({
   /**
-   * Style preset; explicit showHeader / bordered / background override it. "ghost" = frameless.
-   * None of these have a schema default: a parsed layout must leave them unset so the variant
-   * preset applies and a tab group can find the one tab that carries its settings.
+   * Card style preset ("ghost" = frameless). No schema default so a parsed layout
+   * leaves it unset until explicitly configured.
    */
   variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
   density: z.enum(["compact", "normal", "spacious"]).optional(),
-  showHeader: z.boolean().optional(),
-  bordered: z.boolean().optional(),
-  background: z.enum(["regular", "subtle", "none"]).optional(),
 
   // Tab Group container styling & height modes (renderers fall back to "card" / "auto")
   tabVariant: z.enum(["card", "workbench", "pills"]).optional(),
   heightMode: z.enum(["auto", "fill", "fixed"]).optional(),
-  minHeight: z.union([z.number(), z.string()]).optional(),
+  minHeight: z
+    .union([
+      z.number().nonnegative(),
+      z
+        .string()
+        .trim()
+        .regex(/^\d+(\.\d+)?(px|rem|em|%|vh|vw)?$/, "Invalid CSS length"),
+    ])
+    .optional(),
 
   badge: z.string().optional(),
   badgeVariant: z.enum(["default", "secondary", "outline", "destructive"]).optional(),
@@ -172,8 +187,8 @@ export const containerConfigSchema = z.object({
 export type ContainerConfig = z.infer<typeof containerConfigSchema>;
 
 export const formSectionSchema = z.object({
-  id: z.string(),
-  title: z.string().default("").optional(),
+  id: z.string().min(1, "Section ID is required"),
+  title: z.string().optional(),
   description: z.string().optional(),
 
   // Container classification
@@ -184,9 +199,9 @@ export const formSectionSchema = z.object({
   groupTitle: z.string().optional(),
 
   // Grid layout inside this section
-  columns: z.number().min(1).max(4).default(1).optional(),
-  collapsible: z.boolean().default(false).optional(),
-  isCollapsed: z.boolean().default(false).optional(),
+  columns: z.number().int().min(1).max(4).optional(),
+  collapsible: z.boolean().optional(),
+  isCollapsed: z.boolean().optional(),
 
   // Container visual & behavioral configuration
   containerConfig: containerConfigSchema.optional(),
@@ -197,8 +212,8 @@ export const formSectionSchema = z.object({
 export type FormSection = z.infer<typeof formSectionSchema>;
 
 export const formElementsContainerSchema = z.object({
-  layout: z.enum(["horizontal", "stacked"]).default("horizontal").optional(),
-  density: z.enum(["compact", "normal", "spacious"]).default("compact").optional(),
+  layout: z.enum(["horizontal", "stacked"]).optional(),
+  density: z.enum(["compact", "normal", "spacious"]).optional(),
   sections: z.array(formSectionSchema).default([]),
 });
 export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useDroppable } from "@dnd-kit/core";
+import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 import * as React from "react";
@@ -45,23 +45,130 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
 
   const [internalNativeOver, setInternalNativeOver] = React.useState(false);
   const [dropInsertIndex, setDropInsertIndex] = React.useState<number | null>(null);
+  const [dndInsertIndex, setDndInsertIndex] = React.useState<number | null>(null);
+  const [draggedField, setDraggedField] = React.useState<FormSection["fields"][number] | null>(
+    null,
+  );
   const gridContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  const fieldKeys = React.useMemo(
+    () => section.fields.map((f, idx) => String(f.SN || f.NAME || `field-${idx}`)),
+    [section.fields],
+  );
+
+  const updateDndInsert = React.useCallback(
+    (event: {
+      active: {
+        data: { current?: Record<string, unknown> };
+        rect: { current: { translated: { top: number; height: number } | null } };
+      };
+      over: {
+        id: string | number;
+        data: { current?: Record<string, unknown> };
+        rect: { top: number; height: number };
+      } | null;
+    }) => {
+      if (disabled) return;
+      const activeData = event.active.data.current;
+      const overData = event.over?.data.current;
+      if (activeData?.type !== "field" || activeData.sectionId === section.id) {
+        if (dndInsertIndex !== null) setDndInsertIndex(null);
+        return;
+      }
+      if (overData?.sectionId !== section.id) {
+        if (dndInsertIndex !== null) setDndInsertIndex(null);
+        return;
+      }
+      if (overData?.type === "field") {
+        const overId = String(event.over?.id);
+        const idx = section.fields.findIndex(
+          (f, i) => fieldKeys[i] === overId || String(f.NAME || "") === overId,
+        );
+        if (idx === -1) {
+          setDndInsertIndex(section.fields.length);
+          return;
+        }
+        // When hovering the bottom half of the last card, place indicator at the bottom of the list
+        const translated = event.active.rect.current.translated;
+        const overRect = event.over?.rect;
+        if (
+          idx === section.fields.length - 1 &&
+          translated &&
+          overRect &&
+          translated.top + translated.height / 2 > overRect.top + overRect.height / 2
+        ) {
+          setDndInsertIndex(section.fields.length);
+        } else {
+          setDndInsertIndex(idx);
+        }
+      } else if (overData?.type === "section-dropzone") {
+        const translated = event.active.rect.current.translated;
+        const cards = gridContainerRef.current?.querySelectorAll<HTMLElement>("[data-field-card]");
+        const lastRect =
+          cards && cards.length > 0 ? cards[cards.length - 1].getBoundingClientRect() : null;
+        const isBelowLast =
+          translated && lastRect ? translated.top + translated.height / 2 > lastRect.bottom : false;
+        if (dndInsertIndex === null || isBelowLast) {
+          setDndInsertIndex(section.fields.length);
+        }
+      } else {
+        setDndInsertIndex(null);
+      }
+    },
+    [disabled, dndInsertIndex, fieldKeys, section.fields, section.id],
+  );
+
+  useDndMonitor({
+    onDragStart(event) {
+      const activeData = event.active.data.current;
+      if (activeData?.type === "field") {
+        setDraggedField((activeData.field as FormSection["fields"][number]) ?? null);
+      }
+    },
+    onDragOver: updateDndInsert,
+    onDragMove: updateDndInsert,
+    onDragEnd() {
+      setDndInsertIndex(null);
+      setDraggedField(null);
+    },
+    onDragCancel() {
+      setDndInsertIndex(null);
+      setDraggedField(null);
+    },
+  });
 
   useGlobalDragReset(
     React.useCallback(() => {
       setInternalNativeOver(false);
       setDropInsertIndex(null);
+      setDndInsertIndex(null);
+      setDraggedField(null);
     }, []),
   );
 
-  const showHover = isOver || externalNativeOver || internalNativeOver;
+  const activeInsertIndex = internalNativeOver
+    ? dropInsertIndex
+    : dndInsertIndex !== null
+      ? dndInsertIndex
+      : externalNativeOver
+        ? section.fields.length
+        : null;
+  const showHover = isOver || externalNativeOver || internalNativeOver || dndInsertIndex !== null;
   const isEmpty = section.fields.length === 0;
   const numCols = section.columns || 1;
+  const placeholderColClass = draggedField
+    ? getFieldColSpanClass(numCols, draggedField.WIDTH, draggedField.LENGTH, draggedField.TYPE)
+    : getFieldColSpanClass(numCols, "md");
 
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     if (disabled) return;
     if (!internalNativeOver) setInternalNativeOver(true);
+
+    // Keep slot stable while pointer rests on the rendered placeholder box
+    if ((e.target as HTMLElement | null)?.closest("[data-drop-placeholder]")) {
+      return;
+    }
 
     if (section.fields.length === 0) {
       setDropInsertIndex(0);
@@ -142,8 +249,6 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
     }
   };
 
-  const fieldKeys = section.fields.map((f, idx) => String(f.NAME || f.SN || `field-${idx}`));
-
   const defaultEmptyText =
     section.containerType === "tab"
       ? "No fields placed in this tab yet — drag variables from the left palette"
@@ -185,19 +290,32 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
             </p>
           </button>
         ) : (
-          <div ref={gridContainerRef} className={cn("grid gap-2", getGridColsClass(numCols))}>
+          <div
+            ref={gridContainerRef}
+            className={cn(
+              "grid gap-2 rounded-md transition-colors",
+              getGridColsClass(numCols),
+              activeInsertIndex !== null && "ring-1 ring-primary/40 bg-primary/5 p-0.5 -m-0.5",
+            )}
+          >
             {section.fields.map((field, idx) => {
-              const fieldId = String(field.NAME || field.SN || `field-${idx}`);
+              const fieldId = fieldKeys[idx];
               const isSelected =
                 selectedFieldId === fieldId ||
                 selectedFieldId === field.SN ||
                 selectedFieldId === field.NAME;
-              const isDropTargetHere = showHover && dropInsertIndex === idx;
+              const isDropTargetHere = activeInsertIndex === idx;
 
               return (
                 <React.Fragment key={fieldId}>
                   {isDropTargetHere && (
-                    <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-2xs font-medium animate-pulse shadow-xs">
+                    <div
+                      data-drop-placeholder="true"
+                      className={cn(
+                        "border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-2xs font-medium shadow-xs pointer-events-none",
+                        placeholderColClass,
+                      )}
+                    >
                       <Plus className="size-3.5" />
                       <span>Drop field here</span>
                     </div>
@@ -219,13 +337,18 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
             })}
 
             {/* Active Drop Placeholder Slot at End of Grid */}
-            {showHover &&
-              (dropInsertIndex === null || dropInsertIndex >= section.fields.length) && (
-                <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-2xs font-medium animate-pulse shadow-xs">
-                  <Plus className="size-3.5" />
-                  <span>Drop field here</span>
-                </div>
-              )}
+            {activeInsertIndex !== null && activeInsertIndex >= section.fields.length && (
+              <div
+                data-drop-placeholder="true"
+                className={cn(
+                  "border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-2xs font-medium shadow-xs pointer-events-none",
+                  placeholderColClass,
+                )}
+              >
+                <Plus className="size-3.5" />
+                <span>Drop field here</span>
+              </div>
+            )}
           </div>
         )}
       </section>

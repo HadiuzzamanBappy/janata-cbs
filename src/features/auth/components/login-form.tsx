@@ -107,7 +107,7 @@ export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginForm
             Authenticating...
           </>
         ) : (
-          "Sign on"
+          "Sign In"
         )}
       </Button>
     </form>

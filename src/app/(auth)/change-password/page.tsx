@@ -20,8 +20,8 @@ export default async function ChangePasswordPage() {
 
   return (
     <>
-      <div className="mb-6 text-center space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Action Required</h2>
+      <div className="mb-6 space-y-1">
+        <h2 className="text-xl font-bold tracking-tight text-foreground">Action Required</h2>
         <p className="text-xs text-muted-foreground">
           Initial sign-on for{" "}
           <span className="font-mono font-medium text-foreground">{session.currUser.userId}</span>.

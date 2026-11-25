@@ -45,8 +45,9 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - api (API routes)
      * - _next (Next.js internals and static files)
+     * - images (public static images, e.g. login vectors)
      * - favicon.ico (favicon file)
      */
-    "/((?!api|_next|favicon.ico).*)",
+    "/((?!api|_next|images|favicon.ico).*)",
   ],
 };

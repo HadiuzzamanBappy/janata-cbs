@@ -20,8 +20,8 @@ export default async function LoginPage() {
 
   return (
     <>
-      <div className="mb-6 text-center space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Welcome User</h2>
+      <div className="mb-6 space-y-1">
+        <h2 className="text-xl font-bold tracking-tight text-foreground">Sign in</h2>
         <p className="text-xs text-muted-foreground">
           Use the credentials issued by your branch administrator.
         </p>

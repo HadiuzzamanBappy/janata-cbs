@@ -85,7 +85,7 @@ export function DeactivateTab() {
               value={deactivateDate}
               onChange={(e) => setDeactivateDate(e.target.value)}
               required
-              className="h-8 text-xs"
+              className="h-8 text-xs focus-visible:ring-0 focus-visible:border-foreground/50"
             />
           </div>
 
@@ -98,7 +98,7 @@ export function DeactivateTab() {
               value={reactivationDate}
               onChange={(e) => setReactivationDate(e.target.value)}
               required
-              className="h-8 text-xs"
+              className="h-8 text-xs focus-visible:ring-0 focus-visible:border-foreground/50"
             />
           </div>
 

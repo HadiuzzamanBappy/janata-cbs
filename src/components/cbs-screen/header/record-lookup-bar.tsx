@@ -69,7 +69,7 @@ export function RecordLookupBar({
           value={inputVal}
           onChange={(e) => onInputChange(e.target.value)}
           className={cn(
-            "h-7 w-36 sm:w-48 text-xs font-mono bg-background border-border/80 focus-visible:bg-background",
+            "h-7 w-36 sm:w-48 text-xs font-mono bg-background border-border/80 focus-visible:bg-background focus-visible:ring-0 focus-visible:border-foreground/50",
             inputVal ? "pr-7" : "pr-2",
           )}
         />
@@ -84,7 +84,7 @@ export function RecordLookupBar({
               e.stopPropagation();
               onClear();
             }}
-            className="absolute right-1 inset-y-0 my-auto size-5 text-muted-foreground hover:text-foreground z-10"
+            className="absolute right-1 inset-y-0 my-auto size-5 text-muted-foreground hover:text-foreground z-10 focus-visible:ring-0"
             aria-label="Clear input"
           >
             <X className="size-3" />
@@ -100,7 +100,7 @@ export function RecordLookupBar({
               type="button"
               variant="outline"
               size="icon-sm"
-              className="size-7 bg-background border-border/80 text-muted-foreground hover:text-foreground shadow-xs shrink-0 cursor-pointer"
+              className="size-7 bg-background border-border/80 text-muted-foreground hover:text-foreground shadow-xs shrink-0 cursor-pointer focus-visible:ring-0 focus-visible:border-foreground/50"
               aria-label="Toggle matching records"
             >
               <ChevronDown className="size-3.5" />

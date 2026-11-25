@@ -60,8 +60,12 @@ export function PaletteObjectGroup({
     e.dataTransfer.effectAllowed = "copy";
   };
 
-  const handleAddObjectField = () => {
-    onAddField(objectFieldElement);
+  const handleHeaderClick = () => {
+    if (isParentPlaced) {
+      onHighlightField?.(parent.NAME);
+    } else if (!disabled) {
+      onAddField(objectFieldElement);
+    }
   };
 
   // Inner fields removed from the placed group, which can be added back to it
@@ -93,75 +97,73 @@ export function PaletteObjectGroup({
           "px-2 py-1.5 flex items-center justify-between gap-1 transition-colors select-none",
           !disabled && !isParentPlaced
             ? "cursor-grab active:cursor-grabbing hover:bg-muted/40"
-            : "",
+            : "hover:bg-muted/30",
         )}
       >
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 font-mono">
-          {isParentPlaced ? (
-            <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
-          ) : !disabled ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              onClick={handleAddObjectField}
-              className="size-4 p-0 text-primary hover:bg-primary/20 rounded cursor-pointer shrink-0"
-              title="Add Object Field to Canvas"
-            >
-              <Plus className="size-3" />
-            </Button>
-          ) : (
-            <Plus className="size-3 text-muted-foreground shrink-0" />
-          )}
+        <button
+          type="button"
+          onClick={handleHeaderClick}
+          className="flex items-center justify-between gap-1 min-w-0 flex-1 text-left cursor-pointer"
+          title={
+            isParentPlaced
+              ? `Object '${parent.NAME}' is placed on canvas. Click to inspect.`
+              : `Drag or click to add '${parent.NAME}' (${parent.TYPE}) to canvas`
+          }
+        >
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 font-mono">
+            {isParentPlaced ? (
+              <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
+            ) : (
+              <Plus
+                className={cn(
+                  "size-3 shrink-0",
+                  disabled ? "text-muted-foreground" : "text-primary",
+                )}
+              />
+            )}
 
-          <span className="text-3xs text-muted-foreground shrink-0">#{parent.SN}</span>
+            <span className="text-3xs text-muted-foreground shrink-0">#{parent.SN}</span>
 
-          <button
-            type="button"
-            onClick={() => onHighlightField?.(parent.NAME)}
-            className="font-medium text-foreground truncate cursor-pointer hover:underline text-left text-2xs"
-            title={`${parent.NAME} (${parent.STRUCTURE === "M" ? "Multi" : "Single"} Object)`}
-          >
-            {parent.NAME}
-          </button>
-        </div>
+            <span className="font-medium text-foreground truncate text-2xs">{parent.NAME}</span>
+          </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          {parent.STRUCTURE === "M" && (
+          <div className="flex items-center gap-1 shrink-0">
+            {parent.STRUCTURE === "M" && (
+              <Badge
+                variant="outline"
+                className="text-3xs h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"
+                title="Multi-value property"
+              >
+                M
+              </Badge>
+            )}
             <Badge
               variant="outline"
-              className="text-3xs h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"
-              title="Multi-value property"
+              className={cn(
+                "text-3xs h-3.5 px-1 font-mono uppercase",
+                isSelected
+                  ? "text-primary border-primary/50 bg-primary/10 font-bold"
+                  : isParentPlaced
+                    ? "text-muted-foreground border-border/70 bg-muted/30 font-semibold"
+                    : "text-muted-foreground border-border bg-muted/20",
+              )}
             >
-              M
+              {parent.TYPE}
             </Badge>
-          )}
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-3xs h-3.5 px-1 font-mono uppercase",
-              isSelected
-                ? "text-primary border-primary/50 bg-primary/10 font-bold"
-                : isParentPlaced
-                  ? "text-muted-foreground border-border/70 bg-muted/30 font-semibold"
-                  : "text-muted-foreground border-border bg-muted/20",
-            )}
-          >
-            {parent.TYPE}
-          </Badge>
+          </div>
+        </button>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleCollapse(parent.SN);
-            }}
-            className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer rounded"
-            aria-label={isCollapsed ? "Expand object group" : "Collapse object group"}
-          >
-            {isCollapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCollapse(parent.SN);
+          }}
+          className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer rounded shrink-0"
+          aria-label={isCollapsed ? "Expand object group" : "Collapse object group"}
+        >
+          {isCollapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
+        </button>
       </section>
 
       {/* Sub-fields preview if expanded */}

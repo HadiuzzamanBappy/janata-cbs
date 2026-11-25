@@ -79,7 +79,7 @@ function MaskedField({
           required
           disabled={disabled}
           autoComplete={autoComplete}
-          className="h-8 text-xs pr-8"
+          className="h-8 text-xs pr-8 focus-visible:ring-0 focus-visible:border-foreground/50"
         />
         <button
           type="button"

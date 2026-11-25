@@ -1,10 +1,6 @@
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
-import {
-  type InquiryConfigRecord,
-  inquiryConfigSaveSchema,
-  type ModelConfigRecord,
-} from "@/lib/data-schemas";
+import { type InquiryConfigRecord, inquiryConfigSaveSchema } from "@/lib/data-schemas";
 
 export type InquiryConfigTabKey =
   | "general"
@@ -22,18 +18,12 @@ export interface InquiryValidationErrorItem extends CbsScreenValidationError<Inq
   readonly itemIndex?: number;
 }
 
-/** Row keys every inquiry row carries, whatever its model. */
-const ROW_META_FIELDS: ReadonlySet<string> = new Set(["recordid", "id", "auditdata"]);
-
 /**
  * Validates an INQUIRY.CONFIG draft against the save rules (`inquiryConfigSaveSchema`, the same
- * check `/api/proxy` runs on save). With the target model, it also flags filters and columns the
- * model doesn't have.
+ * check `/api/proxy` runs on save). Columns and filters may come from the target model or be
+ * custom/computed fields.
  */
-export function validateInquiryConfig(
-  draft: InquiryConfigRecord,
-  model?: ModelConfigRecord | null,
-): InquiryValidationErrorItem[] {
+export function validateInquiryConfig(draft: InquiryConfigRecord): InquiryValidationErrorItem[] {
   const formData = sanitizeInquiryConfigRecord(draft);
   const issues: InquiryValidationErrorItem[] = [];
   const addIssue = (item: InquiryValidationErrorItem) => issues.push(item);
@@ -77,35 +67,6 @@ export function validateInquiryConfig(
         fieldKey: pathStr,
         message: `${labelPrefix}: ${issue.message}`,
         itemIndex,
-      });
-    });
-  }
-
-  // 2. Target model: every filter and column must be a model property
-  if (model) {
-    const modelNames = new Set(model.PROPERTIES.map((p) => p.NAME.toLowerCase()));
-    const isKnown = (name: string) => {
-      const root = name.trim().split(".")[0].toLowerCase();
-      return !root || modelNames.has(root) || ROW_META_FIELDS.has(root);
-    };
-    formData.INQSelectField.forEach((filter, idx) => {
-      if (isKnown(filter.selectFieldName)) return;
-      addIssue({
-        id: `model-sel-${idx}`,
-        tab: "filters",
-        fieldKey: `INQSelectField.${idx}.selectFieldName`,
-        message: `Filter #${idx + 1}: "${filter.selectFieldName}" is not in model ${model.TABLENAME}`,
-        itemIndex: idx,
-      });
-    });
-    formData.INQDef.forEach((col, idx) => {
-      if (isKnown(col.fieldName)) return;
-      addIssue({
-        id: `model-col-${idx}`,
-        tab: "columns",
-        fieldKey: `INQDef.${idx}.fieldName`,
-        message: `Column #${idx + 1}: "${col.fieldName}" is not in model ${model.TABLENAME}`,
-        itemIndex: idx,
       });
     });
   }

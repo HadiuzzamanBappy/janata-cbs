@@ -1,10 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { isRecordEditable } from "@/lib/cbs-access";
-import { cbs, cbsQueries } from "@/lib/cbs-client";
+import { cbs } from "@/lib/cbs-client";
 import { parseInquiryConfig } from "@/lib/data-parsers";
 import { isApiSuccess } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -126,12 +125,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     }
   }, [resolvedInitialId, resolvedInitialMode, loadRecord]);
 
-  // 5. Validate against the save rules and the target model (shared, cached MODEL.CONFIG query)
-  const { data: targetModel } = useQuery(
-    cbsQueries.modelConfig.record(formData.INQInfo?.controllerName ?? ""),
-  );
+  // 5. Validate against the save rules
   const handleValidate = React.useCallback((): boolean => {
-    const issues = validateInquiryConfig(formData, targetModel);
+    const issues = validateInquiryConfig(formData);
     if (issues.length > 0) {
       setValidationErrors(issues);
       toast.add({
@@ -148,7 +144,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       type: "success",
     });
     return true;
-  }, [formData, targetModel]);
+  }, [formData]);
 
   // Clear validation errors when switching away from edit mode
   React.useEffect(() => {

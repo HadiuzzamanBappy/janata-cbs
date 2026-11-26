@@ -28,13 +28,6 @@ export interface PropertyInspectorProps {
   className?: string;
 }
 
-function resolveBaseType(type?: string): "TEXT" | "NUMBER" | "DATE" {
-  const norm = (type || "").toUpperCase();
-  if (norm.includes("NUM") || norm.includes("AMOUNT")) return "NUMBER";
-  if (norm.includes("DATE") || norm.includes("TIME")) return "DATE";
-  return "TEXT";
-}
-
 /**
  * PropertyInspector: Streamlined right-hand workbench panel.
  * Directly renders flat properties for Root Canvas, Containers, or Fields.
@@ -100,8 +93,6 @@ export function PropertyInspector(props: PropertyInspectorProps) {
     if (!selectedField) return null;
     return findModelPropDeep(modelProperties, selectedField);
   }, [modelProperties, selectedField]);
-
-  const baseType = resolveBaseType(matchedModelProp?.TYPE || selectedField?.TYPE);
 
   const fieldErrorMap = React.useMemo(() => {
     if (!selectedField || !ctx) return {};
@@ -182,7 +173,6 @@ export function PropertyInspector(props: PropertyInspectorProps) {
           <FieldInspector
             field={selectedField}
             matchedModelProp={matchedModelProp}
-            baseType={baseType}
             onUpdateField={onUpdateField}
             disabled={disabled}
             errors={fieldErrorMap}

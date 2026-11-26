@@ -13,7 +13,7 @@ import { resolveTabGroupConfig } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { DEFAULT_FORM_DENSITY, type FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
+import { containerBadgeTone, FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
 import { CardContainer } from "./card-container";
 
 export interface TabGroupContainerProps {
@@ -133,7 +133,7 @@ export function TabGroupContainer({
                     "inline-flex items-center px-1.5 py-0.2 text-3xs font-mono rounded",
                     isPills && isActive
                       ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-muted text-muted-foreground",
+                      : containerBadgeTone(config.badgeVariant, "bg-muted text-muted-foreground"),
                   )}
                 >
                   {config.badge}

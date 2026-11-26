@@ -197,7 +197,7 @@ async function runSuite() {
   console.log("\n── 2. Fallback Layout Compilation (compileFormSpec) ──");
   const fallback = compileFormSpec(testModel, null);
   recordTest(
-    "2.1 Generates canonical 12-column card fallback section when no custom layout exists",
+    "2.1 Generates canonical single-column card fallback section when no custom layout exists",
     { model: testModel.TABLENAME, layout: null },
     {
       title: fallback.title,
@@ -783,22 +783,23 @@ async function runSuite() {
       inputWidthTextMd === "w-full sm:max-w-72",
   );
 
-  const gridCols12 = getGridColsClass(12);
+  const gridCols4 = getGridColsClass(4);
   const gridCols2 = getGridColsClass(2);
   recordTest(
     "8.2 Maps grid column configuration to responsive grid CSS classes",
-    { cols12: 12, cols2: 2 },
-    { css12: gridCols12, css2: gridCols2 },
-    gridCols12 === "grid-cols-12" && gridCols2 === "grid-cols-1 md:grid-cols-2",
+    { cols4: 4, cols2: 2 },
+    { css4: gridCols4, css2: gridCols2 },
+    gridCols4 === "grid-cols-1 md:grid-cols-2 lg:grid-cols-4" &&
+      gridCols2 === "grid-cols-1 md:grid-cols-2",
   );
 
   const colSpanSingle = getFieldColSpanClass(1, "md", 35, "String");
-  const colSpan12Md = getFieldColSpanClass(12, "md", 35, "String");
+  const colSpan3Lg = getFieldColSpanClass(3, "lg", 35, "String");
   recordTest(
-    "8.3 Computes field cell column spans across single-col and 12-col grids",
-    { cols1: 1, cols12: 12 },
-    { span1: colSpanSingle, span12: colSpan12Md },
-    colSpanSingle === "w-full col-span-1" && colSpan12Md === "col-span-12 md:col-span-4",
+    "8.3 Computes field cell column spans across single-col and multi-col grids",
+    { cols1: 1, cols3: 3 },
+    { span1: colSpanSingle, span3: colSpan3Lg },
+    colSpanSingle === "w-full col-span-1" && colSpan3Lg === "col-span-1 md:col-span-2 w-full",
   );
 
   // ── 9. Path Utilities (getFieldValue, setFieldValue, deleteFieldValue) ──

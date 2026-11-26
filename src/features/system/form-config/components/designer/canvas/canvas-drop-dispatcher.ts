@@ -32,7 +32,6 @@ export function createNewFieldFromTemplate(
     STRUCTURE: template.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
     REQUIRED: Boolean(template.REQUIRED),
     DISABLED: template.DISABLED ?? false,
-    WIDTH: template.WIDTH ?? "md",
     PARAMETER: template.PARAMETER || {
       type: "O",
       data: [],

@@ -19,7 +19,6 @@ import {
   isLiveTransform,
   resolveTabGroupConfig,
   setFieldValue,
-  validateValues,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { type AuditData, DEFAULT_FORM_DENSITY, DEFAULT_FORM_LAYOUT } from "@/lib/data-schemas";
@@ -41,10 +40,7 @@ export function FormRenderer({
   values,
   onChange,
   onRecordChange,
-  onValuesChange,
   errors = {},
-  externalErrors = {},
-  autoValidate = false,
   disabled = false,
   mode = CbsRecordFunction.INPUT,
   auditData,
@@ -88,12 +84,6 @@ export function FormRenderer({
     });
   }, [blocks]);
 
-  // Automatic schema-driven validation
-  const schemaErrors = React.useMemo(() => {
-    if (!autoValidate || sections.length === 0) return {};
-    return validateValues(sections, values);
-  }, [sections, values, autoValidate]);
-
   // Check if any tab group is configured in "fill" (Fill Screen) mode
   const hasFillBlock = React.useMemo(() => {
     return blocks.some((b) => {
@@ -103,11 +93,6 @@ export function FormRenderer({
       return false;
     });
   }, [blocks]);
-
-  // Unified error map: schema validation errors merged with external business/server errors
-  const effectiveErrors = React.useMemo(() => {
-    return { ...schemaErrors, ...errors, ...externalErrors };
-  }, [schemaErrors, errors, externalErrors]);
 
   // Handle field change with TRANSFORM, CASCADE, and ON_CHANGE
   const handleFieldChange = (key: string, rawVal: unknown) => {
@@ -144,11 +129,7 @@ export function FormRenderer({
     }
 
     // 5. Emit full nextValues to record subscribers
-    if (onRecordChange) {
-      onRecordChange(nextValues);
-    } else if (onValuesChange) {
-      onValuesChange(nextValues);
-    }
+    onRecordChange?.(nextValues);
   };
 
   return (
@@ -180,7 +161,7 @@ export function FormRenderer({
                     section={block.section}
                     values={values}
                     onChange={handleFieldChange}
-                    errors={effectiveErrors}
+                    errors={errors}
                     disabled={disabled}
                     mode={mode}
                     hideHeader={hideHeader}
@@ -201,7 +182,7 @@ export function FormRenderer({
                 }
                 values={values}
                 onChange={handleFieldChange}
-                errors={effectiveErrors}
+                errors={errors}
                 disabled={disabled}
                 mode={mode}
               />

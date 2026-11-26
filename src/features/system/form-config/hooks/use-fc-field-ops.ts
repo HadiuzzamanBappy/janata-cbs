@@ -53,7 +53,6 @@ export function useFcFieldOps(
           STRUCTURE: fieldTemplate?.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
           REQUIRED: fieldTemplate?.REQUIRED ?? false,
           DISABLED: fieldTemplate?.DISABLED ?? false,
-          WIDTH: fieldTemplate?.WIDTH ?? "md",
           PARAMETER: fieldTemplate?.PARAMETER || {
             type: "O",
             data: [],

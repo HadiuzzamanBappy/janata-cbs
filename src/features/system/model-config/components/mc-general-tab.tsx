@@ -54,7 +54,7 @@ export function McGeneralTab({
           frmElements={{ sections: MODEL_CONFIG_SECTIONS }}
           values={values}
           onRecordChange={(next) => setFormData(next as ModelConfigRecord)}
-          externalErrors={errorMap}
+          errors={errorMap}
           disabled={isReadOnly}
           mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
           showAuditSection={true}

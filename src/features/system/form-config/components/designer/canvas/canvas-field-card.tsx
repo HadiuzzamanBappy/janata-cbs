@@ -6,11 +6,7 @@ import { AlertTriangle, ChevronDown, ChevronUp, GripVertical, Minus } from "luci
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  buildRenderBlocks,
-  deriveSemanticWidth,
-  getBlockGapSectionIndex,
-} from "@/lib/cbs-form-spec";
+import { buildRenderBlocks, getBlockGapSectionIndex } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import {
   CBS_PROPERTY_STRUCTURE,
@@ -21,6 +17,7 @@ import {
 import { findModelPropDeep } from "../../../hooks/fc-field-tree";
 import { useOptionalDesignerContext } from "../context/designer-context";
 import { CanvasObjectFields } from "./canvas-object-fields";
+import { FieldWidthBadge } from "./field-width-badge";
 import { selectableProps } from "./selectable";
 
 export interface CanvasFieldCardProps {
@@ -53,7 +50,7 @@ export function CanvasFieldCard({
     [ctx?.modelProperties, field],
   );
 
-  const overrides = React.useMemo(() => {
+  const badges = React.useMemo(() => {
     const list: {
       key: string;
       label: string;
@@ -66,14 +63,6 @@ export function CanvasFieldCard({
     const defaultWidget = getDefaultWidgetForType(physicalType);
     if (field.WIDGET && field.WIDGET !== defaultWidget) {
       list.push({ key: "widget", label: field.WIDGET.toUpperCase(), variant: "outline" });
-    }
-
-    // 2. Width override (only if explicitly changed from default width)
-    const defaultWidth = matchedProp
-      ? deriveSemanticWidth(undefined, matchedProp.LENGTH, matchedProp.TYPE)
-      : undefined;
-    if (field.WIDTH && defaultWidth && field.WIDTH !== defaultWidth) {
-      list.push({ key: "width", label: String(field.WIDTH).toUpperCase(), variant: "secondary" });
     }
 
     // 3. Disabled / Read-Only override
@@ -270,7 +259,8 @@ export function CanvasFieldCard({
             </div>
             <div className="flex items-center gap-1.5 mt-0.5 text-3xs text-muted-foreground font-mono min-w-0 overflow-hidden">
               <span className="truncate max-w-36">{field.NAME}</span>
-              {overrides.map((ov) => (
+              <FieldWidthBadge field={field} modelProp={matchedProp} />
+              {badges.map((ov) => (
                 <Badge
                   key={ov.key}
                   variant={ov.variant || "outline"}

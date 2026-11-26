@@ -10,7 +10,7 @@
  * 3. field-rules: Reactive transforms, cascades, conditions, and on-change
  * 4. validation: Headless validation engine with nested recursive checking
  * 5. layout-blocks: Tab clustering and container layout grouping
- * 6. layout-grid: Responsive 12-column grid spans & input width caps
+ * 6. layout-grid: 1 to 4 column section grids, cell spans & input width caps
  * 7. path-utils: Pure, immutable flat & dot-notated record accessors
  */
 

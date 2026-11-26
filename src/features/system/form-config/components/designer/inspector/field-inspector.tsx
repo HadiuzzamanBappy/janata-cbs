@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { resolveWidgetType, setFieldValue } from "@/lib/cbs-form-spec";
+import { deriveSemanticWidth, resolveWidgetType, setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import {
   CBS_PROPERTY_STRUCTURE,
@@ -32,7 +32,7 @@ import {
   type PropertyType,
 } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
-import { FIELD_GENERAL_PROPERTIES_SECTION } from "../../../fields/fc-field-fields";
+import { AUTO_WIDTH, FIELD_GENERAL_PROPERTIES_SECTION } from "../../../fields/fc-field-fields";
 import {
   getContextualWidgetSection,
   WIDGET_DISPLAY_LABELS,
@@ -44,7 +44,6 @@ import { useFieldRuleView } from "./use-field-rule-view";
 export interface FieldInspectorProps {
   field: FormElement;
   matchedModelProp: ModelProperty | null;
-  baseType?: "TEXT" | "NUMBER" | "DATE";
   onUpdateField: (patch: Partial<FormElement>) => void;
   disabled?: boolean;
   errors?: Record<string, string>;
@@ -55,7 +54,6 @@ type FieldInspectorTab = "basics" | "widget" | "rules";
 export function FieldInspector({
   field,
   matchedModelProp,
-  baseType: _baseType,
   onUpdateField,
   disabled = false,
   errors = {},
@@ -70,6 +68,7 @@ export function FieldInspector({
     field.STRUCTURE || matchedModelProp?.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE;
   const fieldLength = matchedModelProp?.LENGTH ?? field.LENGTH;
   const isDbRequired = Boolean(matchedModelProp?.REQUIRED);
+  const lengthWidth = deriveSemanticWidth(undefined, fieldLength, physicalType);
 
   const modelName = (matchedModelProp?.MODELNAME || field.MODELNAME || "").trim();
   const hasModel = Boolean(modelName);
@@ -143,6 +142,11 @@ export function FieldInspector({
     (fieldKey: string, rawValue: unknown) => {
       // A cleared input removes the setting, so an empty number never reaches the schema as ""
       const value = rawValue === "" ? undefined : rawValue;
+      // AUTO clears the width, so the form derives it from the column length again
+      if (fieldKey === "WIDTH" && value === AUTO_WIDTH) {
+        onUpdateField({ WIDTH: undefined });
+        return;
+      }
       const rulePatch = toRulePatch(fieldKey, value);
       if (rulePatch) {
         onUpdateField(rulePatch);
@@ -200,6 +204,12 @@ export function FieldInspector({
               : "Physical DB column is multi-valued (M). You can keep as Multi (M) or capture a Single (S) item.",
           };
         }
+        if (f.NAME === "WIDTH") {
+          return {
+            ...f,
+            ENRICHTEXT: `AUTO follows the column length (now ${lengthWidth.toUpperCase()}); a size fixes the width.`,
+          };
+        }
         if (f.NAME === "REQUIRED" && isDbRequired) {
           return {
             ...f,
@@ -211,14 +221,17 @@ export function FieldInspector({
         return f;
       }),
     };
-  }, [isArrayField, isPhysicalMulti, isDbRequired]);
+  }, [isArrayField, isPhysicalMulti, isDbRequired, lengthWidth]);
 
-  const effectiveFieldValues = React.useMemo(() => {
-    if (isDbRequired && !field.REQUIRED) {
-      return { ...field, REQUIRED: true } as Record<string, unknown>;
-    }
-    return field as Record<string, unknown>;
-  }, [field, isDbRequired]);
+  const effectiveFieldValues = React.useMemo(
+    () =>
+      ({
+        ...field,
+        WIDTH: field.WIDTH ?? AUTO_WIDTH,
+        ...(isDbRequired ? { REQUIRED: true } : {}),
+      }) as Record<string, unknown>,
+    [field, isDbRequired],
+  );
 
   const contextualSection = React.useMemo(
     () => getContextualWidgetSection(currentWidget),

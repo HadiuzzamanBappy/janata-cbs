@@ -2,7 +2,7 @@
 
 Audit of everything a form layout touches, from the three schema files out to the designer, the compiler, the form engine and the proxy. It follows the model-config audit and uses the same rules: one source per rule, no dead code, no legacy aliases, smallest safe change, and every compatibility boundary flagged before it moves.
 
-- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete (`75f120c`). Phase 2 committed (`c1f9af1`). Phase 3 applied (uncommitted); see the notes under §4.
+- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete (`75f120c`). Phase 2 committed (`c1f9af1`). Phase 3 committed (`cb77910`). Phase 4 applied (uncommitted); see the notes under §4.
 - **Scope:** `src/lib/data-schemas/form-{config,engine,widget}-schema.ts` and every unit that reads or writes their types (about 95 files, about 13k lines).
 - **Not in scope:** model-config (already audited); inquiry-config and menu-designer, except where they share the form engine.
 
@@ -203,6 +203,17 @@ One phase is one reviewable change (one commit when you ask for it), in risk ord
 - D6: `resolveTabGroupConfig` (`layout-blocks.ts`) replaces three copies (renderer, tab container, designer tab block).
 - D10 `looseEquals`, X15 typed `evaluateOnChangeRule`, X3 `validateSingleField` compares `PropertyType` constants, X14 drops the unused `{ sections }` input, N3 `findFieldSpecByKey` moved to `path-utils.ts`.
 - D12 dropped: no duplicated rule, and omitting `columns: 1` would change stored CONFIG.FORM JSON.
+
+**Phase 4 as applied** (owner choices: delete the 12-column path and update `verify:form-spec` 8.2 / 8.3; live tab badges honour `badgeVariant`):
+
+- X4 corrected: `hideHeader` is used (seven inspector forms and `FormPreview`) and stays. `onValuesChange` and `autoValidate` (with the `validateValues` call it fed) are deleted.
+- X5: one `errors` prop; the two model-config call sites pass `errors`.
+- X6: `baseType` / `resolveBaseType()` deleted.
+- X13: `cols === 12` branches and `TOKEN_TO_COL_SPAN` deleted (sections allow 1 to 4 columns). Suite 8.2 / 8.3 now check 4-column and 3-column grids. Comments, READMEs and the width help text no longer say "12-column".
+- X16: the serializer keeps `LABEL` only when set (same key position).
+- D13: `containerBadgeTone` (`form-layout-context.tsx`) replaces four copies. The live tab strip now honours `badgeVariant`, which the inspector offered and the designer showed but the live screen ignored. Unset still renders muted.
+- N6 was already done in Phase 3.
+- Width follows the column length until set: drops and `modelPropToFormElement` write no `WIDTH`; the inspector offers **AUTO** (clears it) instead of a `md` default that opening the inspector wrote; `FieldWidthBadge` shows the width on every canvas field and object-group inner row (quiet while it follows the length).
 
 ---
 

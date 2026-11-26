@@ -64,7 +64,7 @@ export function McPropertyInspector({
     }));
   }, [isSubProperty, isCommitted]);
   // Map external domain validation errors for this specific property
-  const externalErrors = React.useMemo(() => {
+  const propertyErrors = React.useMemo(() => {
     const map: Record<string, string> = {};
     if (!property) return map;
     for (const err of validationErrors) {
@@ -126,7 +126,7 @@ export function McPropertyInspector({
             frmElements={{ sections: inspectorSections }}
             values={property}
             onRecordChange={(next) => onUpdate(property.SN, next as ModelProperty)}
-            externalErrors={externalErrors}
+            errors={propertyErrors}
             disabled={isReadOnly}
             mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
           />

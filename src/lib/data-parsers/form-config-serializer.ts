@@ -24,7 +24,7 @@ const SECTION_STRINGS = ["title", "description", "groupId", "groupTitle"] as con
  * Sanitizes a FormElement for database persistence and wire JSON output:
  * - Removes client-only identifiers (`id: "f_..."`)
  * - Omits default falsy flags (`REQUIRED: false`, `DISABLED: false`); keeps any set `WIDTH`
- * - Omits empty text overrides and compresses sparse JSON
+ * - Omits an empty LABEL and empty text overrides, and compresses sparse JSON
  */
 function sanitizeFormElement(field: FormElement): FormElement {
   const { id: _clientId, ...cleanField } = field as FormElement & { id?: string };
@@ -36,7 +36,8 @@ function sanitizeFormElement(field: FormElement): FormElement {
   const sanitized: Partial<FormElement> = {
     SN: String(cleanField.SN || "1").trim(),
     NAME: cleanField.NAME.trim(),
-    LABEL: (cleanField.LABEL || cleanField.NAME).trim(),
+    // An unset label stays unset: the save rules require one, and runtime derives it from NAME
+    ...(cleanField.LABEL?.trim() ? { LABEL: cleanField.LABEL.trim() } : {}),
     TYPE: normType,
     STRUCTURE: normStructure,
     LENGTH: normLength,

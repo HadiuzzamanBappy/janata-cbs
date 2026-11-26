@@ -5,7 +5,7 @@
  * Core Invariants:
  * - ModelConfigRecord is the sole authority on physical schema (TYPE, LENGTH, STRUCTURE, REQUIRED).
  * - FormConfigRecord provides presentation structure (sections, widgets, labels, widths, rules).
- * - Fallback: When no custom layout exists, produces a canonical 12-column responsive card section.
+ * - Fallback: When no custom layout exists, produces one single-column card section.
  */
 
 import { formatNameToLabel } from "@/lib/core-utils";
@@ -28,7 +28,7 @@ import { deriveSemanticWidth, modelPropToFormElement, resolveWidgetType } from "
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Builds canonical 12-column responsive fallback sections from a physical ModelConfigRecord.
+ * Builds the single-column fallback card section from a physical ModelConfigRecord.
  * Preserves definition order and compiles nested properties into inline sub-groups.
  *
  * @param model Physical model configuration from backend core.
@@ -145,7 +145,7 @@ export function mergeFieldWithModelProp(
 
 /**
  * Pure compiler that harmonizes physical data schemas with presentation layouts.
- * - If `layout` is null/empty: generates a canonical 12-column card fallback layout.
+ * - If `layout` is null/empty: generates the single-column card fallback layout.
  * - If `layout` is provided: merges visual elements against authoritative model properties.
  *
  * @param model Physical model configuration (sole authority on database schema).

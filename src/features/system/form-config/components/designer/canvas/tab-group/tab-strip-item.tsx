@@ -3,6 +3,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { ExternalLink, X } from "lucide-react";
 import type * as React from "react";
+import { containerBadgeTone } from "@/components/cbs-form-engine";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
@@ -225,13 +226,10 @@ export function TabStripItem(props: TabStripItemProps) {
             <span
               className={cn(
                 "inline-flex items-center px-1.5 py-0.2 text-3xs font-mono rounded",
-                tab.containerConfig.badgeVariant === "destructive"
-                  ? "bg-destructive/10 text-destructive"
-                  : tab.containerConfig.badgeVariant === "outline"
-                    ? "border border-border text-foreground"
-                    : tab.containerConfig.badgeVariant === "secondary"
-                      ? "bg-secondary text-secondary-foreground"
-                      : "bg-muted text-muted-foreground",
+                containerBadgeTone(
+                  tab.containerConfig.badgeVariant,
+                  "bg-muted text-muted-foreground",
+                ),
               )}
             >
               {tab.containerConfig.badge}

@@ -15,7 +15,7 @@ import { DEFAULT_FORM_DENSITY } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import type { SectionCardProps } from "../../types";
 import { FieldGrid } from "../fields/field-grid";
-import { FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
+import { containerBadgeTone, FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
 
 export type CardContainerProps = SectionCardProps;
 
@@ -138,13 +138,7 @@ export function CardContainer({
                 <span
                   className={cn(
                     "inline-flex items-center px-1.5 py-0.2 text-3xs font-medium rounded-full shrink-0 whitespace-nowrap",
-                    config.badgeVariant === "destructive"
-                      ? "bg-destructive/10 text-destructive"
-                      : config.badgeVariant === "outline"
-                        ? "border border-border text-foreground"
-                        : config.badgeVariant === "secondary"
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-primary/10 text-primary",
+                    containerBadgeTone(config.badgeVariant, "bg-primary/10 text-primary"),
                   )}
                 >
                   {config.badge}
@@ -174,13 +168,7 @@ export function CardContainer({
                 <span
                   className={cn(
                     "inline-flex items-center px-1.5 py-0.2 text-3xs font-medium rounded-full shrink-0 whitespace-nowrap",
-                    config.badgeVariant === "destructive"
-                      ? "bg-destructive/10 text-destructive"
-                      : config.badgeVariant === "outline"
-                        ? "border border-border text-foreground"
-                        : config.badgeVariant === "secondary"
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-primary/10 text-primary",
+                    containerBadgeTone(config.badgeVariant, "bg-primary/10 text-primary"),
                   )}
                 >
                   {config.badge}

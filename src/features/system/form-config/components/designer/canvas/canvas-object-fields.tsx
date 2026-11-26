@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas";
+import { findModelPropDeep } from "../../../hooks/fc-field-tree";
 import { useOptionalDesignerContext } from "../context/designer-context";
+import { FieldWidthBadge } from "./field-width-badge";
 
 export interface CanvasObjectFieldsProps {
   parent: FormElement;
@@ -71,6 +73,10 @@ export function CanvasObjectFields({ parent, sectionId, disabled }: CanvasObject
               <span className="font-mono text-3xs text-muted-foreground truncate">
                 {child.NAME}
               </span>
+              <FieldWidthBadge
+                field={child}
+                modelProp={findModelPropDeep(ctx.modelProperties ?? [], child)}
+              />
               {child.WIDGET && (
                 <Badge
                   variant="outline"

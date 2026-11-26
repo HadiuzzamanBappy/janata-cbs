@@ -18,6 +18,7 @@ import {
   Ungroup,
 } from "lucide-react";
 import type * as React from "react";
+import { containerBadgeTone } from "@/components/cbs-form-engine";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
@@ -201,13 +202,7 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
                 <span
                   className={cn(
                     "inline-flex items-center px-1.5 py-0.2 text-3xs font-medium rounded-full shrink-0 whitespace-nowrap",
-                    config.badgeVariant === "destructive"
-                      ? "bg-destructive/10 text-destructive"
-                      : config.badgeVariant === "outline"
-                        ? "border border-border text-foreground"
-                        : config.badgeVariant === "secondary"
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-primary/10 text-primary",
+                    containerBadgeTone(config.badgeVariant, "bg-primary/10 text-primary"),
                   )}
                 >
                   {config.badge}

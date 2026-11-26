@@ -158,7 +158,6 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     LENGTH: normLength,
     STRUCTURE: normStructure,
     REQUIRED: Boolean(p.REQUIRED),
-    WIDTH: deriveSemanticWidth(undefined, p.LENGTH, p.TYPE),
     WIDGET: effectiveWidget,
     PARAMETER: param,
     ...(modelName ? { MODELNAME: modelName } : {}),

@@ -10,6 +10,7 @@
 
 import * as React from "react";
 import {
+  type ContainerConfig,
   DEFAULT_FORM_DENSITY,
   DEFAULT_FORM_LAYOUT,
   type FormDensity,
@@ -57,6 +58,21 @@ export const FORM_DENSITY_CLASSES: Record<
     cardPaddingView: "p-4",
   },
 };
+
+const BADGE_TONES: Partial<Record<NonNullable<ContainerConfig["badgeVariant"]>, string>> = {
+  destructive: "bg-destructive/10 text-destructive",
+  outline: "border border-border text-foreground",
+  secondary: "bg-secondary text-secondary-foreground",
+};
+
+/**
+ * Colour classes of a container badge (`containerConfig.badgeVariant`). `default`, or no variant,
+ * is the place's own tone: primary on a card header, muted on a tab.
+ */
+export const containerBadgeTone = (
+  variant: ContainerConfig["badgeVariant"],
+  defaultTone: string,
+): string => (variant && BADGE_TONES[variant]) || defaultTone;
 
 export const FormLayoutContext = React.createContext<FormLayoutContextValue>({
   layout: DEFAULT_FORM_LAYOUT,

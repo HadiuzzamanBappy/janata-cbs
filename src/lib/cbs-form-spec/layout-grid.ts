@@ -3,37 +3,13 @@
  * @module cbs-form-spec/layout-grid
  *
  * Core Invariants:
- * - Maps semantic width tokens ("xs".."full") to Tailwind 12-column spans and input max-width caps.
+ * - Maps semantic width tokens ("xs".."full") to cell spans in 1 to 4 column grids and input max-width caps.
  * - Enforces compact banking density to prevent inputs from over-stretching across wide monitors.
  * - Single row fallback (cols <= 1) assigns full row span ("w-full col-span-1") to all fields.
  */
 
 import { INLINE_WIDTH_WIDGETS, type SemanticWidthToken } from "@/lib/data-schemas";
 import { deriveSemanticWidth } from "./field-normalizer";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Token-to-Grid Column Mapping
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Maps semantic width tokens to Tailwind 12-column span CSS classes:
- * - xs:  2 cols  (col-span-12 md:col-span-2)
- * - sm:  3 cols  (col-span-12 md:col-span-3)
- * - md:  4 cols  (col-span-12 md:col-span-4)
- * - lg:  6 cols  (col-span-12 md:col-span-6)
- * - xl:  8 cols  (col-span-12 md:col-span-8)
- * - xxl: 10 cols (col-span-12 md:col-span-10)
- * - full: 12 cols (col-span-12)
- */
-export const TOKEN_TO_COL_SPAN: Record<SemanticWidthToken, string> = {
-  xs: "col-span-12 md:col-span-2",
-  sm: "col-span-12 md:col-span-3",
-  md: "col-span-12 md:col-span-4",
-  lg: "col-span-12 md:col-span-6",
-  xl: "col-span-12 md:col-span-8",
-  xxl: "col-span-12 md:col-span-10",
-  full: "col-span-12",
-};
 
 /**
  * Maps semantic width tokens to high-density input element width classes.
@@ -91,7 +67,7 @@ export function getInputWidthClass(
 }
 
 /**
- * Maps section column counts (1, 2, 3, 4, 12) to responsive Tailwind CSS grid classes.
+ * Maps a section's column count (1 to 4) to responsive Tailwind CSS grid classes.
  *
  * @param cols Configured columns for the section.
  * @returns Responsive grid column class string.
@@ -104,8 +80,6 @@ export function getGridColsClass(cols?: number): string {
       return "grid-cols-1 md:grid-cols-3";
     case 4:
       return "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
-    case 12:
-      return "grid-cols-12";
     default:
       return "grid-cols-1";
   }
@@ -114,7 +88,6 @@ export function getGridColsClass(cols?: number): string {
 /**
  * Returns the column span class for a field cell within a container grid.
  * - cols <= 1: Full-width single column ("w-full col-span-1").
- * - cols === 12: Standard 12-column semantic spans.
  * - cols in (2, 3, 4): Proportional responsive spans based on derived tokens.
  *
  * @param cols Grid column count of the enclosing section.
@@ -131,11 +104,6 @@ export function getFieldColSpanClass(
 ): string {
   if (cols <= 1) {
     return "w-full col-span-1";
-  }
-
-  if (cols === 12) {
-    const token = deriveSemanticWidth(width, length, type);
-    return TOKEN_TO_COL_SPAN[token];
   }
 
   const token = deriveSemanticWidth(width, length, type);

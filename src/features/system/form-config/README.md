@@ -57,7 +57,7 @@ A layout can use the 14 widget types in `FORM_WIDGET_TYPES` (`@/lib/data-schemas
 | `select`, `radio-group`, `segmented`, `checkbox-group` | `PARAMETER`: fixed options (`O`), model lookup (`M`), array lookup (`A`)                                     | Option source                                         |
 | `text`, `textarea`, `time`                             | none (text uses the Rules tab)                                                                               | —                                                     |
 
-Basics tab: label, width, required, read-only, help tooltip, **default value** (filled once on new records) and **fixed value** (always written on input, shown read-only; replaces the default).
+Basics tab: label, width (**AUTO**, the default, follows the column length and stores no `WIDTH`; a size fixes it), required, read-only, help tooltip, **default value** (filled once on new records) and **fixed value** (always written on input, shown read-only; replaces the default).
 
 Rules tab (`fields/fc-rule-fields.ts`, rows converted by `fields/fc-rule-adapters.ts`, bound in `inspector/use-field-rule-view.ts`):
 

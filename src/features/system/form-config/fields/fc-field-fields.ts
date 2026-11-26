@@ -7,6 +7,9 @@
 
 import type { FormSection } from "@/lib/data-schemas";
 
+/** Layout Width choice for an unset WIDTH (the form derives it from the column length). Never stored. */
+export const AUTO_WIDTH = "auto";
+
 /**
  * Standard Form Sections definition for Field Properties in the Inspector.
  * Uses Janata CBS FormEngine specifications.
@@ -72,10 +75,10 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       LENGTH: 10,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "md",
       PARAMETER: {
         type: "O",
         data: [
+          { code: AUTO_WIDTH, label: "AUTO" },
           { code: "xs", label: "XS" },
           { code: "sm", label: "SM" },
           { code: "md", label: "MD" },
@@ -85,7 +88,7 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
           { code: "full", label: "FULL" },
         ],
       },
-      ENRICHTEXT: "12-column responsive layout width token.",
+      ENRICHTEXT: "AUTO follows the column length; a size fixes the width.",
     },
     {
       SN: "5",

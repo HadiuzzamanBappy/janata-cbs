@@ -24,7 +24,7 @@ export interface CanvasSectionGridProps {
 }
 
 /**
- * Universal 12-column sortable grid and droppable dropzone for form fields.
+ * Sortable 1 to 4 column grid and droppable dropzone for a section's fields.
  * Shared across CardContainer and TabGroup sections.
  */
 export function CanvasSectionGrid(props: CanvasSectionGridProps) {

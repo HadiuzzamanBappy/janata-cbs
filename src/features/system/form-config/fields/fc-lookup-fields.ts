@@ -29,7 +29,6 @@ export const DROPDOWN_SOURCE_SELECTOR_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: CBS_PARAMETER_TYPE.OPTIONS,
       PARAMETER: {
         type: CBS_PARAMETER_TYPE.OPTIONS,
         data: [
@@ -120,7 +119,6 @@ export const DROPDOWN_LOOKUP_SECTION: FormSection = {
       LENGTH: 10,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "flat",
       ENRICHTEXT:
         "Flat List: 1 record = 1 option (e.g. BRANCH, CUSTOMER). Array List: unwrap nested items from a category record (e.g. LOOKUP -> GENDER).",
       PARAMETER: {

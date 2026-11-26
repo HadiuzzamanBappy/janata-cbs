@@ -29,7 +29,6 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "S",
       PARAMETER: {
         type: "O",
         data: [
@@ -48,7 +47,6 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "switch",
       WIDTH: "full",
-      DEFAULTVALUE: "false",
       BOOLEAN_CONFIG: {
         activeLabel: "Mandatory",
         inactiveLabel: "Optional",
@@ -99,7 +97,6 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "switch",
       WIDTH: "full",
-      DEFAULTVALUE: "false",
       BOOLEAN_CONFIG: {
         activeLabel: "Disabled",
         inactiveLabel: "Editable",

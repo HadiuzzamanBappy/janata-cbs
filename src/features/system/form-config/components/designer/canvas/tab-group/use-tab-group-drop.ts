@@ -3,44 +3,23 @@
 import * as React from "react";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
-import { NEW_TAB_IN_GROUP_TARGET } from "../canvas-drop-dispatcher";
-
-export type DragPayload = Record<string, unknown>;
-
-export function isTabGroupPayload(p: DragPayload): boolean {
-  return (
-    p.type === "palette-tabgroup" ||
-    p.containerType === "tab" ||
-    (p.type === "palette-container" && p.containerType === "tab")
-  );
-}
-
-export function isContainerPayload(p: DragPayload): boolean {
-  return p.type === "palette-container" || ["card", "tab"].includes(String(p.containerType || ""));
-}
+import { readDragPayload } from "../drag-payload";
 
 export interface TabGroupDropParams {
   groupId: string;
   tabSections: FormSection[];
   activeSection?: FormSection;
-  disabled?: boolean;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-  ) => void;
-  onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
 }
 
-export function useTabGroupDrop(params: TabGroupDropParams) {
-  const context = useDesignerContext();
-  const { groupId, tabSections, activeSection } = params;
-  const disabled = params.disabled ?? context.disabled;
-  const onConvertSectionZone = params.onConvertSectionZone ?? context.onConvertSectionZone;
-  const onMergeTabGroup = params.onMergeTabGroup ?? context.onMergeTabGroup;
-  const onDropPaletteItem = params.onDropPaletteItem ?? context.handleDropPaletteItem;
+/**
+ * Native drops on a tab group. Header: a tab from another group joins this one, a container
+ * preset becomes a new tab. Body: a container preset becomes a new tab, a field joins the active
+ * tab.
+ */
+export function useTabGroupDrop({ groupId, tabSections, activeSection }: TabGroupDropParams) {
+  const { disabled, onConvertSectionZone, handleDropPaletteItem } = useDesignerContext();
   const [dropZone, setDropZone] = React.useState<"header" | "body" | null>(null);
+  const nextTabTitle = `Tab ${tabSections.length + 1}`;
 
   const handleHeaderDragOver = React.useCallback(
     (e: React.DragEvent) => {
@@ -61,68 +40,26 @@ export function useTabGroupDrop(params: TabGroupDropParams) {
       e.preventDefault();
       e.stopPropagation();
       setDropZone(null);
-      if (disabled) return;
-      try {
-        const dataStr = e.dataTransfer.getData("application/json");
-        if (!dataStr) return;
-        const parsed = JSON.parse(dataStr) as DragPayload;
+      const payload = disabled ? null : readDragPayload(e);
+      if (!payload) return;
 
-        if (parsed.type === "canvas-tab" && typeof parsed.sectionId === "string") {
-          const itemGroupId = parsed.groupId || parsed.tabGroupId;
-          if (itemGroupId === groupId) return;
-          onConvertSectionZone?.(parsed.sectionId, "tab", {
-            groupId: groupId,
-            groupTitle:
-              typeof parsed.groupTitle === "string"
-                ? parsed.groupTitle
-                : typeof parsed.title === "string"
-                  ? parsed.title
-                  : undefined,
-          });
-          return;
-        }
-
-        if (parsed.type === "canvas-section" && typeof parsed.sectionId === "string") {
-          onConvertSectionZone?.(parsed.sectionId, "tab", {
-            groupId: groupId,
-            groupTitle:
-              typeof parsed.groupTitle === "string"
-                ? parsed.groupTitle
-                : typeof parsed.title === "string"
-                  ? parsed.title
-                  : undefined,
-          });
-          return;
-        }
-
-        const itemGroupId = parsed.groupId || parsed.tabGroupId;
-        if (isTabGroupPayload(parsed) && itemGroupId !== groupId) {
-          if (itemGroupId) {
-            onMergeTabGroup?.(String(itemGroupId), groupId);
-            return;
-          }
-        }
-
-        if (onDropPaletteItem) {
-          const n = tabSections.length + 1;
-          const title = String(parsed.title || parsed.groupTitle || `Tab ${n}`);
-          onDropPaletteItem(
-            { ...parsed, containerType: "tab", groupId, title, groupTitle: title },
-            NEW_TAB_IN_GROUP_TARGET,
-          );
-        }
-      } catch {
-        /* ignore */
+      if (payload.type === "canvas-tab") {
+        if (payload.groupId === groupId) return;
+        onConvertSectionZone?.(payload.sectionId, "tab", {
+          groupId,
+          groupTitle: payload.groupTitle ?? payload.title,
+        });
+        return;
+      }
+      if (payload.type === "palette-container") {
+        handleDropPaletteItem(payload, {
+          kind: "new-tab",
+          groupId,
+          title: payload.title || payload.groupTitle || nextTabTitle,
+        });
       }
     },
-    [
-      disabled,
-      groupId,
-      onConvertSectionZone,
-      onMergeTabGroup,
-      onDropPaletteItem,
-      tabSections.length,
-    ],
+    [disabled, groupId, onConvertSectionZone, handleDropPaletteItem, nextTabTitle],
   );
 
   const handleBodyDragOver = React.useCallback(
@@ -145,43 +82,23 @@ export function useTabGroupDrop(params: TabGroupDropParams) {
       e.preventDefault();
       e.stopPropagation();
       setDropZone(null);
-      if (disabled || !onDropPaletteItem) return;
-      try {
-        const dataStr = e.dataTransfer.getData("application/json");
-        if (!dataStr) return;
-        const parsed = JSON.parse(dataStr) as DragPayload;
+      const payload = disabled ? null : readDragPayload(e);
+      if (!payload || payload.type === "canvas-tab") return;
 
-        const itemGroupId = parsed.groupId || parsed.tabGroupId;
-        if (isTabGroupPayload(parsed) && itemGroupId !== groupId) {
-          if (itemGroupId) {
-            onMergeTabGroup?.(String(itemGroupId), groupId);
-            return;
-          }
-        }
-
-        if (isContainerPayload(parsed)) {
-          const n = tabSections.length + 1;
-          const title = String(parsed.title || `Tab ${n}`);
-          onDropPaletteItem(
-            {
-              ...parsed,
-              type: "palette-container",
-              containerType: "tab",
-              groupId: groupId,
-              title,
-              groupTitle: title,
-            },
-            NEW_TAB_IN_GROUP_TARGET,
-          );
-          return;
-        }
-
-        onDropPaletteItem(parsed, activeSection?.id);
-      } catch {
-        /* ignore */
+      if (payload.type === "palette-container") {
+        handleDropPaletteItem(payload, {
+          kind: "new-tab",
+          groupId,
+          title: payload.title || nextTabTitle,
+        });
+        return;
       }
+      handleDropPaletteItem(
+        payload,
+        activeSection ? { kind: "section", sectionId: activeSection.id } : { kind: "canvas" },
+      );
     },
-    [disabled, groupId, onMergeTabGroup, onDropPaletteItem, tabSections.length, activeSection?.id],
+    [disabled, groupId, handleDropPaletteItem, nextTabTitle, activeSection],
   );
 
   return {

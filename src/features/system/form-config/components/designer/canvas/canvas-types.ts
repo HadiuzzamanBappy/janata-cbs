@@ -4,17 +4,31 @@ import type {
   FormElement,
   FormSection,
 } from "@/lib/data-schemas";
+import type { PaletteDragPayload, PaletteDropTarget } from "./drag-payload";
 
-/** Callback signature for adding a new section/container to the canvas */
-export type AddSectionFn = (
-  containerType?: FormContainerType,
-  initialFields?: FormElement[],
-  customTitle?: string,
-  groupId?: string,
-  groupTitle?: string,
-  insertIndex?: number,
-  columns?: number,
-  containerConfig?: ContainerConfig,
+/** Where a section goes: its tab group (for a tab) and its index among the sections. */
+export interface SectionPlacement {
+  groupId?: string;
+  groupTitle?: string;
+  /** Index among the sections; unset appends (a tab joins the end of its group). */
+  insertIndex?: number;
+}
+
+/** A new section: its first fields, title, grid and container settings, and placement. */
+export interface NewSectionOptions extends SectionPlacement {
+  fields?: FormElement[];
+  title?: string;
+  columns?: number;
+  containerConfig?: ContainerConfig;
+}
+
+export type AddSectionFn = (containerType: FormContainerType, options?: NewSectionOptions) => void;
+
+/** Converts a section between card and tab (a tab joins `placement.groupId`, or a new group). */
+export type ConvertSectionZoneFn = (
+  sectionId: string,
+  targetType: FormContainerType,
+  placement?: SectionPlacement,
 ) => void;
 
 export interface DesignerCanvasProps {
@@ -43,13 +57,9 @@ export interface DesignerCanvasProps {
   /**
    * Convert a section's zone: card → tab or tab → card
    */
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-  ) => void;
+  onConvertSectionZone?: ConvertSectionZoneFn;
   onUngroupSection?: (id: string) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  onDropPaletteItem?: (payload: PaletteDragPayload, target: PaletteDropTarget) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   /** Called when user clicks the bare canvas background — not on any card. */
   onClickBackground?: () => void;

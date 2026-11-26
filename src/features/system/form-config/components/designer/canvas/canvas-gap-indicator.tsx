@@ -3,13 +3,15 @@
 import { useDroppable } from "@dnd-kit/core";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
+import type { DesignerDragPayload } from "@/lib/data-schemas";
 import { useGlobalDragReset } from "./canvas-chrome";
+import { readDragPayload } from "./drag-payload";
 
 export interface CanvasGapIndicatorProps {
   id: string;
   gapIndex: number;
   isActive?: boolean;
-  onDropItem?: (payload: unknown, insertIndex: number) => void;
+  onDropItem?: (payload: DesignerDragPayload, insertIndex: number) => void;
   disabled?: boolean;
 }
 
@@ -61,14 +63,8 @@ export function CanvasGapIndicator({
     setIsNativeOver(false);
     if (disabled || !onDropItem) return;
 
-    try {
-      const dataStr = e.dataTransfer.getData("application/json");
-      if (dataStr) {
-        onDropItem(JSON.parse(dataStr), gapIndex);
-      }
-    } catch {
-      /* ignore invalid json */
-    }
+    const payload = readDragPayload(e);
+    if (payload) onDropItem(payload, gapIndex);
   };
 
   return (

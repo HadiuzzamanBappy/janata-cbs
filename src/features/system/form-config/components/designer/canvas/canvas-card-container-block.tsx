@@ -25,6 +25,7 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import { CanvasSectionGrid } from "./canvas-section-grid";
+import type { ConvertSectionZoneFn } from "./canvas-types";
 import { selectableProps } from "./selectable";
 
 export interface CardContainerBlockProps {
@@ -36,11 +37,7 @@ export interface CardContainerBlockProps {
   onUpdateSection?: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection?: (id: string) => void;
   onUngroupSection?: (id: string) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-  ) => void;
+  onConvertSectionZone?: ConvertSectionZoneFn;
   disabled?: boolean;
 }
 

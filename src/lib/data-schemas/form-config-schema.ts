@@ -9,8 +9,11 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
 import {
+  containerConfigSchema,
   type FieldVisibilityCondition,
   type FormElement,
+  formContainerTypeSchema,
+  formElementSchema,
   formElementsContainerSchema,
   hasFieldOptions,
 } from "./form-engine-schema";
@@ -277,3 +280,34 @@ function checkFieldRules(
     );
   }
 }
+
+/* ========================================================================== */
+/* 5. DESIGNER DRAG PAYLOADS (native drag and drop inside SC.FORM.CONFIG)     */
+/* ========================================================================== */
+
+/**
+ * What a designer drag carries. Read back from `dataTransfer`, which any window can fill, so every
+ * drop is parsed with this schema before it touches the layout.
+ * - `palette-variable`: a model field (or object group) from the palette.
+ * - `palette-container`: a card or tab group preset from the palette.
+ * - `canvas-tab`: a tab dragged out of its strip.
+ */
+export const designerDragPayloadSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("palette-variable"), element: formElementSchema }),
+  z.strictObject({
+    type: z.literal("palette-container"),
+    containerType: formContainerTypeSchema,
+    title: z.string().optional(),
+    groupTitle: z.string().optional(),
+    columns: z.number().int().min(1).max(4).optional(),
+    containerConfig: containerConfigSchema.optional(),
+  }),
+  z.strictObject({
+    type: z.literal("canvas-tab"),
+    sectionId: z.string().min(1),
+    groupId: z.string().min(1),
+    title: z.string().optional(),
+    groupTitle: z.string().optional(),
+  }),
+]);
+export type DesignerDragPayload = z.infer<typeof designerDragPayloadSchema>;

@@ -1,19 +1,11 @@
 import { Layers, LayoutList } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ContainerConfig, FormContainerType, FormElement } from "@/lib/data-schemas";
+import type { AddSectionFn } from "../canvas/canvas-types";
+import { writeDragPayload } from "../canvas/drag-payload";
 
 export interface PaletteContainersListProps {
   disabled?: boolean;
-  onAddSection: (
-    containerType?: FormContainerType,
-    initialFields?: FormElement[],
-    customTitle?: string,
-    groupId?: string,
-    groupTitle?: string,
-    insertIndex?: number,
-    columns?: number,
-    containerConfig?: ContainerConfig,
-  ) => void;
+  onAddSection: AddSectionFn;
 }
 
 export function PaletteContainersList({ disabled, onAddSection }: PaletteContainersListProps) {
@@ -49,28 +41,23 @@ export function PaletteContainersList({ disabled, onAddSection }: PaletteContain
             draggable={!disabled}
             onDragStart={(e) => {
               if (disabled) return;
-              const payload = {
+              writeDragPayload(e, {
                 type: "palette-container",
                 containerType: preset.containerType,
                 title: preset.title,
                 groupTitle: isTab ? "Tab 1" : undefined,
                 columns: preset.columns,
                 containerConfig: preset.containerConfig,
-              };
-              e.dataTransfer.setData("application/json", JSON.stringify(payload));
+              });
               e.dataTransfer.effectAllowed = "copy";
             }}
             onClick={() =>
-              onAddSection(
-                preset.containerType,
-                [],
-                preset.title,
-                undefined,
-                isTab ? "Tab 1" : undefined,
-                undefined,
-                preset.columns,
-                preset.containerConfig,
-              )
+              onAddSection(preset.containerType, {
+                title: preset.title,
+                groupTitle: isTab ? "Tab 1" : undefined,
+                columns: preset.columns,
+                containerConfig: preset.containerConfig,
+              })
             }
             className="w-full h-8 text-xs justify-start gap-1.5 bg-background/80 hover:bg-muted/40 border-border/70 shadow-2xs cursor-grab active:cursor-grabbing text-left px-2"
           >

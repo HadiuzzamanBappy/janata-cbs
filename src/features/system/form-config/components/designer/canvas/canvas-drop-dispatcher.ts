@@ -1,18 +1,18 @@
 /**
  * @fileoverview Palette drop event dispatcher for Form Designer Canvas.
- * Dispatches variables or structural container presets dropped onto canvas sections.
+ * Places palette items (model fields, container presets) dropped onto the canvas or a section.
  *
  * @module features/system/form-config/components/designer/canvas/canvas-drop-dispatcher
  */
 
 import {
+  CBS_PARAMETER_TYPE,
   CBS_PROPERTY_STRUCTURE,
-  type ContainerConfig,
-  type FormContainerType,
   type FormElement,
   type FormSection,
 } from "@/lib/data-schemas";
 import type { AddSectionFn } from "./canvas-types";
+import type { PaletteDragPayload, PaletteDropTarget } from "./drag-payload";
 
 /**
  * Creates a normalized FormElement from a partial template.
@@ -33,7 +33,7 @@ export function createNewFieldFromTemplate(
     REQUIRED: Boolean(template.REQUIRED),
     DISABLED: template.DISABLED ?? false,
     PARAMETER: template.PARAMETER || {
-      type: "O",
+      type: CBS_PARAMETER_TYPE.OPTIONS,
       data: [],
     },
     ENRICHTEXT: template.ENRICHTEXT || "",
@@ -42,10 +42,9 @@ export function createNewFieldFromTemplate(
 }
 
 export interface DispatchPaletteDropOptions {
-  payload: unknown;
+  payload: PaletteDragPayload;
+  target: PaletteDropTarget;
   sections: FormSection[];
-  targetSectionId?: string;
-  insertIndex?: number;
   onAddFieldToSection: (
     sectionId: string,
     template?: Partial<FormElement>,
@@ -54,79 +53,71 @@ export interface DispatchPaletteDropOptions {
   onAddSection: AddSectionFn;
 }
 
-/** Drop target id for "add as a new tab" on a tab strip; it names no section. */
-export const NEW_TAB_IN_GROUP_TARGET = "new-tab-in-group";
-
 /**
- * Dispatches dragged palette payload (variables or containers) to target sections or canvas.
- * No `targetSectionId` means the canvas root (between blocks).
+ * Places a dropped palette item. A field goes into the target section, or becomes its own block on
+ * the canvas. A container preset becomes a block on the canvas, a new tab in a group, or (dropped
+ * on a section) a new tab beside that tab, or a new container right after that card.
  */
 export function dispatchPaletteDrop({
   payload,
+  target,
   sections,
-  targetSectionId,
-  insertIndex,
   onAddFieldToSection,
   onAddSection,
 }: DispatchPaletteDropOptions) {
-  if (!payload || typeof payload !== "object") return;
-  const data = payload as {
-    type?: string;
-    element?: FormElement;
-    field?: FormElement;
-    initialFields?: FormElement[];
-    containerType?: FormContainerType;
-    title?: string;
-    groupId?: string;
-    groupTitle?: string;
-    columns?: number;
-    containerConfig?: ContainerConfig;
-  };
-
-  const droppedField = data.element || data.field;
-  if ((data.type === "palette-variable" || data.type === "palette-field") && droppedField) {
-    if (targetSectionId) {
-      onAddFieldToSection(targetSectionId, droppedField, insertIndex);
-    } else {
-      // Direct drop on canvas root: create an independent standalone field block at targetIndex.
-      // Never silently inject into an existing selected section.
-      const targetIndex = insertIndex !== undefined ? insertIndex : sections.length;
-      onAddSection("card", [droppedField], "", undefined, undefined, targetIndex);
+  if (payload.type === "palette-variable") {
+    if (target.kind === "section") {
+      onAddFieldToSection(target.sectionId, payload.element, target.insertIndex);
+    } else if (target.kind === "canvas") {
+      onAddSection("card", {
+        fields: [payload.element],
+        title: "",
+        insertIndex: target.insertIndex,
+      });
     }
     return;
   }
 
-  if (data.type === "palette-container" && data.containerType) {
-    const targetSec = targetSectionId ? sections.find((s) => s.id === targetSectionId) : null;
-    if (
-      targetSec &&
-      targetSectionId !== NEW_TAB_IN_GROUP_TARGET &&
-      data.initialFields &&
-      data.initialFields.length > 0
-    ) {
-      for (const field of data.initialFields) {
-        onAddFieldToSection(targetSec.id, field);
-      }
-      return;
-    }
-
-    const isTargetTabGroup =
-      targetSectionId === NEW_TAB_IN_GROUP_TARGET ||
-      (targetSec && targetSec.containerType === "tab");
-    const targetGroupId = isTargetTabGroup ? data.groupId || targetSec?.groupId : undefined;
-    const effectiveGroupTitle = isTargetTabGroup
-      ? data.title || data.groupTitle || "New Tab"
-      : data.groupTitle;
-
-    onAddSection(
-      isTargetTabGroup ? "tab" : data.containerType,
-      data.initialFields || [],
-      data.title,
-      targetGroupId,
-      effectiveGroupTitle,
-      insertIndex,
-      data.columns,
-      data.containerConfig,
-    );
+  const { containerType, title, groupTitle, columns, containerConfig } = payload;
+  if (target.kind === "new-tab") {
+    onAddSection("tab", {
+      title: target.title,
+      groupId: target.groupId,
+      groupTitle: target.title,
+      columns,
+      containerConfig,
+    });
+    return;
   }
+  if (target.kind === "canvas") {
+    onAddSection(containerType, {
+      title,
+      groupTitle,
+      insertIndex: target.insertIndex,
+      columns,
+      containerConfig,
+    });
+    return;
+  }
+
+  const sectionIndex = sections.findIndex((sec) => sec.id === target.sectionId);
+  const section = sections[sectionIndex];
+  if (!section) return;
+  if (section.containerType === "tab" && section.groupId) {
+    onAddSection("tab", {
+      title,
+      groupId: section.groupId,
+      groupTitle: title || groupTitle || "New Tab",
+      columns,
+      containerConfig,
+    });
+    return;
+  }
+  onAddSection(containerType, {
+    title,
+    groupTitle,
+    insertIndex: sectionIndex + 1,
+    columns,
+    containerConfig,
+  });
 }

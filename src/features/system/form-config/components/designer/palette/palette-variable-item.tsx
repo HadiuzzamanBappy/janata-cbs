@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { CBS_PROPERTY_STRUCTURE, type FormElement, type ModelProperty } from "@/lib/data-schemas";
+import { writeDragPayload } from "../canvas/drag-payload";
 
 export interface PaletteVariableItemProps {
   property: ModelProperty;
@@ -34,11 +35,7 @@ export function PaletteVariableItem({
       e.preventDefault();
       return;
     }
-    const payload = {
-      type: "palette-variable",
-      element: modelPropToFormElement(property),
-    };
-    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+    writeDragPayload(e, { type: "palette-variable", element: modelPropToFormElement(property) });
     e.dataTransfer.effectAllowed = "copy";
   };
 

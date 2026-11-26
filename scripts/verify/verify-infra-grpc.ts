@@ -250,6 +250,7 @@ async function runSuite() {
   // ── 5. Inquiry Resolution (resolveInquiryEnvelope: the INQ envelope sent to the core) ──
   console.log("\n── 5. Inquiry Resolution (resolveInquiryEnvelope) ──");
   const { resolveInquiryEnvelope } = await import("../../src/app/api/_lib/inquiry");
+  const { inquiryPageSize } = await import("@/lib/cbs-inquiry-spec");
   const definition = {
     INQInfo: {
       controllerName: "users",
@@ -300,7 +301,7 @@ async function runSuite() {
     ? (resolved.envelope.data.queryString as Array<Record<string, string>>)
     : [];
   recordTest(
-    "5.1 The envelope comes from the saved inquiry: controller, service, branch pin, fixed selection, operator filter, row cap",
+    "5.1 The envelope comes from the saved inquiry: controller, service, branch pin, fixed selection, operator filter, page size",
     { browser: "recordId get.users, controlName ACCOUNT (ignored), fullName CT ' ali '" },
     resolved,
     resolved.ok &&
@@ -311,7 +312,8 @@ async function runSuite() {
       resolved.envelope.controlName === "USERS" &&
       resolved.envelope.servicePath === "finxurm" &&
       resolved.envelope.recordId === "" &&
-      resolved.envelope.data.perPage === 5000 &&
+      // The fixture sets no page size, so the inquiry default applies
+      resolved.envelope.data.perPage === inquiryPageSize({ perpageItem: "" }) &&
       resolved.envelope.data.curPage === 1 &&
       sentQuery
         .map((c) => `${c.selectFieldName} ${c.selectFieldOperator} ${c.selectFieldValue}`)

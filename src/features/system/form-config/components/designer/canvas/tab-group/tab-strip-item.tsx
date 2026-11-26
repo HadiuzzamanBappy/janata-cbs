@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
-import { NEW_TAB_IN_GROUP_TARGET } from "../canvas-drop-dispatcher";
-import { type DragPayload, isContainerPayload } from "./use-tab-group-drop";
+import { readDragPayload, writeDragPayload } from "../drag-payload";
 
 export interface TabStripItemProps {
   tab: FormSection;
@@ -47,7 +46,6 @@ export function TabStripItem(props: TabStripItemProps) {
   const disabled = props.disabled ?? context.disabled;
   const onReorderSections = context.onReorderSections;
   const onConvertSectionZone = context.onConvertSectionZone;
-  const onMoveFieldAcrossSections = context.onMoveFieldAcrossSections;
   const onDropPaletteItem = context.handleDropPaletteItem;
   const universalTabNumber = index + 1;
 
@@ -65,16 +63,13 @@ export function TabStripItem(props: TabStripItemProps) {
     if (disabled) return;
     e.stopPropagation();
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData(
-      "application/json",
-      JSON.stringify({
-        type: "canvas-tab",
-        sectionId: tab.id,
-        groupId: groupId,
-        title: tab.title,
-        groupTitle: tab.groupTitle || tab.title,
-      }),
-    );
+    writeDragPayload(e, {
+      type: "canvas-tab",
+      sectionId: tab.id,
+      groupId,
+      title: tab.title,
+      groupTitle: tab.groupTitle || tab.title,
+    });
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -91,85 +86,42 @@ export function TabStripItem(props: TabStripItemProps) {
     e.preventDefault();
     e.stopPropagation();
     onDropOnTab();
-    if (disabled) return;
-    try {
-      const dataStr = e.dataTransfer.getData("application/json");
-      if (!dataStr) return;
-      const parsed = JSON.parse(dataStr) as DragPayload;
+    const payload = disabled ? null : readDragPayload(e);
+    if (!payload) return;
 
-      // Field / Variable dropped onto this tab button: append to bottom of this tab and activate it
-      if (
-        parsed.type === "palette-field" ||
-        parsed.type === "palette-variable" ||
-        parsed.field ||
-        parsed.element
-      ) {
-        onSelect();
-        onDropPaletteItem?.(parsed, tab.id, (tab.fields || []).length);
-        return;
-      }
-      if (parsed.type === "canvas-field" && typeof parsed.fieldId === "string") {
-        const sourceSecId = String(parsed.sectionId || "");
-        if (sourceSecId && onMoveFieldAcrossSections) {
-          onSelect();
-          const targetIndex = (tab.fields || []).length;
-          onMoveFieldAcrossSections(sourceSecId, tab.id, parsed.fieldId, undefined, targetIndex);
-        }
-        return;
-      }
-
-      // Tab reordering within same group or moving across groups
-      if (parsed.type === "canvas-tab" && typeof parsed.sectionId === "string") {
-        const itemGroupId = parsed.groupId || parsed.tabGroupId;
-        if (itemGroupId === groupId && parsed.sectionId !== tab.id) {
-          onReorderSections?.(parsed.sectionId, tab.id);
-          return;
-        }
-        if (itemGroupId !== groupId) {
-          const targetIdx = index + 1;
-          onConvertSectionZone?.(parsed.sectionId, "tab", {
-            groupId: groupId,
-            insertIndex: targetIdx,
-            groupTitle:
-              typeof parsed.groupTitle === "string"
-                ? parsed.groupTitle
-                : typeof parsed.title === "string"
-                  ? parsed.title
-                  : undefined,
-          });
-          return;
-        }
-      }
-
-      // Card dropped directly on tab button -> convert into tab
-      if (parsed.type === "canvas-section" && typeof parsed.sectionId === "string") {
-        onConvertSectionZone?.(parsed.sectionId, "tab", {
-          groupId: groupId,
-          groupTitle:
-            typeof parsed.groupTitle === "string"
-              ? parsed.groupTitle
-              : typeof parsed.title === "string"
-                ? parsed.title
-                : undefined,
-        });
-        return;
-      }
-
-      // Palette container dropped on tab button -> add as new tab
-      if (isContainerPayload(parsed)) {
-        onDropPaletteItem?.(
-          {
-            ...parsed,
-            containerType: "tab",
-            groupId: groupId,
-            groupTitle: parsed.title || `Tab ${totalTabs + 1}`,
-          },
-          NEW_TAB_IN_GROUP_TARGET,
-        );
-      }
-    } catch {
-      /* ignore */
+    // A field joins this tab, at the end, and the tab becomes active
+    if (payload.type === "palette-variable") {
+      onSelect();
+      onDropPaletteItem(payload, {
+        kind: "section",
+        sectionId: tab.id,
+        insertIndex: (tab.fields || []).length,
+      });
+      return;
     }
+
+    // A container preset becomes a new tab of this group
+    if (payload.type === "palette-container") {
+      onDropPaletteItem(payload, {
+        kind: "new-tab",
+        groupId,
+        title: payload.title || `Tab ${totalTabs + 1}`,
+      });
+      return;
+    }
+
+    // A tab: reordered within this group, or moved in right after this tab from another group
+    if (payload.sectionId === tab.id) return;
+    if (payload.groupId === groupId) {
+      onReorderSections?.(payload.sectionId, tab.id);
+      return;
+    }
+    const tabIndex = context.sections.findIndex((sec) => sec.id === tab.id);
+    onConvertSectionZone?.(payload.sectionId, "tab", {
+      groupId,
+      groupTitle: payload.groupTitle ?? payload.title,
+      insertIndex: tabIndex + 1,
+    });
   };
 
   return (

@@ -9,7 +9,8 @@
 
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
-import type { FormConfigRecord, FormSection } from "@/lib/data-schemas";
+import type { FormConfigRecord, FormContainerType, FormSection } from "@/lib/data-schemas";
+import type { SectionPlacement } from "../components/designer/canvas/canvas-types";
 import { takenContainerIds } from "./fc-field-tree";
 
 export function useFcSectionZones(
@@ -18,11 +19,7 @@ export function useFcSectionZones(
   setSelectedFieldId: (id: string | null) => void,
 ) {
   const convertSectionZone = React.useCallback(
-    (
-      sectionId: string,
-      targetType: "card" | "tab",
-      opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-    ) => {
+    (sectionId: string, targetType: FormContainerType, opts?: SectionPlacement) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const targetSec = sections.find((s) => s.id === sectionId);

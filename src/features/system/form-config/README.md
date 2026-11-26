@@ -38,7 +38,7 @@ The bespoke `SC.FORM.CONFIG` screen (alias `FC`) is where layouts are authored f
 └─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
-Drag and drop uses `@dnd-kit`. Designer state is shared through `components/designer/context/designer-context.tsx`.
+Moving fields, cards and tab groups around the canvas uses `@dnd-kit`. Dragging from the palette, and dragging a tab out of its strip, uses native drag and drop: every such drag is written and read through `canvas/drag-payload.ts` (its own MIME type, checked with `designerDragPayloadSchema`), and `canvas/canvas-drop-dispatcher.ts` places it on its target (the canvas, a section or a new tab). Designer state is shared through `components/designer/context/designer-context.tsx`.
 
 ---
 

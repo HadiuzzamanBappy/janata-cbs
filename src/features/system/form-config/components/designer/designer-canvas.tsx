@@ -21,6 +21,7 @@ import { cn } from "@/lib/core-utils";
 import { BlockDragOverlay, CanvasCompactBar, EmptyCanvasSplash } from "./canvas/canvas-chrome";
 import { CanvasFlow } from "./canvas/canvas-flow";
 import type { DesignerCanvasProps } from "./canvas/canvas-types";
+import { readDragPayload } from "./canvas/drag-payload";
 import { useCanvasDrag } from "./canvas/use-canvas-drag";
 import { useDesignerContext } from "./context/designer-context";
 
@@ -191,23 +192,14 @@ export function DesignerCanvas(props: DesignerCanvasProps = {}) {
       return;
     }
 
-    try {
-      const dataStr = e.dataTransfer.getData("application/json");
-      if (dataStr) {
-        const parsed = JSON.parse(dataStr);
-        if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
-          const sectionInsertIndex = getBlockGapSectionIndex(blocks, sections, finalGap);
-          onConvertSectionZone(parsed.sectionId, "card", { insertIndex: sectionInsertIndex });
-          return;
-        }
-        if (onDropPaletteItem) {
-          const sectionInsertIndex = getBlockGapSectionIndex(blocks, sections, finalGap);
-          onDropPaletteItem(parsed, undefined, sectionInsertIndex);
-        }
-      }
-    } catch {
-      /* ignore */
+    const payload = readDragPayload(e);
+    if (!payload) return;
+    const insertIndex = getBlockGapSectionIndex(blocks, sections, finalGap);
+    if (payload.type === "canvas-tab") {
+      onConvertSectionZone?.(payload.sectionId, "card", { insertIndex });
+      return;
     }
+    onDropPaletteItem?.(payload, { kind: "canvas", insertIndex });
   };
 
   const totalFieldsCount = sections.reduce((acc, s) => acc + (s.fields?.length || 0), 0);

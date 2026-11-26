@@ -26,7 +26,6 @@ export const ROOT_FORM_PROPERTIES_SECTION: FormSection = {
       LENGTH: 15,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "horizontal",
       PARAMETER: {
         type: "O",
         data: [
@@ -46,7 +45,6 @@ export const ROOT_FORM_PROPERTIES_SECTION: FormSection = {
       LENGTH: 10,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "compact",
       PARAMETER: {
         type: "O",
         data: [
@@ -99,7 +97,6 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "1",
       PARAMETER: {
         type: "O",
         data: [
@@ -120,7 +117,6 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "switch",
       WIDTH: "full",
-      DEFAULTVALUE: "false",
       BOOLEAN_CONFIG: {
         activeLabel: "Yes",
         inactiveLabel: "No",
@@ -272,7 +268,6 @@ export const TAB_GROUP_PROPERTIES_SECTION: FormSection = {
       LENGTH: 4,
       WIDGET: "number",
       WIDTH: "full",
-      DEFAULTVALUE: "350",
       VISIBLE_WHEN: {
         field: "containerConfig.heightMode",
         operator: "eq",
@@ -322,7 +317,6 @@ export const TAB_ITEM_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "1",
       PARAMETER: {
         type: "O",
         data: [

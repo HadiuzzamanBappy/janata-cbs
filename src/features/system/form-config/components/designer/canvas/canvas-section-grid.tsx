@@ -10,6 +10,7 @@ import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import { useGlobalDragReset } from "./canvas-chrome";
 import { CanvasFieldCard } from "./canvas-field-card";
+import { type PaletteDragPayload, type PaletteDropTarget, readDragPayload } from "./drag-payload";
 
 export interface CanvasSectionGridProps {
   section: FormSection;
@@ -17,7 +18,7 @@ export interface CanvasSectionGridProps {
   onSelectSection?: (id: string | null) => void;
   onSelectField?: (sectionId: string | null, fieldId: string | null) => void;
   onRemoveField?: (fieldId: string) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  onDropPaletteItem?: (payload: PaletteDragPayload, target: PaletteDropTarget) => void;
   disabled?: boolean;
   isNativeOver?: boolean;
   emptyLabel?: string;
@@ -241,11 +242,13 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
     setInternalNativeOver(false);
     setDropInsertIndex(null);
     if (disabled || !onDropPaletteItem) return;
-    try {
-      const dataStr = e.dataTransfer.getData("application/json");
-      if (dataStr) onDropPaletteItem(JSON.parse(dataStr), section.id, finalIndex);
-    } catch {
-      /* ignore */
+    const payload = readDragPayload(e);
+    if (payload && payload.type !== "canvas-tab") {
+      onDropPaletteItem(payload, {
+        kind: "section",
+        sectionId: section.id,
+        insertIndex: finalIndex,
+      });
     }
   };
 

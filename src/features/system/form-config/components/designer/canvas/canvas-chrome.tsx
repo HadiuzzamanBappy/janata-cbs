@@ -139,7 +139,7 @@ export function EmptyCanvasSplash(props: EmptyCanvasSplashProps) {
   const handleImportAllProperties = () => {
     if (!onAddSection || importableProperties.length === 0) return;
     for (const prop of importableProperties) {
-      onAddSection("card", [modelPropToFormElement(prop)], "");
+      onAddSection("card", { fields: [modelPropToFormElement(prop)], title: "" });
     }
   };
 
@@ -170,7 +170,7 @@ export function EmptyCanvasSplash(props: EmptyCanvasSplashProps) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onAddSection("card", [], "Card Section")}
+              onClick={() => onAddSection("card", { title: "Card Section" })}
               className="h-8 text-xs bg-background shadow-xs hover:border-primary/50"
             >
               + Card Container
@@ -178,7 +178,7 @@ export function EmptyCanvasSplash(props: EmptyCanvasSplashProps) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onAddSection("tab", [], "Tab 1", undefined, "Tab 1")}
+              onClick={() => onAddSection("tab", { title: "Tab 1", groupTitle: "Tab 1" })}
               className="h-8 text-xs bg-background shadow-xs hover:border-primary/50"
             >
               + Tab Group

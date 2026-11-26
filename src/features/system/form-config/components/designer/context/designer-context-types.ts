@@ -7,7 +7,8 @@ import type {
   ModelProperty,
 } from "@/lib/data-schemas";
 import type { FormConfigValidationError } from "../../../hooks/fc-validation";
-import type { AddSectionFn } from "../canvas/canvas-types";
+import type { AddSectionFn, ConvertSectionZoneFn } from "../canvas/canvas-types";
+import type { PaletteDragPayload, PaletteDropTarget } from "../canvas/drag-payload";
 
 export interface DesignerContextValue {
   formTitle?: string;
@@ -75,15 +76,11 @@ export interface DesignerContextValue {
     insertAtIndex?: number,
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-  ) => void;
+  onConvertSectionZone?: ConvertSectionZoneFn;
   onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   handlePaletteAddField: (template: Partial<FormElement>) => void;
-  handleDropPaletteItem: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  handleDropPaletteItem: (payload: PaletteDragPayload, target: PaletteDropTarget) => void;
 }
 
 export interface DesignerProviderProps {
@@ -127,11 +124,7 @@ export interface DesignerProviderProps {
     insertAtIndex?: number,
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-  ) => void;
+  onConvertSectionZone?: ConvertSectionZoneFn;
   onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   disabled?: boolean;

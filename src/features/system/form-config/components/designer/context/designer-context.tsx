@@ -4,6 +4,7 @@ import * as React from "react";
 import type { FormElement } from "@/lib/data-schemas";
 import { findFieldDeep } from "../../../hooks/fc-field-tree";
 import { createNewFieldFromTemplate, dispatchPaletteDrop } from "../canvas/canvas-drop-dispatcher";
+import type { PaletteDragPayload, PaletteDropTarget } from "../canvas/drag-payload";
 import type { DesignerContextValue, DesignerProviderProps } from "./designer-context-types";
 
 export type { DesignerContextValue, DesignerProviderProps };
@@ -113,21 +114,14 @@ export function DesignerProvider({
         }
       }
       const newField = createNewFieldFromTemplate(sections, template);
-      onAddSection("card", [newField], "");
+      onAddSection("card", { fields: [newField], title: "" });
     },
     [isCompact, selectedSectionId, sections, onAddFieldToSection, onAddSection],
   );
 
   const handleDropPaletteItem = React.useCallback(
-    (payload: unknown, targetSectionId?: string, insertIndex?: number) => {
-      dispatchPaletteDrop({
-        payload,
-        sections,
-        targetSectionId,
-        insertIndex,
-        onAddFieldToSection,
-        onAddSection,
-      });
+    (payload: PaletteDragPayload, target: PaletteDropTarget) => {
+      dispatchPaletteDrop({ payload, target, sections, onAddFieldToSection, onAddSection });
     },
     [sections, onAddFieldToSection, onAddSection],
   );

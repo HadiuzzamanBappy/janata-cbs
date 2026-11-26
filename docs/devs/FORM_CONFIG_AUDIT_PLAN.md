@@ -2,25 +2,59 @@
 
 Audit of everything a form layout touches, from the three schema files out to the designer, the compiler, the form engine and the proxy. It follows the model-config audit and uses the same rules: one source per rule, no dead code, no legacy aliases, smallest safe change, and every compatibility boundary flagged before it moves.
 
-- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete (`75f120c`). Phase 2 committed (`c1f9af1`). Phase 3 committed (`cb77910`). Phase 4 applied (uncommitted); see the notes under §4.
+- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** see **Status** below; per-phase detail is in §4 ("Phase N as applied").
 - **Scope:** `src/lib/data-schemas/form-{config,engine,widget}-schema.ts` and every unit that reads or writes their types (about 95 files, about 13k lines).
 - **Not in scope:** model-config (already audited); inquiry-config and menu-designer, except where they share the form engine.
 
 ---
 
+## Status (resume here)
+
+Last updated 2026-11-26. File and line references in §2 are from the baseline `bfcc02d`; code has moved since, so re-locate each finding with grep before changing it.
+
+| Phase                     | State                                                                        | Commit    | Closed                                                  |
+| ------------------------- | ---------------------------------------------------------------------------- | --------- | ------------------------------------------------------- |
+| 0. Triage                 | Done: `verify:grpc` 5.1 updated to the page size. `10d` stays red, see below | with 5    | 5.1                                                     |
+| 1. Confirmed bugs         | Done                                                                         | `75f120c` | B1 to B6, unique container ids                          |
+| 2. `data-schemas` source  | Done                                                                         | `c1f9af1` | D4, D7, D9, D11, D14, X1, X2, X11, N1, N7 (X12 dropped) |
+| 3. `cbs-form-spec` source | Done                                                                         | `cb77910` | D1, D2, D3, D5, D6, D10, X3, X14, X15, N3 (D12 dropped) |
+| 4. Engine API, dead code  | Done                                                                         | `e0f3a34` | X4, X5, X6, X13, X16, D13, N6, AUTO width               |
+| 5. Drag data, section API | Applied, **not committed**                                                   | —         | S6, D8, X7, N8, N2, 11 inspector defaults, 3 drop fixes |
+| 6. Parser and client wire | **Next.** No decision needed                                                 | —         | open: S3, S4, X8, X9                                    |
+| 7. Boundary               | **Blocked** on D1, D2, D3, D5 and one `verify:api` run against a live core   | —         | open: S1, S2, S5, X10, `authNumber`                     |
+| 8. Size budget            | Not started. No decision needed                                              | —         | open: see sizes below                                   |
+| 9. Docs                   | Not started. No decision needed                                              | —         | open: N4, N5, AGENTS §2 `pnpm deprecated`, §0 table     |
+
+**Decided:** D4 keep both identity rules (designer by `SN`, runtime by `NAME`, two helpers); D6 option B (tabs group by `groupId`, saved together); D7 only `type: "A"` is an array lookup; D8 delete the 12-column path.
+**Still open:** D1 (S1 + S2), D2 (`authNumber`), D3 (X10), D5 (radio `P`/`L` alias), D9 (the §5 suite cases).
+
+**Known red gate:** `verify:schemas` `10d` fails **by owner choice**. The URM needs each filter's field name as a duplicate key, so the browser filter schema (`inquiryOperatorCriterionSchema`) stays `looseObject`. Expect exactly this one failure in `verify:all`; anything else is a regression.
+
+**Over budget now** (`features/system/form-config`, limit 300 / 350 cohesive for components, 250 / 280 for helpers): `field-inspector.tsx` 488, `fc-canvas-fields.ts` 361, `canvas-section-grid.tsx` 360, `canvas-field-card.tsx` 327, `canvas-card-container-block.tsx` 321.
+
+**To resume:**
+
+1. `git log --oneline -6` and `git status`: if Phase 5 is still uncommitted, review and commit it first.
+2. Run the gates: `pnpm lint`, `pnpm typecheck`, `pnpm knip`, `pnpm deprecated`, `pnpm verify:all`. Only `10d` may fail.
+3. Take the next phase from the table. For each of its findings, read the row in §2, then confirm it against the current code (grep, read the callers) before planning; earlier phases found several rows wrong or already fixed.
+4. Plan, get approval for anything that touches a compatibility boundary or a `verify:*` suite, implement, run the gates, and add a "Phase N as applied" note to §4.
+5. Update this table: state, commit hash, and the finding IDs closed.
+
+---
+
 ## 0. Baseline gates
 
-| Gate                           | Result      | Note                                                                                                                                                                                                                       |
-| ------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm typecheck`               | ✅ clean    |                                                                                                                                                                                                                            |
-| `pnpm knip`                    | ✅ clean    | `knip.json` sets `ignoreExportsUsedInFile: true`, so an export that is only used in its own file is **not** reported. Every "unused export" below was found with grep.                                                     |
-| `pnpm deprecated`              | ✅ 0 usages | `scripts/tools/check-deprecated.ts` (not listed in AGENTS.md §2 yet)                                                                                                                                                       |
-| `verify:form-spec`             | ✅ 52/52    |                                                                                                                                                                                                                            |
-| `verify:parsers`               | ✅ 12/12    |                                                                                                                                                                                                                            |
-| `verify:client`                | ✅ 25/25    |                                                                                                                                                                                                                            |
-| `verify:mock`, `verify:layers` | ✅          |                                                                                                                                                                                                                            |
-| `verify:schemas`               | ❌ 1 fail   | **Pre-existing, not form config:** test `10d` (INQ data is strict) now accepts `selectFieldType`. This is the regression `MASTER_AUDIT_RUNBOOK.md` Phase 3 warns about. It blocks `verify:all`, so fix or triage it first. |
-| `verify:grpc`                  | ❌ 1 fail   | **Pre-existing, not form config:** test `5.1` (the INQ envelope comes from the saved inquiry). Confirmed on a clean tree. Triage it in Phase 0 with `10d`.                                                                 |
+| Gate                           | Result      | Note                                                                                                                                                                   |
+| ------------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`               | ✅ clean    |                                                                                                                                                                        |
+| `pnpm knip`                    | ✅ clean    | `knip.json` sets `ignoreExportsUsedInFile: true`, so an export that is only used in its own file is **not** reported. Every "unused export" below was found with grep. |
+| `pnpm deprecated`              | ✅ 0 usages | `scripts/tools/check-deprecated.ts` (not listed in AGENTS.md §2 yet)                                                                                                   |
+| `verify:form-spec`             | ✅ 52/52    |                                                                                                                                                                        |
+| `verify:parsers`               | ✅ 12/12    |                                                                                                                                                                        |
+| `verify:client`                | ✅ 25/25    |                                                                                                                                                                        |
+| `verify:mock`, `verify:layers` | ✅          |                                                                                                                                                                        |
+| `verify:schemas`               | ❌ 1 fail   | Test `10d` (INQ data is strict). **Resolved as intended behaviour:** the owner keeps the loose browser filter schema for the URM (see Status).                         |
+| `verify:grpc`                  | ❌ 1 fail   | Test `5.1` expected the old 5000-row cap; the code sends the page size on purpose (server-side paging, `dc08606`). **Fixed in Phase 0** (test updated).                |
 
 ---
 
@@ -214,6 +248,13 @@ One phase is one reviewable change (one commit when you ask for it), in risk ord
 - D13: `containerBadgeTone` (`form-layout-context.tsx`) replaces four copies. The live tab strip now honours `badgeVariant`, which the inspector offered and the designer showed but the live screen ignored. Unset still renders muted.
 - N6 was already done in Phase 3.
 - Width follows the column length until set: drops and `modelPropToFormElement` write no `WIDTH`; the inspector offers **AUTO** (clears it) instead of a `md` default that opening the inspector wrote; `FieldWidthBadge` shows the width on every canvas field and object-group inner row (quiet while it follows the length).
+
+**Phase 5 as applied**:
+
+- S6 / D8 / X7: `designerDragPayloadSchema` (`form-config-schema.ts`, a union of the three payloads the designer writes: `palette-variable`, `palette-container`, `canvas-tab`) and `canvas/drag-payload.ts` (`writeDragPayload`, `readDragPayload`, its own MIME type) replace four writers and six `JSON.parse` readers. Dead reader branches removed: `palette-field`, `field`, `canvas-field`, `canvas-section`, `palette-tabgroup`, `tabGroupId`, the native merge branches, the dispatcher's `initialFields` path and the `NEW_TAB_IN_GROUP_TARGET` sentinel (an explicit `PaletteDropTarget` replaces it). Tab groups still merge through dnd-kit.
+- Fixes: a tab dropped on a gap line now leaves its group as a card there (it was lost); a container preset dropped on a card goes right after that card, and on a tab joins that tab group (both used a field index as a section index); a tab moved in from another group lands right after the target tab.
+- N8: `AddSectionFn(containerType, NewSectionOptions)`, `SectionPlacement` and `ConvertSectionZoneFn` replace 8 positional parameters and 8 retyped signatures.
+- Inspector defaults: 11 settings lost their `DEFAULTVALUE` (field `STRUCTURE`, `REQUIRED`, `DISABLED`; canvas `layout`, `density`; container `columns` x2, `collapsible`, `minHeight`; lookup `PARAMETER.type`, `_lookupType`). The engine wrote them into unset values, so selecting a field or container on a loaded form marked it changed. `collapsible` and the lookup source get a display value instead. `authNumber` keeps its default (record data, D2 still open).
 
 ---
 

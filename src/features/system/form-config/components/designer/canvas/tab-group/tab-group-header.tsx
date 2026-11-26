@@ -120,7 +120,7 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
     if (disabled || !onAddSection) return;
     const n = tabSections.length + 1;
     const title = `Tab ${n}`;
-    onAddSection("tab", [], title, groupId, title);
+    onAddSection("tab", { title, groupId, groupTitle: title });
   };
 
   return (

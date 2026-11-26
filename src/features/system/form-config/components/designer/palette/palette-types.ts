@@ -1,9 +1,5 @@
-import type {
-  ContainerConfig,
-  FormContainerType,
-  FormElement,
-  ModelProperty,
-} from "@/lib/data-schemas";
+import type { FormElement, ModelProperty } from "@/lib/data-schemas";
+import type { AddSectionFn } from "../canvas/canvas-types";
 
 export type PaletteTypeFilter = "all" | "placed" | "unplaced";
 
@@ -16,16 +12,7 @@ export interface FieldPaletteProps {
   usedFieldNames?: Set<string>;
   onHighlightField?: (fieldName: string) => void;
   onAddField?: (template: Partial<FormElement>) => void;
-  onAddSection?: (
-    containerType?: FormContainerType,
-    initialFields?: FormElement[],
-    customTitle?: string,
-    groupId?: string,
-    groupTitle?: string,
-    insertIndex?: number,
-    columns?: number,
-    containerConfig?: ContainerConfig,
-  ) => void;
+  onAddSection?: AddSectionFn;
   disabled?: boolean;
 }
 

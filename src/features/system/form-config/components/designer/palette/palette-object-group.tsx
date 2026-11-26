@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
 import { CBS_PROPERTY_STRUCTURE, type FormElement, type ModelProperty } from "@/lib/data-schemas";
+import { writeDragPayload } from "../canvas/drag-payload";
 
 export interface PaletteObjectGroupProps {
   parent: ModelProperty;
@@ -55,11 +56,7 @@ export function PaletteObjectGroup({
       e.preventDefault();
       return;
     }
-    const payload = {
-      type: "palette-variable",
-      element: objectFieldElement,
-    };
-    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+    writeDragPayload(e, { type: "palette-variable", element: objectFieldElement });
     e.dataTransfer.effectAllowed = "copy";
   };
 

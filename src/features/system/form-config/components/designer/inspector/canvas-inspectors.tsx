@@ -100,6 +100,7 @@ export function ContainerInspector({
     return {
       ...raw,
       columns: section.columns ?? 1,
+      collapsible: section.collapsible ?? false,
       containerConfig: {
         ...cfg,
         variant: cfg.variant || "default",

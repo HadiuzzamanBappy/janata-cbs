@@ -200,7 +200,7 @@ export const formElementSchema: z.ZodType<FormElement> = baseFormElementSchema.e
  * - 'card': Standard elevated card box with title bar and optional collapse
  * - 'tab': Tab pane clustered inside a TabGroup header
  */
-const formContainerTypeSchema = z.enum(["card", "tab"]);
+export const formContainerTypeSchema = z.enum(["card", "tab"]);
 export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
 
 /** Spacing presets for a form or one container. */
@@ -217,7 +217,7 @@ export const DEFAULT_FORM_LAYOUT: FormLayout = "horizontal";
  * Universal Container Visual & Behavioral Configuration:
  * Allows configuring styling, borders, density, badges, icons, and behavior per container.
  */
-const containerConfigSchema = z.object({
+export const containerConfigSchema = z.object({
   /**
    * Card style preset ("ghost" = frameless). No schema default so a parsed layout
    * leaves it unset until explicitly configured.

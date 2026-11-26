@@ -161,9 +161,8 @@ export function InspectorLookupConfig({
       effectiveParam.modelName = cleanModel;
     }
 
-    if (sourceMode === CBS_PARAMETER_TYPE.MODEL) {
-      effectiveParam.type = CBS_PARAMETER_TYPE.MODEL; // Ensures segmented selector displays "M"
-    }
+    // The source selector offers O and M: an array lookup (A) shows as M, no parameter as O
+    effectiveParam.type = sourceMode;
 
     return {
       ...selectedField,

@@ -10,13 +10,8 @@
 import * as React from "react";
 import { buildRenderBlocks } from "@/lib/cbs-form-spec";
 import { generateClientToken } from "@/lib/core-utils";
-import type {
-  ContainerConfig,
-  FormConfigRecord,
-  FormContainerType,
-  FormElement,
-  FormSection,
-} from "@/lib/data-schemas";
+import type { FormConfigRecord, FormContainerType, FormSection } from "@/lib/data-schemas";
+import type { NewSectionOptions } from "../components/designer/canvas/canvas-types";
 import { takenContainerIds } from "./fc-field-tree";
 import { useFcSectionReorder } from "./use-fc-section-reorder";
 import { useFcSectionZones } from "./use-fc-section-zones";
@@ -30,16 +25,16 @@ export function useFcSectionOps(
   const reorder = useFcSectionReorder(setFormData);
 
   const addSection = React.useCallback(
-    (
-      containerType: FormContainerType = "card",
-      initialFields: FormElement[] = [],
-      customTitle?: string,
-      groupId?: string,
-      groupTitle?: string,
-      insertIndex?: number,
-      columns?: number,
-      containerConfig?: ContainerConfig,
-    ) => {
+    (containerType: FormContainerType, options: NewSectionOptions = {}) => {
+      const {
+        fields: initialFields = [],
+        title: customTitle,
+        groupId,
+        groupTitle,
+        insertIndex,
+        columns,
+        containerConfig,
+      } = options;
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const nextIndex = sections.length + 1;

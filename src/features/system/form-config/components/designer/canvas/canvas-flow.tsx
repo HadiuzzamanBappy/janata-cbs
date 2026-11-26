@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
-import type { FormSection } from "@/lib/data-schemas";
+import type { DesignerDragPayload, FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import { CardContainerBlock } from "./canvas-card-container-block";
 import { CanvasGapIndicator } from "./canvas-gap-indicator";
 import { StandaloneFieldBlock } from "./canvas-standalone-field-block";
-import type { AddSectionFn } from "./canvas-types";
+import type { AddSectionFn, ConvertSectionZoneFn } from "./canvas-types";
+import type { PaletteDragPayload, PaletteDropTarget } from "./drag-payload";
 import { TabGroupBlock } from "./tab-group/tab-group-block";
 
 export interface CanvasFlowProps {
@@ -24,11 +25,7 @@ export interface CanvasFlowProps {
   onUpdateSection?: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection?: (id: string) => void;
   onRemoveField?: (fieldId: string) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string; insertIndex?: number },
-  ) => void;
+  onConvertSectionZone?: ConvertSectionZoneFn;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onMoveFieldAcrossSections?: (
     sourceSecId: string,
@@ -37,7 +34,7 @@ export interface CanvasFlowProps {
     targetFieldId?: string,
     insertAtIndex?: number,
   ) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  onDropPaletteItem?: (payload: PaletteDragPayload, target: PaletteDropTarget) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   disabled?: boolean;
 }
@@ -55,11 +52,16 @@ export function CanvasFlow(props: CanvasFlowProps) {
   const onDropPaletteItem = props.onDropPaletteItem ?? context.handleDropPaletteItem;
   const disabled = props.disabled ?? context.disabled;
 
-  const handleDropAtGap = (payload: unknown, gapIndex: number) => {
-    if (onDropPaletteItem) {
-      const sectionInsertIndex = getBlockGapSectionIndex(blocks, sections, gapIndex);
-      onDropPaletteItem(payload, undefined, sectionInsertIndex);
+  const onConvertSectionZone = props.onConvertSectionZone ?? context.onConvertSectionZone;
+
+  // A tab dropped on a gap leaves its group as a card there, the same as on the canvas background
+  const handleDropAtGap = (payload: DesignerDragPayload, gapIndex: number) => {
+    const insertIndex = getBlockGapSectionIndex(blocks, sections, gapIndex);
+    if (payload.type === "canvas-tab") {
+      onConvertSectionZone?.(payload.sectionId, "card", { insertIndex });
+      return;
     }
+    onDropPaletteItem?.(payload, { kind: "canvas", insertIndex });
   };
 
   return (

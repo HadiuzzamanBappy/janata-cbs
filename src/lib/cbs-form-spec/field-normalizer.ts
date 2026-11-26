@@ -1,6 +1,5 @@
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
-  CBS_PARAMETER_TYPE,
   CBS_PROPERTY_STRUCTURE,
   CBS_PROPERTY_TYPE,
   DEFAULT_PROPERTY_LENGTH,
@@ -95,53 +94,21 @@ export function resolveWidgetType(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Parameter & FormElement Normalizers                                        */
+/* FormElement Normalizer                                                     */
 /* -------------------------------------------------------------------------- */
-
-/** Normalizes lookup or fixed-option parameters into a FormFieldParameter. */
-export function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["PARAMETER"] {
-  if (!raw) return undefined;
-
-  const rawData = Array.isArray(raw.data) ? (raw.data as unknown[]) : [];
-  const normalizedData = rawData.map((item) => {
-    const d = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
-    const code = String(d.code ?? item ?? "").trim();
-    return { code, label: String(d.label ?? code).trim() || code };
-  });
-
-  const rawType = String(raw.type ?? "").toUpperCase();
-  const normalizedType: FormFieldParameter["type"] =
-    rawType === CBS_PARAMETER_TYPE.MODEL || rawType === CBS_PARAMETER_TYPE.ARRAY
-      ? rawType
-      : CBS_PARAMETER_TYPE.OPTIONS;
-
-  return {
-    type: normalizedType,
-    data: normalizedData,
-    ...(raw.modelName ? { modelName: String(raw.modelName) } : {}),
-    ...(raw.recordId ? { recordId: String(raw.recordId) } : {}),
-    ...(raw.arrayField ? { arrayField: String(raw.arrayField) } : {}),
-    ...(raw.codeField ? { codeField: String(raw.codeField) } : {}),
-    ...(raw.displayField ? { displayField: String(raw.displayField) } : {}),
-    ...(raw.condition ? { condition: String(raw.condition) } : {}),
-  };
-}
 
 /** Transforms a physical ModelProperty into an initialized FormElement. */
 export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormElement {
   const snStr = String(p.SN || idx + 1);
   const baseLabel = formatNameToLabel(p.NAME) || `Field #${snStr}`;
-  const rawP = p as unknown as Record<string, unknown>;
-  const rawParam = rawP.PARAMETER as Record<string, unknown> | undefined;
   const modelName = (p.MODELNAME || "").trim();
-  const param = resolveFieldParameter(normalizeParameter(rawParam), modelName);
+  const param = resolveFieldParameter(undefined, modelName);
 
   const normType = (p.TYPE || CBS_PROPERTY_TYPE.STRING) as PropertyType;
   const normLength = resolvePhysicalLength(normType, p.LENGTH, DEFAULT_PROPERTY_LENGTH);
   const normStructure = resolvePhysicalStructure(normType, p.STRUCTURE);
 
-  const explicitWidget = rawP.WIDGET as string | undefined;
-  const effectiveWidget = resolveWidgetType(p.TYPE, param, explicitWidget, normStructure, {
+  const effectiveWidget = resolveWidgetType(p.TYPE, param, undefined, normStructure, {
     length: normLength,
     modelName,
   });
@@ -162,7 +129,5 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     PARAMETER: param,
     ...(modelName ? { MODELNAME: modelName } : {}),
     ...(subProps && subProps.length > 0 ? { PROP: subProps } : {}),
-    VISIBLE_WHEN: rawP.VISIBLE_WHEN as FormElement["VISIBLE_WHEN"],
-    DISABLED_WHEN: rawP.DISABLED_WHEN as FormElement["DISABLED_WHEN"],
   };
 }

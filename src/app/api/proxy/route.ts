@@ -129,8 +129,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
 
-    // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session)
-    const requested = buildGrpcEnvelope(session, body);
+    // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session). A checked
+    // config save forwards the parsed record, so keys the schema strips never reach the core.
+    const requested = buildGrpcEnvelope(
+      session,
+      dataCheck ? { ...body, data: dataCheck.data as Record<string, unknown> } : body,
+    );
 
     // 4. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {

@@ -106,7 +106,6 @@ export function renderFieldWidget({
           config={field.BOOLEAN_CONFIG}
         />
       );
-    case "radio":
     case "radio-group":
     case "segmented":
       return (

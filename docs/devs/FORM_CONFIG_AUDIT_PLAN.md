@@ -19,14 +19,14 @@ Last updated 2026-11-26. File and line references in §2 are from the baseline `
 | 2. `data-schemas` source  | Done                                                                         | `c1f9af1` | D4, D7, D9, D11, D14, X1, X2, X11, N1, N7 (X12 dropped) |
 | 3. `cbs-form-spec` source | Done                                                                         | `cb77910` | D1, D2, D3, D5, D6, D10, X3, X14, X15, N3 (D12 dropped) |
 | 4. Engine API, dead code  | Done                                                                         | `e0f3a34` | X4, X5, X6, X13, X16, D13, N6, AUTO width               |
-| 5. Drag data, section API | Applied, **not committed**                                                   | —         | S6, D8, X7, N8, N2, 11 inspector defaults, 3 drop fixes |
-| 6. Parser and client wire | **Next.** No decision needed                                                 | —         | open: S3, S4, X8, X9                                    |
-| 7. Boundary               | **Blocked** on D1, D2, D3, D5 and one `verify:api` run against a live core   | —         | open: S1, S2, S5, X10, `authNumber`                     |
+| 5. Drag data, section API | Done                                                                         | `c16e703` | S6, D8, X7, N8, N2, 11 inspector defaults, 3 drop fixes |
+| 6. Parser and client wire | Applied, **not committed**                                                   | —         | S3, S4, X8, X9                                          |
+| 7. Boundary               | Applied, **not committed**. Needs one `verify:api` run before shipping       | —         | S1, S2, S5, X10. Deferred: `authNumber` (D2)            |
 | 8. Size budget            | Not started. No decision needed                                              | —         | open: see sizes below                                   |
 | 9. Docs                   | Not started. No decision needed                                              | —         | open: N4, N5, AGENTS §2 `pnpm deprecated`, §0 table     |
 
-**Decided:** D4 keep both identity rules (designer by `SN`, runtime by `NAME`, two helpers); D6 option B (tabs group by `groupId`, saved together); D7 only `type: "A"` is an array lookup; D8 delete the 12-column path.
-**Still open:** D1 (S1 + S2), D2 (`authNumber`), D3 (X10), D5 (radio `P`/`L` alias), D9 (the §5 suite cases).
+**Decided:** D4 keep both identity rules (designer by `SN`, runtime by `NAME`, two helpers); D6 option B (tabs group by `groupId`, saved together); D7 only `type: "A"` is an array lookup; D8 delete the 12-column path; D1 strict fields and the proxy forwards parsed data; D3 delete the model-property reads; D5 delete the radio alias.
+**Still open:** D2 (`authNumber`, deferred until the core team confirms whether the Java core reads it), D9 (the §5 suite cases).
 
 **Known red gate:** `verify:schemas` `10d` fails **by owner choice**. The URM needs each filter's field name as a duplicate key, so the browser filter schema (`inquiryOperatorCriterionSchema`) stays `looseObject`. Expect exactly this one failure in `verify:all`; anything else is a regression.
 
@@ -74,7 +74,7 @@ flowchart TB
   PROXY --> CORE[("Java core / mock<br/>CONFIG.FORM")]
 
   subgraph Read["Reading (designer and runtime)"]
-    CORE -->|"GFC: model + FORMCONTROL"| PARSE["parseGfcResponse()<br/>gfcResponseSchema → formConfigRecordSchema → sanitize"]
+    CORE -->|"GFC: model + FORMCONTROL"| PARSE["parseGfcResponse()<br/>modelConfigRecordSchema + formConfigRecordSchema → sanitize"]
     PARSE -->|"designer"| SFC_UI
     PARSE -->|"runtime"| Q["cbsQueries.formConfig.schema()<br/>queries/schemas.ts"]
     Q --> COMPILE["compileFormSpec(model, form)<br/>mergeFieldWithModelProp · resolveWidgetType · deriveSemanticWidth"]
@@ -255,6 +255,20 @@ One phase is one reviewable change (one commit when you ask for it), in risk ord
 - Fixes: a tab dropped on a gap line now leaves its group as a card there (it was lost); a container preset dropped on a card goes right after that card, and on a tab joins that tab group (both used a field index as a section index); a tab moved in from another group lands right after the target tab.
 - N8: `AddSectionFn(containerType, NewSectionOptions)`, `SectionPlacement` and `ConvertSectionZoneFn` replace 8 positional parameters and 8 retyped signatures.
 - Inspector defaults: 11 settings lost their `DEFAULTVALUE` (field `STRUCTURE`, `REQUIRED`, `DISABLED`; canvas `layout`, `density`; container `columns` x2, `collapsible`, `minHeight`; lookup `PARAMETER.type`, `_lookupType`). The engine wrote them into unset values, so selecting a field or container on a loaded form marked it changed. `collapsible` and the lookup source get a display value instead. `authNumber` keeps its default (record data, D2 still open).
+
+**Phase 6 as applied**:
+
+- S3 / X9: `gfcResponseSchema` deleted. `parseGfcResponse` splits `FORMCONTROL` off the extracted record and parses the model with `modelConfigRecordSchema` and the layout with `formConfigRecordSchema`.
+- S4: no more `as ModelConfigRecord` cast. A model that fails the full schema (for example, a missing `SERVICEPATH`) is parsed with `modelConfigRecordSchema.partial()`, so the palette still loads with validated properties. If that also fails, the parser returns `{ success: false }`. `sanitizeModelConfigRecord` accepts `Partial<ModelConfigRecord>` (it already defaulted every header).
+- X8: `cbs.formConfig.save(data, { recordId })` requires `recordId`. The `data.recordId` / `data.formId` fallbacks are gone. Both callers already pass it, and the wire request is unchanged.
+
+**Phase 7 as applied** (owner choices: D1 yes, D3 delete, D5 delete; D2 deferred):
+
+- S1: form fields are a plain `z.object` built from `baseFieldSchema.shape`, so unknown field keys are stripped at any depth (probe: `INJECT` gone, inner `PROP` too). Model properties stay loose. All 18 stored layouts (mock plus the captured GFC samples) carry no key outside the schema, so stored layouts lose nothing.
+- S2: `/api/proxy` forwards the parsed record for SFC, SMC and PUT INQUIRY.CONFIG. **Wire change, flag in the PR.** Probe over the mocks: SFC adds `frmRoutine: { rtnValidate: [], rtnBeforeAuth: [], rtnAfterAuth: [] }` when unset; SMC adds `READONLY`, `USERDEFINEID`, `SEARCHABLE: false` and an empty `IDDEF`; INQUIRY.CONFIG is unchanged. **Run `verify:api` against a live core before shipping.**
+- S5: the radio `P` / `L` prefix alias is deleted. Radio Group and Segmented select an option by its exact code or label only (one `isOptionSelected` helper). With options such as `PRIVATE_SERVICE` and `PROFESSIONAL`, a stored `P` used to select both. No mock stores a bare `P` or `L`. The dead `case "radio":` in `widget-renderer.tsx` is gone too.
+- X10: `modelPropToFormElement` no longer reads `PARAMETER`, `WIDGET`, `VISIBLE_WHEN` or `DISABLED_WHEN` from a model property. `normalizeParameter` lost its only caller and is deleted.
+- Not done: D2 `authNumber`. Two mock models fail `modelConfigSaveSchema`; that was already the case and is unchanged.
 
 ---
 

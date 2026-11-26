@@ -157,7 +157,10 @@ export const propertyWidthSchema = z.preprocess((val) => {
   return "md";
 }, semanticWidthTokenSchema.default("md"));
 
-const baseFormElementSchema = baseFieldSchema.extend({
+// Built from the column shape, not `baseFieldSchema` itself: model reads stay loose, but a
+// form field keeps only the keys the designer authors, so unknown keys never reach CONFIG.FORM.
+const baseFormElementSchema = z.object({
+  ...baseFieldSchema.shape,
   REQUIRED: z
     .union([z.boolean(), z.null()])
     .transform((v) => (v === null ? undefined : v))

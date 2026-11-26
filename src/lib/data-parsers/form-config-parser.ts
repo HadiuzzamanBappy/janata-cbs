@@ -1,8 +1,8 @@
 import {
   type FormConfigRecord,
   formConfigRecordSchema,
-  gfcResponseSchema,
   type ModelConfigRecord,
+  modelConfigRecordSchema,
 } from "@/lib/data-schemas";
 import { sanitizeFormConfigRecord } from "./form-config-serializer";
 import { extractModelConfigRecord, sanitizeModelConfigRecord } from "./model-config-parser";
@@ -20,6 +20,7 @@ export interface ParsedGfcResponse {
 /**
  * Parses combined GFC wire response containing physical ModelConfigRecord
  * and presentation FORMCONTROL layout into clean, normalized domain structures.
+ * Each half is validated with its own schema.
  */
 export function parseGfcResponse(
   rawPayload: unknown,
@@ -29,43 +30,34 @@ export function parseGfcResponse(
     return { success: false, error: "GFC payload record is empty or invalid" };
   }
 
-  const parsed = gfcResponseSchema.safeParse(target);
-  let modelRaw: Record<string, unknown>;
-  let rawFc: Record<string, unknown> | undefined;
+  const { FORMCONTROL: rawFc, ...modelRaw } = target;
 
-  if (parsed.success) {
-    const { FORMCONTROL, ...rest } = parsed.data;
-    modelRaw = rest as Record<string, unknown>;
-    rawFc = FORMCONTROL as Record<string, unknown> | undefined;
-  } else {
-    // Resilient fallback: extract FORMCONTROL and model fields defensively
-    // so properties palette is never dropped due to non-fatal schema mismatch
-    const { FORMCONTROL, ...rest } = target;
-    modelRaw = rest;
-    rawFc = (FORMCONTROL && typeof FORMCONTROL === "object" ? FORMCONTROL : {}) as Record<
-      string,
-      unknown
-    >;
+  // A model missing a required header (DESCRIPTION, SERVICEPATH...) must still feed the
+  // palette: the partial schema validates what is present and the sanitizer fills the rest.
+  const modelParsed = modelConfigRecordSchema.safeParse(modelRaw);
+  const modelResult = modelParsed.success
+    ? modelParsed
+    : modelConfigRecordSchema.partial().safeParse(modelRaw);
+  if (!modelResult.success) {
+    return { success: false, error: "GFC model record is invalid" };
   }
 
-  const hasExistingLayout = Boolean(
-    rawFc && Object.keys(rawFc).length > 0 && (rawFc.frmElements || rawFc.title),
-  );
+  const layout =
+    rawFc && typeof rawFc === "object" ? (rawFc as Record<string, unknown>) : undefined;
+  const hasExistingLayout = Boolean(layout?.frmElements || layout?.title);
 
   let form: FormConfigRecord | null = null;
-  if (hasExistingLayout && rawFc) {
-    const formParsed = formConfigRecordSchema.safeParse(rawFc);
+  if (hasExistingLayout) {
+    const formParsed = formConfigRecordSchema.safeParse(layout);
     if (formParsed.success) {
       form = sanitizeFormConfigRecord(formParsed.data);
     }
   }
 
-  const model = sanitizeModelConfigRecord(modelRaw as ModelConfigRecord);
-
   return {
     success: true,
     data: {
-      model,
+      model: sanitizeModelConfigRecord(modelResult.data),
       form,
       // A stored layout that fails to parse is not new: treating it as new would let a blank draft overwrite it
       isNew: !hasExistingLayout,

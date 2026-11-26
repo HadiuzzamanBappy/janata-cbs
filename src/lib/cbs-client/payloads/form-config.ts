@@ -37,23 +37,15 @@ export const formConfigPayloads = {
    */
   save: (
     data: Record<string, unknown>,
-    options?: ModelOptions & {
-      recordId?: string;
-      recordFunction?: CbsRecordFunction;
-    },
+    options: ModelOptions & { recordId: string },
   ): CbsWirePayload => {
-    const targetId = (options?.recordId || data?.recordId || data?.formId || "")
-      .toString()
-      .trim()
-      .toUpperCase();
-
     return {
-      servicePath: options?.servicePath?.trim(),
+      servicePath: options.servicePath?.trim(),
       requestType: CbsRequestType.SFC,
       controlName: CbsControlTable.FORM_CONFIG,
-      recordFunction: options?.recordFunction || CbsRecordFunction.INPUT,
-      recordId: targetId,
-      idempotencyKey: options?.idempotencyKey,
+      recordFunction: options.recordFunction || CbsRecordFunction.INPUT,
+      recordId: options.recordId.trim().toUpperCase(),
+      idempotencyKey: options.idempotencyKey,
       data,
     };
   },

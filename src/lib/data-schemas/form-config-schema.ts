@@ -18,7 +18,7 @@ import {
   hasFieldOptions,
 } from "./form-engine-schema";
 import { CHOICE_WIDGETS } from "./form-widget-schema";
-import { CBS_PROPERTY_TYPE, modelConfigRecordSchema } from "./model-config-schema";
+import { CBS_PROPERTY_TYPE } from "./model-config-schema";
 
 /* ========================================================================== */
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
@@ -57,15 +57,7 @@ export const formConfigRecordSchema = z.object({
 export type FormConfigRecord = z.infer<typeof formConfigRecordSchema>;
 
 /* ========================================================================== */
-/* 3. COMBINED GFC / GNI WIRE RESPONSE CONTRACT                               */
-/* ========================================================================== */
-
-export const gfcResponseSchema = modelConfigRecordSchema.extend({
-  FORMCONTROL: z.union([formConfigRecordSchema, z.record(z.string(), z.any())]).default({}),
-});
-
-/* ========================================================================== */
-/* 4. SAVE RULES (SFC): what may be written to CONFIG.FORM                    */
+/* 3. SAVE RULES (SFC): what may be written to CONFIG.FORM                    */
 /* ========================================================================== */
 
 const ROUTINE_GROUPS = [
@@ -282,7 +274,7 @@ function checkFieldRules(
 }
 
 /* ========================================================================== */
-/* 5. DESIGNER DRAG PAYLOADS (native drag and drop inside SC.FORM.CONFIG)     */
+/* 4. DESIGNER DRAG PAYLOADS (native drag and drop inside SC.FORM.CONFIG)     */
 /* ========================================================================== */
 
 /**

@@ -86,7 +86,7 @@ function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProper
 /**
  * Sanitizes a ModelConfigRecord for sparse persistence.
  */
-export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfigRecord {
+export function sanitizeModelConfigRecord(record: Partial<ModelConfigRecord>): ModelConfigRecord {
   const rawAccess = String(record.ACCESS || "G")
     .trim()
     .toUpperCase();

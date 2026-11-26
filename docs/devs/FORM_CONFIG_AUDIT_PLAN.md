@@ -20,9 +20,9 @@ Last updated 2026-11-26. File and line references in §2 are from the baseline `
 | 3. `cbs-form-spec` source | Done                                                                         | `cb77910` | D1, D2, D3, D5, D6, D10, X3, X14, X15, N3 (D12 dropped) |
 | 4. Engine API, dead code  | Done                                                                         | `e0f3a34` | X4, X5, X6, X13, X16, D13, N6, AUTO width               |
 | 5. Drag data, section API | Done                                                                         | `c16e703` | S6, D8, X7, N8, N2, 11 inspector defaults, 3 drop fixes |
-| 6. Parser and client wire | Applied, **not committed**                                                   | —         | S3, S4, X8, X9                                          |
-| 7. Boundary               | Applied, **not committed**. Needs one `verify:api` run before shipping       | —         | S1, S2, S5, X10. Deferred: `authNumber` (D2)            |
-| 8. Size budget            | Not started. No decision needed                                              | —         | open: see sizes below                                   |
+| 6. Parser and client wire | Done                                                                         | `3f2abc3` | S3, S4, X8, X9                                          |
+| 7. Boundary               | Done. Needs one `verify:api` run before shipping                             | `edb237b` | S1, S2, S5, X10. Deferred: `authNumber` (D2)            |
+| 8. Size budget            | Applied, **not committed**                                                   | —         | 4 splits; `canvas-card-container-block.tsx` kept (321)  |
 | 9. Docs                   | Not started. No decision needed                                              | —         | open: N4, N5, AGENTS §2 `pnpm deprecated`, §0 table     |
 
 **Decided:** D4 keep both identity rules (designer by `SN`, runtime by `NAME`, two helpers); D6 option B (tabs group by `groupId`, saved together); D7 only `type: "A"` is an array lookup; D8 delete the 12-column path; D1 strict fields and the proxy forwards parsed data; D3 delete the model-property reads; D5 delete the radio alias.
@@ -30,7 +30,7 @@ Last updated 2026-11-26. File and line references in §2 are from the baseline `
 
 **Known red gate:** `verify:schemas` `10d` fails **by owner choice**. The URM needs each filter's field name as a duplicate key, so the browser filter schema (`inquiryOperatorCriterionSchema`) stays `looseObject`. Expect exactly this one failure in `verify:all`; anything else is a regression.
 
-**Over budget now** (`features/system/form-config`, limit 300 / 350 cohesive for components, 250 / 280 for helpers): `field-inspector.tsx` 488, `fc-canvas-fields.ts` 361, `canvas-section-grid.tsx` 360, `canvas-field-card.tsx` 327, `canvas-card-container-block.tsx` 321.
+**Size budget** (`features/system/form-config`, limit 300 / 350 cohesive for components, 250 / 280 for helpers): within budget since Phase 8. Largest: `canvas-card-container-block.tsx` 321 and `field-inspector.tsx` 320 (cohesive), `use-field-rule-view.ts` 275 and `use-section-drop-slot.ts` 255 (cohesive hooks).
 
 **To resume:**
 
@@ -269,6 +269,15 @@ One phase is one reviewable change (one commit when you ask for it), in risk ord
 - S5: the radio `P` / `L` prefix alias is deleted. Radio Group and Segmented select an option by its exact code or label only (one `isOptionSelected` helper). With options such as `PRIVATE_SERVICE` and `PROFESSIONAL`, a stored `P` used to select both. No mock stores a bare `P` or `L`. The dead `case "radio":` in `widget-renderer.tsx` is gone too.
 - X10: `modelPropToFormElement` no longer reads `PARAMETER`, `WIDGET`, `VISIBLE_WHEN` or `DISABLED_WHEN` from a model property. `normalizeParameter` lost its only caller and is deleted.
 - Not done: D2 `authNumber`. Two mock models fail `modelConfigSaveSchema`; that was already the case and is unchanged.
+
+**Phase 8 as applied** (moves only, no behaviour change):
+
+- `field-inspector.tsx` 488 → 320: the widget picker (eligibility, order, disabled reason) is `inspector-widget-picker.tsx` and the Rules tab is `inspector-rules-pane.tsx`. `isSelectionWidget` uses `CHOICE_WIDGETS` instead of a copy of the same four widgets.
+- `canvas-section-grid.tsx` 360 → 156: drop-slot tracking (dnd-kit insert index, native palette drop, placeholder width) is `use-section-drop-slot.ts`; the two identical placeholders are one `DropPlaceholder`.
+- `fc-canvas-fields.ts` 361 → 210: the tab group and tab sections are `fc-tab-fields.ts`.
+- `canvas-field-card.tsx` 327 → 234: the override and rule badges are `fieldOverrideBadges()` (`field-override-badges.ts`).
+- Kept: `canvas-card-container-block.tsx` (321, one card: splitting its header would pass about ten props through).
+- Noticed, not changed: the rule badges use numbered colours (`bg-sky-500/15` and so on), against AGENTS §3.6.
 
 ---
 

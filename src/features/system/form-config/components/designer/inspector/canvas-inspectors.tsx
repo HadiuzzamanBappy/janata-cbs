@@ -21,9 +21,11 @@ import { CbsRecordFunction } from "@/types";
 import {
   CONTAINER_PROPERTIES_SECTION,
   ROOT_FORM_PROPERTIES_SECTION,
+} from "../../../fields/fc-canvas-fields";
+import {
   TAB_GROUP_PROPERTIES_SECTION,
   TAB_ITEM_PROPERTIES_SECTION,
-} from "../../../fields/fc-canvas-fields";
+} from "../../../fields/fc-tab-fields";
 import { useOptionalDesignerContext } from "../context/designer-context";
 
 export interface RootCanvasInspectorProps {

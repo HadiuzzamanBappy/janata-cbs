@@ -95,7 +95,7 @@ Which widgets a field may use depends on its model type. That rule lives in one 
   - `designer-canvas.tsx` + `canvas/`: section grid, card and tab-group blocks, drop zones (`canvas-drop-dispatcher.ts`, `use-canvas-drag.ts`).
   - `property-inspector.tsx` + `inspector/`: `canvas-inspectors.tsx` (canvas and container), `field-inspector.tsx` (one field), `inspector-lookup-config.tsx` (options and lookups).
   - `context/`: designer state shared by the three panes.
-- `fields/`: the inspector's own form specs. `fc-general-fields.ts` (`FORM_CONFIG_SECTIONS`), `fc-canvas-fields.ts`, `fc-widget-fields.ts`, `fc-field-fields.ts` and `fc-lookup-fields.ts`.
+- `fields/`: the inspector's own form specs. `fc-general-fields.ts` (`FORM_CONFIG_SECTIONS`), `fc-canvas-fields.ts` (canvas and card), `fc-tab-fields.ts` (tab group and tab), `fc-widget-fields.ts`, `fc-field-fields.ts` and `fc-lookup-fields.ts`.
 - `hooks/`:
   - `use-form-config.ts`: loads the record.
   - `use-fc-persistence.ts`: the tab draft.

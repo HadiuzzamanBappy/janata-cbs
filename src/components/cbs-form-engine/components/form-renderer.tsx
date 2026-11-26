@@ -17,6 +17,7 @@ import {
   findFieldSpecByKey,
   getFieldValue,
   isLiveTransform,
+  resolveTabGroupConfig,
   setFieldValue,
   validateValues,
 } from "@/lib/cbs-form-spec";
@@ -97,14 +98,7 @@ export function FormRenderer({
   const hasFillBlock = React.useMemo(() => {
     return blocks.some((b) => {
       if (b.type === "tab-group") {
-        const cfg =
-          b.tabSections.find(
-            (t) =>
-              t.containerConfig?.heightMode ||
-              t.containerConfig?.tabVariant ||
-              t.containerConfig?.minHeight,
-          )?.containerConfig || b.tabSections[0]?.containerConfig;
-        return cfg?.heightMode === "fill";
+        return resolveTabGroupConfig(b.tabSections, b.tabSections[0]).heightMode === "fill";
       }
       return false;
     });

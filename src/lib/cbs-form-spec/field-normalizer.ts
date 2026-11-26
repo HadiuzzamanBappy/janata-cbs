@@ -8,10 +8,12 @@ import {
   type FormFieldParameter,
   type FormWidgetType,
   getDefaultWidgetForType,
+  hasFieldOptions,
   isWidgetCompatibleWithType,
   type ModelProperty,
   type PropertyStructure,
   type PropertyType,
+  resolveFieldParameter,
   resolvePhysicalLength,
   resolvePhysicalStructure,
   SEMANTIC_WIDTH_TOKENS,
@@ -67,15 +69,7 @@ export function resolveWidgetType(
 ): FormWidgetType {
   const normType = (type || CBS_PROPERTY_TYPE.STRING).trim() as PropertyType;
   const modelName = options?.modelName || param?.modelName;
-  const hasLookup =
-    Boolean(
-      param &&
-        (param.type === CBS_PARAMETER_TYPE.MODEL ||
-          param.type === CBS_PARAMETER_TYPE.ARRAY ||
-          (param.type === CBS_PARAMETER_TYPE.OPTIONS &&
-            Array.isArray(param.data) &&
-            param.data.length > 0)),
-    ) || Boolean(modelName?.trim());
+  const hasLookup = hasFieldOptions(param, modelName);
 
   if (explicitWidget) {
     const w = explicitWidget.toLowerCase().trim() as FormWidgetType;
@@ -139,16 +133,8 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
   const baseLabel = formatNameToLabel(p.NAME) || `Field #${snStr}`;
   const rawP = p as unknown as Record<string, unknown>;
   const rawParam = rawP.PARAMETER as Record<string, unknown> | undefined;
-  let param = normalizeParameter(rawParam);
   const modelName = (p.MODELNAME || "").trim();
-
-  if (!param && modelName) {
-    param = {
-      type: CBS_PARAMETER_TYPE.MODEL,
-      modelName,
-      data: [],
-    };
-  }
+  const param = resolveFieldParameter(normalizeParameter(rawParam), modelName);
 
   const normType = (p.TYPE || CBS_PROPERTY_TYPE.STRING) as PropertyType;
   const normLength = resolvePhysicalLength(normType, p.LENGTH, DEFAULT_PROPERTY_LENGTH);

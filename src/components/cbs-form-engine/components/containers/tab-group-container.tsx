@@ -9,6 +9,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { resolveTabGroupConfig } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { DEFAULT_FORM_DENSITY, type FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -45,16 +46,7 @@ export function TabGroupContainer({
   const currentActiveId = activeTabId || tabSections[0]?.id;
   const activeSection = tabSections.find((t) => t.id === currentActiveId) || tabSections[0];
 
-  // Visual config from active tab or any configured tab in the group
-  const activeConfig =
-    tabSections.find(
-      (t) =>
-        t.containerConfig?.tabVariant ||
-        t.containerConfig?.heightMode ||
-        t.containerConfig?.minHeight,
-    )?.containerConfig ||
-    activeSection?.containerConfig ||
-    {};
+  const activeConfig = resolveTabGroupConfig(tabSections, activeSection);
   const tabVariant = activeConfig.tabVariant || "card";
   const heightMode = activeConfig.heightMode || "auto";
   const minHeightStyle =

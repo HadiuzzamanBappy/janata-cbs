@@ -2,7 +2,7 @@
 
 Audit of everything a form layout touches, from the three schema files out to the designer, the compiler, the form engine and the proxy. It follows the model-config audit and uses the same rules: one source per rule, no dead code, no legacy aliases, smallest safe change, and every compatibility boundary flagged before it moves.
 
-- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete (`75f120c`). Phase 2 applied (uncommitted); see the notes under §4.
+- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete (`75f120c`). Phase 2 committed (`c1f9af1`). Phase 3 applied (uncommitted); see the notes under §4.
 - **Scope:** `src/lib/data-schemas/form-{config,engine,widget}-schema.ts` and every unit that reads or writes their types (about 95 files, about 13k lines).
 - **Not in scope:** model-config (already audited); inquiry-config and menu-designer, except where they share the form engine.
 
@@ -194,6 +194,15 @@ One phase is one reviewable change (one commit when you ask for it), in risk ord
 - N7: an `and` / `or` condition error now points at `VISIBLE_WHEN`; a single condition keeps `.field`, which the suite asserts.
 - X12 dropped: `.default().optional()` keeps `FormConfigRecord` sparse, the way the serializer writes it. Removing it breaks 20 sites (16 mock layouts, 4 suite lines).
 - Docs: parameter type `L` ("local catalog") was never in the schema; README and hook headers now say `A` (array lookup).
+
+**Phase 3 as applied** (owner choice D7: `type: "A"` alone makes an array lookup):
+
+- `PARAMETER` rules live in `form-engine-schema.ts` (not `cbs-form-spec`: the serializer and the save schema sit below it): `resolveFieldParameter` (D1), `isLookupParameter`, `lookupModelOf`, `staticOptionsOf`, `hasFieldOptions` (D2), `isArrayLookup` (D3). Callers: compiler, normalizer, save schema, serializer, `useFieldOptions`, `useModelLookup`, lookup inspector.
+- D7: an `M` lookup ignores `recordId` / `arrayField` (the serializer stops saving them, the lookup stops filtering by them). The inspector's lookup type is derived from the parameter, replacing a state + effect copy.
+- D5: `modelPropertyMatcher` (`compile.ts`) is the one NAME rule (case and spaces ignored), used by the compiler, the save check and the designer's `findModelPropDeep` fallback (which was case-sensitive).
+- D6: `resolveTabGroupConfig` (`layout-blocks.ts`) replaces three copies (renderer, tab container, designer tab block).
+- D10 `looseEquals`, X15 typed `evaluateOnChangeRule`, X3 `validateSingleField` compares `PropertyType` constants, X14 drops the unused `{ sections }` input, N3 `findFieldSpecByKey` moved to `path-utils.ts`.
+- D12 dropped: no duplicated rule, and omitting `columns: 1` would change stored CONFIG.FORM JSON.
 
 ---
 

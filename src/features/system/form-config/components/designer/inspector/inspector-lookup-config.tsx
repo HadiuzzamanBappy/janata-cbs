@@ -11,7 +11,13 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import { CBS_PARAMETER_TYPE, type FormElement, type FormSection } from "@/lib/data-schemas";
+import {
+  CBS_PARAMETER_TYPE,
+  type FormElement,
+  type FormSection,
+  isArrayLookup,
+  isLookupParameter,
+} from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import {
   DROPDOWN_LOOKUP_SECTION,
@@ -37,24 +43,13 @@ export function InspectorLookupConfig({
 }: InspectorLookupConfigProps) {
   const cleanModel = modelName.trim();
   const hasModel = Boolean(cleanModel);
-  const param = (selectedField.PARAMETER || {}) as Record<string, unknown>;
-
-  // Source Type: If field has a model, locked to "M"; otherwise "O" or "M"
-  const isLookup =
-    hasModel || param.type === CBS_PARAMETER_TYPE.MODEL || param.type === CBS_PARAMETER_TYPE.ARRAY;
-  const sourceMode = isLookup ? CBS_PARAMETER_TYPE.MODEL : CBS_PARAMETER_TYPE.OPTIONS;
-
-  // Lookup Type: Flat List vs Array List (derived directly from param)
-  const isArray = param.type === CBS_PARAMETER_TYPE.ARRAY || Boolean(param.recordId);
-  const [lookupType, setLookupType] = React.useState<"flat" | "array">(isArray ? "array" : "flat");
-
-  React.useEffect(() => {
-    if (param.type === CBS_PARAMETER_TYPE.ARRAY || param.recordId) {
-      setLookupType("array");
-    } else {
-      setLookupType("flat");
-    }
-  }, [param.type, param.recordId]);
+  // Source: a field with a model is locked to a lookup; otherwise fixed options or a lookup
+  const sourceMode =
+    hasModel || isLookupParameter(selectedField.PARAMETER)
+      ? CBS_PARAMETER_TYPE.MODEL
+      : CBS_PARAMETER_TYPE.OPTIONS;
+  // Lookup type, Flat List vs Array List, is the parameter type itself
+  const lookupType = isArrayLookup(selectedField.PARAMETER) ? "array" : "flat";
 
   const handleFieldChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
@@ -67,7 +62,6 @@ export function InspectorLookupConfig({
       // Inline choice: Flat List vs Array List
       if (fieldKey === "_lookupType") {
         const nextType = value === "array" ? "array" : "flat";
-        setLookupType(nextType);
 
         const currentParam = (selectedField.PARAMETER || {}) as Record<string, unknown>;
         const existingData = Array.isArray(currentParam.data) ? currentParam.data : [];

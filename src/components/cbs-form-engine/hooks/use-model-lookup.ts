@@ -15,9 +15,10 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
 import {
-  CBS_PARAMETER_TYPE,
-  DEFAULT_ARRAY_LOOKUP_MODEL,
   type FormFieldParameter,
+  isArrayLookup,
+  isLookupParameter,
+  lookupModelOf,
 } from "@/lib/data-schemas";
 import type { WidgetOption } from "../types";
 
@@ -28,14 +29,9 @@ import type { WidgetOption } from "../types";
  * @returns Array of resolved lookup options and query loading state.
  */
 export function useModelLookup(param: FormFieldParameter | undefined, enabled: boolean = true) {
-  const isTypeSupported =
-    param?.type === CBS_PARAMETER_TYPE.MODEL || param?.type === CBS_PARAMETER_TYPE.ARRAY;
-  const rawModel =
-    param?.modelName?.trim() ||
-    (param?.type === CBS_PARAMETER_TYPE.ARRAY ? DEFAULT_ARRAY_LOOKUP_MODEL : "") ||
-    "";
-  const cleanModel = rawModel.toUpperCase();
-  const isModelLookup = isTypeSupported && Boolean(cleanModel);
+  const cleanModel = lookupModelOf(param).toUpperCase();
+  const isModelLookup = isLookupParameter(param) && Boolean(cleanModel);
+  const isArrayMode = isArrayLookup(param);
 
   const query = useQuery({
     ...cbsQueries.model(cleanModel).lookup(),
@@ -56,8 +52,8 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
 
     let filtered = rows;
 
-    // 1. Filter by recordId if specified (for Category / Array Mode A)
-    const targetId = param?.recordId?.trim();
+    // 1. Array lookup (A): keep only record recordId
+    const targetId = isArrayMode ? param?.recordId?.trim() : undefined;
     if (targetId) {
       filtered = rows.filter((item) => {
         const rec = item as Record<string, unknown>;
@@ -72,8 +68,6 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
     // - Mode A (Array Mode): unwrap from specified arrayField (or default itemArray) within target record
     // - Mode M (Flat Mode): use records directly as options without magic auto-detect
     let itemsToMap: unknown[] = filtered;
-    const isArrayMode =
-      param?.type === CBS_PARAMETER_TYPE.ARRAY || Boolean(param?.recordId?.trim());
 
     if (isArrayMode) {
       const arrayKey = param?.arrayField?.trim() || "itemArray";
@@ -146,8 +140,8 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
       .filter((o): o is WidgetOption => Boolean(o?.code));
   }, [
     isModelLookup,
+    isArrayMode,
     rows,
-    param?.type,
     param?.recordId,
     param?.arrayField,
     param?.condition,

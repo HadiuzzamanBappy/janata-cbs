@@ -9,7 +9,12 @@
  */
 
 import { useMemo } from "react";
-import { CBS_PARAMETER_TYPE, type FormElement, type FormFieldParameter } from "@/lib/data-schemas";
+import {
+  type FormElement,
+  isLookupParameter,
+  resolveFieldParameter,
+  staticOptionsOf,
+} from "@/lib/data-schemas";
 import type { WidgetOption } from "../types";
 import { useModelLookup } from "./use-model-lookup";
 
@@ -20,14 +25,10 @@ import { useModelLookup } from "./use-model-lookup";
  * @returns Resolved options array and asynchronous loading status.
  */
 export function useFieldOptions(field: FormElement, enabled: boolean = true) {
-  const modelName = (field.MODELNAME || "").trim();
-  const param =
-    (field.PARAMETER as FormFieldParameter | undefined) ??
-    (modelName ? { type: CBS_PARAMETER_TYPE.MODEL, modelName, data: [] } : undefined);
-  const isDynamic = Boolean(
-    (param?.type === CBS_PARAMETER_TYPE.MODEL || param?.type === CBS_PARAMETER_TYPE.ARRAY) &&
-      Boolean(param?.modelName?.trim() || param?.recordId?.trim()),
-  );
+  const param = resolveFieldParameter(field.PARAMETER, field.MODELNAME);
+  // Refreshable: a lookup that names its model or its record
+  const isDynamic =
+    isLookupParameter(param) && Boolean(param.modelName?.trim() || param.recordId?.trim());
   const {
     modelOptions,
     loading: modelLoading,
@@ -35,21 +36,11 @@ export function useFieldOptions(field: FormElement, enabled: boolean = true) {
   } = useModelLookup(param, isDynamic && enabled);
 
   const resolvedOptions: WidgetOption[] = useMemo(() => {
-    const pType = param?.type;
-    const pData = param?.data;
-
-    if (pType === CBS_PARAMETER_TYPE.MODEL || pType === CBS_PARAMETER_TYPE.ARRAY) {
-      return modelOptions;
-    }
-
-    if (pType === CBS_PARAMETER_TYPE.OPTIONS && Array.isArray(pData) && pData.length > 0) {
-      return pData.map((d) => ({
-        code: String(d.code ?? ""),
-        label: String(d.label ?? d.code ?? ""),
-      }));
-    }
-
-    return [];
+    if (isLookupParameter(param)) return modelOptions;
+    return staticOptionsOf(param).map((d) => ({
+      code: String(d.code ?? ""),
+      label: String(d.label ?? d.code ?? ""),
+    }));
   }, [param, modelOptions]);
 
   return {

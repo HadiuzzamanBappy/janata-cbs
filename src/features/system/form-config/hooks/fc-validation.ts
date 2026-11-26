@@ -7,6 +7,7 @@
  */
 
 import type { ZodError } from "zod";
+import { modelPropertyMatcher } from "@/lib/cbs-form-spec";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import {
   type FormConfigRecord,
@@ -94,14 +95,14 @@ export function validateFormConfig(
 
   (formData.frmElements?.sections ?? []).forEach((section, sIdx) => {
     const secDisplay = section.title?.trim() || `Section #${sIdx + 1}`;
-    // Matched by name, as compileFormSpec merges them; inner fields against the group's PROP
+    // Matched the way compileFormSpec merges them; inner fields against the group's PROP
     const flagMissing = (fields: FormElement[], props: ModelProperty[], prefix: string) => {
-      const byName = new Map(props.map((p) => [p.NAME.toLowerCase(), p]));
+      const findProp = modelPropertyMatcher(props);
       fields.forEach((field, fIdx) => {
         const name = (field.NAME || "").trim();
         if (!name) return;
         const path = prefix ? `${prefix}.${name}` : name;
-        const prop = byName.get(name.toLowerCase());
+        const prop = findProp(name);
         if (!prop) {
           issues.push({
             id: `formDesigner-model-${section.id}-${path}`,

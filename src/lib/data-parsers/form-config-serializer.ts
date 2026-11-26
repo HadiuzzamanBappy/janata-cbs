@@ -1,14 +1,16 @@
 import {
   CBS_PARAMETER_TYPE,
-  DEFAULT_ARRAY_LOOKUP_MODEL,
   DEFAULT_PROPERTY_LENGTH,
   type FormConfigRecord,
   type FormElement,
-  type FormFieldParameter,
   type FormSection,
+  isArrayLookup,
+  isLookupParameter,
+  lookupModelOf,
   type PropertyType,
   resolvePhysicalLength,
   resolvePhysicalStructure,
+  staticOptionsOf,
 } from "@/lib/data-schemas";
 
 /* -------------------------------------------------------------------------- */
@@ -75,37 +77,31 @@ function sanitizeFormElement(field: FormElement): FormElement {
   }
 
   const p = cleanField.PARAMETER;
-  const pType = String(p?.type ?? "").toUpperCase();
-  const rawModel =
-    String(p?.modelName ?? "").trim() ||
-    (pType === CBS_PARAMETER_TYPE.ARRAY ? DEFAULT_ARRAY_LOOKUP_MODEL : "");
-  if ((pType === CBS_PARAMETER_TYPE.MODEL || pType === CBS_PARAMETER_TYPE.ARRAY) && rawModel) {
-    const codeStr = String(p?.codeField ?? "").trim();
-    const dispStr = String(p?.displayField ?? "").trim();
-    const condStr = String(p?.condition ?? "").trim();
-    const recIdStr = String(p?.recordId ?? "").trim();
-    const arrFieldStr = String(p?.arrayField ?? "").trim();
-    sanitized.PARAMETER = {
-      type: pType as FormFieldParameter["type"],
-      modelName: rawModel,
-      data: [],
-      ...(recIdStr ? { recordId: recIdStr } : {}),
-      ...(arrFieldStr ? { arrayField: arrFieldStr } : {}),
-      ...(dispStr ? { displayField: dispStr } : {}),
-      ...(condStr ? { condition: condStr } : {}),
-      ...(codeStr ? { codeField: codeStr } : {}),
+  const lookupModel = lookupModelOf(p);
+  const options = staticOptionsOf(p);
+  if (isLookupParameter(p) && lookupModel) {
+    // recordId / arrayField only mean something on an array lookup
+    const keep = (key: "recordId" | "arrayField" | "displayField" | "condition" | "codeField") => {
+      const value = String(p[key] ?? "").trim();
+      return value ? { [key]: value } : {};
     };
-  } else if ((pType === CBS_PARAMETER_TYPE.OPTIONS || !pType) && Array.isArray(p?.data)) {
-    const rawArr = p.data;
-    if (rawArr.length > 0) {
-      sanitized.PARAMETER = {
-        type: CBS_PARAMETER_TYPE.OPTIONS,
-        data: rawArr.map((opt) => ({
-          code: String(opt.code ?? ""),
-          label: String(opt.label ?? opt.code ?? ""),
-        })),
-      };
-    }
+    sanitized.PARAMETER = {
+      type: p.type,
+      modelName: lookupModel,
+      data: [],
+      ...(isArrayLookup(p) ? { ...keep("recordId"), ...keep("arrayField") } : {}),
+      ...keep("displayField"),
+      ...keep("condition"),
+      ...keep("codeField"),
+    };
+  } else if (options.length > 0) {
+    sanitized.PARAMETER = {
+      type: CBS_PARAMETER_TYPE.OPTIONS,
+      data: options.map((opt) => ({
+        code: String(opt.code ?? ""),
+        label: String(opt.label ?? opt.code ?? ""),
+      })),
+    };
   }
 
   if (cleanField.NUMBER_CONFIG) sanitized.NUMBER_CONFIG = cleanField.NUMBER_CONFIG;

@@ -17,6 +17,7 @@ import {
   type ModelConfigRecord,
   type ModelProperty,
   type PropertyType,
+  resolveFieldParameter,
   resolvePhysicalLength,
   resolvePhysicalStructure,
 } from "@/lib/data-schemas";
@@ -60,6 +61,17 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * Finds a layout field's model property by NAME, ignoring case and surrounding spaces. This is the
+ * one runtime matching rule: the compiler and the designer's save check both use it.
+ */
+export function modelPropertyMatcher(
+  properties: ModelProperty[] | undefined,
+): (name: string) => ModelProperty | undefined {
+  const byName = new Map((properties ?? []).map((p) => [p.NAME.trim().toLowerCase(), p]));
+  return (name) => byName.get(name.trim().toLowerCase());
+}
+
+/**
  * Merges a visual presentation FormElement with its underlying physical ModelProperty:
  * - DB Constraints (Authority: ModelConfig): TYPE, LENGTH, STRUCTURE, REQUIRED.
  * - Presentation (Authority: FormConfig): WIDGET, LABEL, WIDTH, VALIDATION, CASCADE, ON_CHANGE.
@@ -80,10 +92,10 @@ export function mergeFieldWithModelProp(
   // Recursively merge nested sub-properties for object fields
   let mergedSubProps = field.PROP;
   if (Array.isArray(modelProp.PROP) && modelProp.PROP.length > 0) {
-    const subPropMap = new Map(modelProp.PROP.map((sp) => [sp.NAME.toLowerCase(), sp]));
+    const findSubProp = modelPropertyMatcher(modelProp.PROP);
     if (Array.isArray(field.PROP) && field.PROP.length > 0) {
       mergedSubProps = field.PROP.map((subF) =>
-        mergeFieldWithModelProp(subF, subPropMap.get(subF.NAME.toLowerCase())),
+        mergeFieldWithModelProp(subF, findSubProp(subF.NAME)),
       );
     } else {
       mergedSubProps = modelProp.PROP.map((sp, idx) => modelPropToFormElement(sp, idx));
@@ -103,8 +115,7 @@ export function mergeFieldWithModelProp(
   );
 
   const modelName = (modelProp.MODELNAME || field.MODELNAME || "").trim();
-  const effectiveParam =
-    field.PARAMETER ?? (modelName ? { type: "M" as const, modelName, data: [] } : undefined);
+  const effectiveParam = resolveFieldParameter(field.PARAMETER, modelName);
 
   return {
     ...field,
@@ -167,15 +178,13 @@ export function compileFormSpec(
   }
 
   // Case B: Custom Layout Composition
-  const propertyMap = new Map(
-    (model.PROPERTIES || []).map((p: ModelProperty) => [p.NAME.toLowerCase(), p]),
-  );
+  const findProp = modelPropertyMatcher(model.PROPERTIES);
 
   const cleanSections: FormSection[] = layout.frmElements.sections.map((section) => ({
     ...section,
     columns: section.columns ?? 1,
     fields: (section.fields || []).map((field) =>
-      mergeFieldWithModelProp(field, propertyMap.get(field.NAME.toLowerCase())),
+      mergeFieldWithModelProp(field, findProp(field.NAME)),
     ),
   }));
 

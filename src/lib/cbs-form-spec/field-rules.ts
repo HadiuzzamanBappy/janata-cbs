@@ -13,8 +13,15 @@ import type {
   FieldCascadeRule,
   FieldTransform,
   FieldVisibilityCondition,
+  FormElement,
 } from "@/lib/data-schemas";
 import { getFieldValue } from "./path-utils";
+
+type OnChangeAction = NonNullable<FormElement["ON_CHANGE"]>["action"];
+
+/** Rule equality: the same value, or the same text (a stored "1" matches the number 1). */
+const looseEquals = (a: unknown, b: unknown): boolean =>
+  a === b || String(a ?? "") === String(b ?? "");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Declarative Value Transforms
@@ -112,7 +119,7 @@ export function evaluateFieldCascade(
 ): Record<string, unknown> | null {
   if (!Array.isArray(cascadeRules) || cascadeRules.length === 0) return null;
 
-  const matches = (item: unknown) => item === val || String(item ?? "") === String(val ?? "");
+  const matches = (item: unknown) => looseEquals(item, val);
   const patch: Record<string, unknown> = {};
   for (const rule of cascadeRules) {
     if (!rule?.set) continue;
@@ -166,17 +173,13 @@ export function evaluateFieldCondition(
 
     switch (op) {
       case "eq":
-        return targetVal === expected || String(targetVal ?? "") === String(expected ?? "");
+        return looseEquals(targetVal, expected);
       case "neq":
-        return targetVal !== expected && String(targetVal ?? "") !== String(expected ?? "");
+        return !looseEquals(targetVal, expected);
       case "in":
-        return toConditionList(expected).some(
-          (item) => item === targetVal || String(item) === String(targetVal ?? ""),
-        );
+        return toConditionList(expected).some((item) => looseEquals(item, targetVal));
       case "notIn":
-        return !toConditionList(expected).some(
-          (item) => item === targetVal || String(item) === String(targetVal ?? ""),
-        );
+        return !toConditionList(expected).some((item) => looseEquals(item, targetVal));
       case "gt":
         return Number(targetVal) > Number(expected);
       case "lt":
@@ -206,13 +209,13 @@ export function evaluateFieldCondition(
  * "copy" copies, "clear" empties the target, "join" joins array items, and the case actions
  * copy in upper or lower case.
  *
- * @param action Action identifier ("copy", "clear", "join", "uppercase", "lowercase").
+ * @param action The ON_CHANGE action.
  * @param val Current field value.
  * @param delimiter Delimiter string used when joining array elements (default: "#").
  * @returns Resulting transformed value.
  */
 export function evaluateOnChangeRule(
-  action: string | undefined,
+  action: OnChangeAction,
   val: unknown,
   delimiter: string = "#",
 ): unknown {

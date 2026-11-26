@@ -1,5 +1,6 @@
 /**
  * @fileoverview Pure Immutable Path Accessors (getFieldValue, setFieldValue, deleteFieldValue)
+ * and the field spec behind a value key (findFieldSpecByKey)
  * @module cbs-form-spec/path-utils
  *
  * Core Invariants:
@@ -7,6 +8,8 @@
  * - Returns a new object reference on writes/deletions without mutating source records.
  * - Safely handles intermediate arrays and missing objects during traversal.
  */
+
+import type { FormElement, FormSection } from "@/lib/data-schemas";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Value Readers
@@ -144,4 +147,27 @@ export function deleteFieldValue<T extends Record<string, unknown>>(record: T, p
   }
 
   return root;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Value Key → Field Spec
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The field spec behind a value key: a top-level `NAME`, or an inner field of an object group
+ * (`ADDRESS.city`, or `ITEMS.0.code` for a repeating set; numeric segments are row indexes).
+ */
+export function findFieldSpecByKey(sections: FormSection[], key: string): FormElement | undefined {
+  const fields = sections.flatMap((s) => s.fields ?? []);
+  const direct = fields.find((f) => f.NAME === key);
+  if (direct) return direct;
+
+  const [head, ...rest] = key.split(".");
+  let current = fields.find((f) => f.NAME === head);
+  for (const segment of rest) {
+    if (!current) return undefined;
+    if (/^\d+$/.test(segment)) continue;
+    current = (current.PROP ?? []).find((f) => f.NAME === segment);
+  }
+  return current;
 }

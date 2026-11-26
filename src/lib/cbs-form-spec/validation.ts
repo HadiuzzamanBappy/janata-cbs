@@ -12,10 +12,12 @@
 import { isIsoDate, isIsoDateTime, offsetIsoDate } from "@/lib/core-utils";
 import {
   CBS_PROPERTY_STRUCTURE,
+  CBS_PROPERTY_TYPE,
   type FieldValidationRule,
   type FormConfigRecord,
   type FormElement,
   type FormSection,
+  type PropertyType,
 } from "@/lib/data-schemas";
 import { evaluateFieldCondition } from "./field-rules";
 import { getFieldValue } from "./path-utils";
@@ -45,7 +47,7 @@ export interface SingleFieldValidationContext {
   required?: boolean;
   length?: number | string;
   label?: string;
-  type?: string;
+  type?: PropertyType;
   validation?: FieldValidationRule;
   /** Maximum decimal places of a numeric value. */
   decimals?: number;
@@ -88,11 +90,9 @@ export function validateSingleField(
   // Skip further validation on empty optional fields
   if (isMissingOrEmpty) return null;
 
-  const fieldType = (ctx.type || "").toLowerCase();
-
   // Multi-value (M) scalar field: every filled item meets the single-value rules
   if (Array.isArray(value)) {
-    if (fieldType === "array" || !value.every(isScalar)) return null;
+    if (ctx.type === CBS_PROPERTY_TYPE.ARRAY || !value.every(isScalar)) return null;
     for (const item of value) {
       const itemError = validateSingleField({ ...ctx, required: false }, item);
       if (itemError) return itemError;
@@ -100,10 +100,10 @@ export function validateSingleField(
     return null;
   }
 
-  const isNumeric = fieldType === "number" || fieldType === "amount" || fieldType === "rate";
-  const isDate = fieldType === "date";
-  const isDateTime = fieldType === "datetime";
-  const isTime = fieldType === "time";
+  const isNumeric = ctx.type === CBS_PROPERTY_TYPE.NUMBER;
+  const isDate = ctx.type === CBS_PROPERTY_TYPE.DATE;
+  const isDateTime = ctx.type === CBS_PROPERTY_TYPE.DATETIME;
+  const isTime = ctx.type === CBS_PROPERTY_TYPE.TIME;
 
   // 2. Numeric Type & Range Validation
   if (isNumeric) {
@@ -256,23 +256,19 @@ export function validateFormFields(
 // Spec & Sections Validator (Public Entry Point)
 // ─────────────────────────────────────────────────────────────────────────────
 /**
- * Validates all fields across an entire FormConfigRecord or array of FormSections.
+ * Validates all fields of a compiled form (the record, or its sections).
  *
  * @param specOrSections Full form specification or array of form sections.
  * @param values Draft form state record to validate.
  * @returns Map of dot-notated field paths to error messages (`{}` when valid).
  */
 export function validateValues(
-  specOrSections: FormConfigRecord | { sections: FormSection[] } | FormSection[],
+  specOrSections: FormConfigRecord | FormSection[],
   values: Record<string, unknown> | null | undefined,
 ): Record<string, string> {
-  const sections: FormSection[] = Array.isArray(specOrSections)
+  const sections = Array.isArray(specOrSections)
     ? specOrSections
-    : "frmElements" in specOrSections && specOrSections.frmElements?.sections
-      ? specOrSections.frmElements.sections
-      : "sections" in specOrSections && Array.isArray(specOrSections.sections)
-        ? specOrSections.sections
-        : [];
+    : (specOrSections.frmElements?.sections ?? []);
 
   const allFields = sections.flatMap((s) => s.fields || []);
   return validateFormFields(allFields, values);

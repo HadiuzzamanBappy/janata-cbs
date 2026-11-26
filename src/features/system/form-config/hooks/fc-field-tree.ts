@@ -7,6 +7,7 @@
  * @module features/system/form-config/hooks/fc-field-tree
  */
 
+import { modelPropertyMatcher } from "@/lib/cbs-form-spec";
 import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
 
 /** Every section and tab-group id on the form, so a generated id never repeats one. */
@@ -90,7 +91,10 @@ export function updateFieldDeep(
   );
 }
 
-/** The model property for a field: by `SN` at any depth, else a top-level `NAME`. */
+/**
+ * The model property for a field in the designer: by `SN` at any depth (inner `SN`s are unique,
+ * inner names are not), else a top-level `NAME` matched the way the compiler matches it.
+ */
 export function findModelPropDeep(
   properties: ModelProperty[],
   field: Pick<FormElement, "SN" | "NAME">,
@@ -103,5 +107,5 @@ export function findModelPropDeep(
     }
     return null;
   };
-  return bySn(properties) ?? properties.find((p) => p.NAME === field.NAME) ?? null;
+  return bySn(properties) ?? modelPropertyMatcher(properties)(field.NAME) ?? null;
 }

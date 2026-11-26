@@ -34,6 +34,44 @@ const formFieldParameterSchema = z.object({
 
 export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
 
+/** The field's own `PARAMETER`, or the model lookup a `MODELNAME` column implies. */
+export function resolveFieldParameter(
+  param: FormFieldParameter | undefined,
+  modelName: string | undefined,
+): FormFieldParameter | undefined {
+  const model = modelName?.trim();
+  return (
+    param ?? (model ? { type: CBS_PARAMETER_TYPE.MODEL, modelName: model, data: [] } : undefined)
+  );
+}
+
+/** A lookup reads its options from a model (`M`) or from an array inside one record (`A`). */
+export const isLookupParameter = (
+  param: FormFieldParameter | undefined,
+): param is FormFieldParameter =>
+  param?.type === CBS_PARAMETER_TYPE.MODEL || param?.type === CBS_PARAMETER_TYPE.ARRAY;
+
+/** Array lookup: the options are the `arrayField` items of record `recordId`. */
+export const isArrayLookup = (param: FormFieldParameter | undefined): param is FormFieldParameter =>
+  param?.type === CBS_PARAMETER_TYPE.ARRAY;
+
+/** The model a lookup reads, as configured; an array lookup naming none reads the default model. */
+export const lookupModelOf = (param: FormFieldParameter | undefined): string =>
+  param?.modelName?.trim() || (isArrayLookup(param) ? DEFAULT_ARRAY_LOOKUP_MODEL : "");
+
+/** The fixed options of a field (`O`, or no parameter); none for a lookup. */
+export const staticOptionsOf = (
+  param: FormFieldParameter | undefined,
+): FormFieldParameter["data"] =>
+  !param || param.type === CBS_PARAMETER_TYPE.OPTIONS ? (param?.data ?? []) : [];
+
+/** Whether a choice field has something to pick from: a lookup, fixed options, or a `MODELNAME`. */
+export const hasFieldOptions = (
+  param: FormFieldParameter | undefined,
+  modelName: string | undefined,
+): boolean =>
+  isLookupParameter(param) || staticOptionsOf(param).length > 0 || Boolean(modelName?.trim());
+
 /* ========================================================================== */
 /* 2. REACTIVE ACTIONS & VALIDATION RULES                                     */
 /* ========================================================================== */

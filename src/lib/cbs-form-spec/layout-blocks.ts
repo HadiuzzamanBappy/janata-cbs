@@ -8,7 +8,7 @@
  * - Pure layout calculation with zero DOM or UI framework dependencies.
  */
 
-import type { FormElement, FormSection } from "@/lib/data-schemas";
+import type { ContainerConfig, FormSection } from "@/lib/data-schemas";
 
 /**
  * Union type representing an isolated section or an aggregated tab cluster.
@@ -20,25 +20,6 @@ export type RenderBlock =
 // ─────────────────────────────────────────────────────────────────────────────
 // Render Block Clustering
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * The field spec behind a value key: a top-level `NAME`, or an inner field of an object group
- * (`ADDRESS.city`, or `ITEMS.0.code` for a repeating set; numeric segments are row indexes).
- */
-export function findFieldSpecByKey(sections: FormSection[], key: string): FormElement | undefined {
-  const fields = sections.flatMap((s) => s.fields ?? []);
-  const direct = fields.find((f) => f.NAME === key);
-  if (direct) return direct;
-
-  const [head, ...rest] = key.split(".");
-  let current = fields.find((f) => f.NAME === head);
-  for (const segment of rest) {
-    if (!current) return undefined;
-    if (/^\d+$/.test(segment)) continue;
-    current = (current.PROP ?? []).find((f) => f.NAME === segment);
-  }
-  return current;
-}
 
 /**
  * Clusters form sections into render blocks. Every tab with the same `groupId` (untitled-group
@@ -76,6 +57,20 @@ export function buildRenderBlocks(sections: FormSection[]): RenderBlock[] {
   }
 
   return blocks;
+}
+
+/**
+ * The settings that govern a tab group (variant, height, density): those of the first tab that sets
+ * a group option (`tabVariant`, `heightMode`, `minHeight`), else those of `fallback`.
+ */
+export function resolveTabGroupConfig(
+  tabSections: FormSection[],
+  fallback: FormSection | undefined,
+): ContainerConfig {
+  const configured = tabSections.find(
+    ({ containerConfig: c }) => c?.tabVariant || c?.heightMode || c?.minHeight,
+  );
+  return configured?.containerConfig ?? fallback?.containerConfig ?? {};
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

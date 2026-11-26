@@ -71,11 +71,7 @@ export function FieldInspector({
   const fieldLength = matchedModelProp?.LENGTH ?? field.LENGTH;
   const isDbRequired = Boolean(matchedModelProp?.REQUIRED);
 
-  const modelName = (
-    matchedModelProp?.MODELNAME ||
-    (field as FormElement & { MODELNAME?: string }).MODELNAME ||
-    ""
-  ).trim();
+  const modelName = (matchedModelProp?.MODELNAME || field.MODELNAME || "").trim();
   const hasModel = Boolean(modelName);
   // The widget the engine renders (lookups resolve to select), so the inspector matches the form
   const currentWidget = resolveWidgetType(

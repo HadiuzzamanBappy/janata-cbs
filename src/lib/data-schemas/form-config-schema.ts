@@ -9,13 +9,13 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
 import {
-  CBS_PARAMETER_TYPE,
   type FieldVisibilityCondition,
   type FormElement,
   formElementsContainerSchema,
+  hasFieldOptions,
 } from "./form-engine-schema";
 import { CHOICE_WIDGETS } from "./form-widget-schema";
-import { modelConfigRecordSchema } from "./model-config-schema";
+import { CBS_PROPERTY_TYPE, modelConfigRecordSchema } from "./model-config-schema";
 
 /* ========================================================================== */
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
@@ -252,16 +252,10 @@ function checkFieldRules(
     );
   }
 
-  const options =
-    field.PARAMETER?.type === CBS_PARAMETER_TYPE.OPTIONS || !field.PARAMETER
-      ? (field.PARAMETER?.data ?? [])
-      : null;
   if (
     CHOICE_WIDGETS.has(field.WIDGET ?? "") &&
-    field.TYPE !== "Boolean" &&
-    !field.MODELNAME?.trim() &&
-    options !== null &&
-    options.length === 0
+    field.TYPE !== CBS_PROPERTY_TYPE.BOOLEAN &&
+    !hasFieldOptions(field.PARAMETER, field.MODELNAME)
   ) {
     issue(
       [...fieldPath, "PARAMETER"],

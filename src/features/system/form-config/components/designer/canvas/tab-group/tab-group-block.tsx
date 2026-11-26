@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as React from "react";
+import { resolveTabGroupConfig } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
@@ -78,15 +79,10 @@ export function TabGroupBlock(props: TabGroupBlockProps) {
     !selectedFieldId &&
     context.tabScope === "container";
 
-  const groupConfig = React.useMemo(() => {
-    const configuredTab = tabSections.find(
-      (t) =>
-        t.containerConfig?.tabVariant ||
-        t.containerConfig?.heightMode ||
-        t.containerConfig?.minHeight,
-    );
-    return configuredTab?.containerConfig || activeSection?.containerConfig || {};
-  }, [tabSections, activeSection]);
+  const groupConfig = React.useMemo(
+    () => resolveTabGroupConfig(tabSections, activeSection),
+    [tabSections, activeSection],
+  );
 
   const tabVariant = groupConfig.tabVariant || "card";
   const heightMode = groupConfig.heightMode || "auto";

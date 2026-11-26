@@ -42,18 +42,18 @@ It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) 
 
 ## 📦 Module Index & File Architecture
 
-The engine is partitioned into 7 decoupled, single-responsibility modules:
+The engine is partitioned into 8 decoupled, single-responsibility modules:
 
-| Module                                             | Core Responsibility                                                                   | Key Exports                                                                                                           |
-| :------------------------------------------------- | :------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------- |
-| **[`compile.ts`](./compile.ts)**                   | Master specification compilation, model merging & fallback layout generation          | `compileFormSpec`, `buildFallbackSections`, `mergeFieldWithModelProp`, `modelPropertyMatcher` (field ↔ model by NAME) |
-| **[`field-normalizer.ts`](./field-normalizer.ts)** | Physical-to-presentation normalization, widget inference & semantic width derivation  | `deriveSemanticWidth`, `defaultWidthForLength`, `resolveWidgetType`, `modelPropToFormElement`                         |
-| **[`field-rules.ts`](./field-rules.ts)**           | Pure reactive field behaviors (transforms, cascading defaults, condition evaluation)  | `applyFieldTransform`, `evaluateFieldCascade`, `evaluateFieldCondition`, `evaluateOnChangeRule`                       |
-| **[`validation.ts`](./validation.ts)**             | Headless validation engine with nested recursive object (`PROP`) checking             | `validateValues`, `validateFormFields`, `validateSingleField`                                                         |
-| **[`layout-blocks.ts`](./layout-blocks.ts)**       | Tab clustering by `groupId` and container layout grouping                             | `buildRenderBlocks`, `resolveTabGroupConfig`, `getBlockGapSectionIndex`                                               |
-| **[`layout-grid.ts`](./layout-grid.ts)**           | 1 to 4 column section grids, cell spans & compact banking input width caps            | `SEMANTIC_INPUT_WIDTH_CLASSES`, `getFieldColSpanClass`, `getGridColsClass`, `getInputWidthClass`                      |
-| **[`path-utils.ts`](./path-utils.ts)**             | Pure, immutable flat & dot-notated record accessors, and the field behind a value key | `getFieldValue`, `setFieldValue`, `deleteFieldValue`, `findFieldSpecByKey`                                            |
-| **[`record-dates.ts`](./record-dates.ts)**         | Converts a loaded record's Date / DateTime fields to ISO, once, by field type         | `normalizeRecordDates`                                                                                                |
+| Module                                             | Core Responsibility                                                                   | Key Exports                                                                                                                                         |
+| :------------------------------------------------- | :------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[`compile.ts`](./compile.ts)**                   | Master specification compilation, model merging & fallback layout generation          | `compileFormSpec`, `buildFallbackSections`, `mergeFieldWithModelProp`, `modelPropertyMatcher` (field ↔ model by NAME)                               |
+| **[`field-normalizer.ts`](./field-normalizer.ts)** | Physical-to-presentation normalization, widget inference & semantic width derivation  | `deriveSemanticWidth`, `resolveWidgetType`, `modelPropToFormElement`                                                                                |
+| **[`field-rules.ts`](./field-rules.ts)**           | Pure reactive field behaviors (transforms, cascading defaults, condition evaluation)  | `applyFieldTransform`, `isLiveTransform`, `isBooleanOn`, `toBooleanValue`, `evaluateFieldCascade`, `evaluateFieldCondition`, `evaluateOnChangeRule` |
+| **[`validation.ts`](./validation.ts)**             | Headless validation engine with nested recursive object (`PROP`) checking             | `validateValues`, `validateFormFields`, `validateSingleField`, `resolveFieldDecimals`, `resolveFieldDateRange`                                      |
+| **[`layout-blocks.ts`](./layout-blocks.ts)**       | Tab clustering by `groupId` and container layout grouping                             | `buildRenderBlocks`, `resolveTabGroupConfig`, `getBlockGapSectionIndex`                                                                             |
+| **[`layout-grid.ts`](./layout-grid.ts)**           | 1 to 4 column section grids, cell spans & compact banking input width caps            | `SEMANTIC_INPUT_WIDTH_CLASSES`, `getFieldColSpanClass`, `getGridColsClass`, `getInputWidthClass`                                                    |
+| **[`path-utils.ts`](./path-utils.ts)**             | Pure, immutable flat & dot-notated record accessors, and the field behind a value key | `getFieldValue`, `setFieldValue`, `deleteFieldValue`, `findFieldSpecByKey`                                                                          |
+| **[`record-dates.ts`](./record-dates.ts)**         | Converts a loaded record's Date / DateTime fields to ISO, once, by field type         | `normalizeRecordDates`                                                                                                                              |
 
 ---
 

@@ -56,6 +56,7 @@ pnpm cache:clear        # flush the Redis cache
 pnpm cache:inspect      # list cached keys
 pnpm fixture:clean      # normalize a mock/db/.rawResponse sample
 pnpm knip               # unused files, exports and dependencies (Knip)
+pnpm deprecated         # usages of @deprecated symbols (scripts/tools/check-deprecated.ts)
 ```
 
 Verification suites are standalone `tsx` scripts in `scripts/verify/` (not Jest/Vitest; no per-case filter). Run one directly with `pnpm exec tsx scripts/verify/<file>.ts`.

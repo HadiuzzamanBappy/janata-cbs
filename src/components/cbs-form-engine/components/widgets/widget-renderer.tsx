@@ -49,7 +49,6 @@ export function renderFieldWidget({
   const dateRange = resolveFieldDateRange(field);
   switch (widget) {
     case "select":
-    case "combobox":
       return (
         <SelectWidget
           id={rowId}

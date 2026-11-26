@@ -75,6 +75,7 @@ Defines the unbreakable rules of the project. Janata CBS rejects unstructured co
   ```text
   app → features → components → hooks → store → lib/cbs-*, core-utils → lib/infra-*, core-config, core-logger, data-parsers → types, data-schemas
   ```
+
 - **Public Barrel Encapsulation:** Every consumer imports through the module's `index.ts` (or `server.ts` for server-only code). Deep imports like `@/lib/cbs-access/record-guard` are prohibited.
 - **Size Budgeting:** Components must be $\le 300$ lines (cohesive limit 350); hooks, helpers, and stores $\le 250$ lines (limit 280).
 - **Zero Raw Console Logging:** `console.log` is strictly banned in application code to prevent PII leaks. All logging must use `@/lib/core-logger`.
@@ -175,6 +176,7 @@ pnpm verify:schemas
 > [!IMPORTANT]
 > **Active Audit Case Study: Inquiry Redundant Data & Page Sizing**  
 > In recent commit `ed2c15a1` (`chore(inquiry-extra):revised the inq payload added redundant data passing`), two architectural drifts occurred:
+>
 > 1. **Schema Boundary Weakening:** Changing `inquiryOperatorCriterionSchema` from `.strict()` to `.looseObject()` in `src/lib/data-schemas/inquiry-config-schema.ts` allows the browser to send arbitrary keys (failing `verify:schemas` test 10d). If backend microservices require the field name duplicated as a direct key (e.g. `{ selectFieldName: "ACCOUNT.NO", "ACCOUNT.NO": "1002345" }`), this transformation belongs in `src/app/api/_lib/inquiry.ts` before dispatching to the core, rather than relaxing trust at the API boundary.
 > 2. **Inquiry Page Cap vs. Client Pagination:** Changing `perPage: INQUIRY_MAX_ROWS` (5000) to `perPage: inquiryPageSize(info)` (30) in `src/app/api/_lib/inquiry.ts` causes `verify:grpc` test 5.1 to fail. Janata CBS uses client-side pagination in `useInquiryPagination`; clamping the envelope fetch to 30 rows at the BFF restricts the total record set retrieved for the browser table.
 
@@ -226,6 +228,7 @@ The Backend-for-Frontend (BFF) layer is the security gatekeeper:
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get("cbs_session")?.value;
   ```
+
 - **`"server-only"` Enforcement:** Files touching `@grpc/grpc-js` or `ioredis` import `"server-only"` at the top line to prevent bundling backend code into the client.
 
 #### 3. Audit Exercise & Command
@@ -309,6 +312,7 @@ Implements UI state using **Zustand 5** vanilla stores scoped through React 19 C
   // Anti-Pattern: Re-renders on any store update!
   const { activeTabId } = useWorkbenchStore();
   ```
+
 - **Local Keystroke Buffering:** Field-level edits in large forms (100+ fields) are kept local to the field widget and synced upstream on blur/debounce, rather than pushing every keystroke into global state.
 
 #### 3. Audit Exercise
@@ -321,7 +325,7 @@ Inspect `src/store/workbench/workbench-store.ts` and verify all mutation actions
 
 **Files to Inspect:**
 
-- `src/lib/cbs-form-spec/` (`compile.ts`, `layout-calculator.ts`, `validator.ts`)
+- `src/lib/cbs-form-spec/` (`compile.ts`, `layout-grid.ts`, `validation.ts`)
 - `src/components/cbs-form-engine/`
   - `components/form-renderer.tsx`
   - `components/field-grid.tsx`
@@ -357,7 +361,7 @@ pnpm verify:form-spec
 
 **Files to Inspect:**
 
-- `src/lib/cbs-inquiry-spec/` (`compile.ts`, `inquiry-validator.ts`)
+- `src/lib/cbs-inquiry-spec/` (`column-compiler.ts`, `criteria-mapper.ts`)
 - `src/components/cbs-inquiry-engine/`
   - `components/inquiry-table.tsx`
   - `components/inquiry-filter-bar.tsx`

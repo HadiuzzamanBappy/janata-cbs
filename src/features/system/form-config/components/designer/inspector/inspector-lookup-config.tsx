@@ -11,7 +11,7 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormElement, FormSection } from "@/lib/data-schemas";
+import { CBS_PARAMETER_TYPE, type FormElement, type FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import {
   DROPDOWN_LOOKUP_SECTION,
@@ -40,15 +40,16 @@ export function InspectorLookupConfig({
   const param = (selectedField.PARAMETER || {}) as Record<string, unknown>;
 
   // Source Type: If field has a model, locked to "M"; otherwise "O" or "M"
-  const isLookup = hasModel || param.type === "M" || param.type === "A";
-  const sourceMode = isLookup ? "M" : "O";
+  const isLookup =
+    hasModel || param.type === CBS_PARAMETER_TYPE.MODEL || param.type === CBS_PARAMETER_TYPE.ARRAY;
+  const sourceMode = isLookup ? CBS_PARAMETER_TYPE.MODEL : CBS_PARAMETER_TYPE.OPTIONS;
 
   // Lookup Type: Flat List vs Array List (derived directly from param)
-  const isArray = param.type === "A" || Boolean(param.recordId);
+  const isArray = param.type === CBS_PARAMETER_TYPE.ARRAY || Boolean(param.recordId);
   const [lookupType, setLookupType] = React.useState<"flat" | "array">(isArray ? "array" : "flat");
 
   React.useEffect(() => {
-    if (param.type === "A" || param.recordId) {
+    if (param.type === CBS_PARAMETER_TYPE.ARRAY || param.recordId) {
       setLookupType("array");
     } else {
       setLookupType("flat");
@@ -59,7 +60,7 @@ export function InspectorLookupConfig({
     (fieldKey: string, value: unknown) => {
       // Invariant: Model columns cannot change away from Model (M)
       if (hasModel) {
-        if (fieldKey === "PARAMETER.type" && value !== "M") return;
+        if (fieldKey === "PARAMETER.type" && value !== CBS_PARAMETER_TYPE.MODEL) return;
         if (fieldKey === "PARAMETER.modelName" && value !== cleanModel) return;
       }
 
@@ -74,7 +75,7 @@ export function InspectorLookupConfig({
         onUpdateField({
           PARAMETER: {
             ...currentParam,
-            type: nextType === "array" ? "A" : "M",
+            type: nextType === "array" ? CBS_PARAMETER_TYPE.ARRAY : CBS_PARAMETER_TYPE.MODEL,
             data: existingData,
             modelName: hasModel ? cleanModel : (currentParam.modelName as string) || "",
             // Retain condition across both flat and array modes
@@ -92,11 +93,11 @@ export function InspectorLookupConfig({
         const currentParam = (selectedField.PARAMETER || {}) as Record<string, unknown>;
         const existingData = Array.isArray(currentParam.data) ? currentParam.data : [];
 
-        if (value === "M") {
+        if (value === CBS_PARAMETER_TYPE.MODEL) {
           onUpdateField({
             PARAMETER: {
               ...currentParam,
-              type: lookupType === "array" ? "A" : "M",
+              type: lookupType === "array" ? CBS_PARAMETER_TYPE.ARRAY : CBS_PARAMETER_TYPE.MODEL,
               data: existingData,
               modelName: hasModel ? cleanModel : (currentParam.modelName as string) || "",
             },
@@ -107,7 +108,7 @@ export function InspectorLookupConfig({
         onUpdateField({
           PARAMETER: {
             ...currentParam,
-            type: "O",
+            type: CBS_PARAMETER_TYPE.OPTIONS,
             data: existingData,
           },
         });
@@ -135,7 +136,7 @@ export function InspectorLookupConfig({
   }, [hasModel, cleanModel]);
 
   const activeSection = React.useMemo<FormSection>(() => {
-    if (sourceMode === "O") {
+    if (sourceMode === CBS_PARAMETER_TYPE.OPTIONS) {
       return DROPDOWN_OPTIONS_SECTION;
     }
 
@@ -166,8 +167,8 @@ export function InspectorLookupConfig({
       effectiveParam.modelName = cleanModel;
     }
 
-    if (sourceMode === "M") {
-      effectiveParam.type = "M"; // Ensures segmented selector displays "M"
+    if (sourceMode === CBS_PARAMETER_TYPE.MODEL) {
+      effectiveParam.type = CBS_PARAMETER_TYPE.MODEL; // Ensures segmented selector displays "M"
     }
 
     return {

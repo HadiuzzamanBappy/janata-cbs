@@ -87,8 +87,6 @@ export function useCanvasDrag({
         targetSecId = overData.sectionId as string;
       } else if (overData?.type === "section") {
         targetSecId = overId;
-      } else if (overData?.type === "canvas-root") {
-        targetSecId = "canvas-root";
       } else if (overData?.type === "between-block-gap") {
         const gapIdx = overData.gapIndex as number;
         targetSecId = gapIdx <= 0 ? "gap-top" : `gap-${gapIdx}`;

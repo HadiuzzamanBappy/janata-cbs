@@ -15,7 +15,7 @@ import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { evaluateFieldCondition, getFieldColSpanClass, getFieldValue } from "@/lib/cbs-form-spec";
 import { formatNameToLabel } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas";
+import { CBS_PROPERTY_STRUCTURE, type FormElement } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { useFormLayout } from "../form-layout-context";
 import { UnifiedFieldFactory } from "./field-factory";
@@ -40,7 +40,7 @@ export function ObjectField({
   const { layout } = useFormLayout();
   const isStacked = layout === "stacked";
 
-  const isMulti = field.STRUCTURE === "M";
+  const isMulti = field.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI;
   const groupKey = field.NAME;
   const label = field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME);
   const isInputMode = mode === CbsRecordFunction.INPUT;

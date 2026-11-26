@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { resolveWidgetType, setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import {
+  CBS_PROPERTY_STRUCTURE,
   CBS_PROPERTY_TYPE,
   FORM_WIDGET_TYPES,
   type FormElement,
@@ -64,9 +65,9 @@ export function FieldInspector({
   const physicalType = (matchedModelProp?.TYPE || field.TYPE || "String") as PropertyType;
   const isArrayField = physicalType === CBS_PROPERTY_TYPE.ARRAY;
 
-  const isPhysicalMulti = matchedModelProp?.STRUCTURE === "M";
+  const isPhysicalMulti = matchedModelProp?.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI;
   const fieldStructure =
-    (field.STRUCTURE as "S" | "M") || (matchedModelProp?.STRUCTURE as "S" | "M") || "S";
+    field.STRUCTURE || matchedModelProp?.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE;
   const fieldLength = matchedModelProp?.LENGTH ?? field.LENGTH;
   const isDbRequired = Boolean(matchedModelProp?.REQUIRED);
 
@@ -152,7 +153,11 @@ export function FieldInspector({
         return;
       }
       // Invariant: Physical Single column in DB can never be changed to Multi on form
-      if (fieldKey === "STRUCTURE" && value === "M" && matchedModelProp?.STRUCTURE !== "M") {
+      if (
+        fieldKey === "STRUCTURE" &&
+        value === CBS_PROPERTY_STRUCTURE.MULTI &&
+        matchedModelProp?.STRUCTURE !== CBS_PROPERTY_STRUCTURE.MULTI
+      ) {
         return;
       }
       // Invariant: Database mandatory column can never be made optional on form
@@ -164,7 +169,11 @@ export function FieldInspector({
         return;
       }
       // Automatic cascade: If switching structure from M to S and current widget is checkbox-group, switch to select
-      if (fieldKey === "STRUCTURE" && value === "S" && field.WIDGET === "checkbox-group") {
+      if (
+        fieldKey === "STRUCTURE" &&
+        value === CBS_PROPERTY_STRUCTURE.SINGLE &&
+        field.WIDGET === "checkbox-group"
+      ) {
         const updated = setFieldValue(field as Record<string, unknown>, fieldKey, value);
         const finalObj = setFieldValue(updated, "WIDGET", "select");
         onUpdateField(finalObj as Partial<FormElement>);

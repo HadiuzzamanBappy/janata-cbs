@@ -73,7 +73,7 @@ export function useFcFieldMovement(
 
         const fieldToMove = sourceSec.fields[fieldIndex];
 
-        if (targetSecId === "canvas-root" || targetSecId.startsWith("gap-")) {
+        if (targetSecId.startsWith("gap-")) {
           // Move field out of its current section directly to root canvas as an independent item
           const newCardSec: FormSection = {
             id: generateClientToken("sec_field", takenContainerIds(sections)),

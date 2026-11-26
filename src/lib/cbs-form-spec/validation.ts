@@ -10,11 +10,12 @@
  */
 
 import { isIsoDate, isIsoDateTime, offsetIsoDate } from "@/lib/core-utils";
-import type {
-  FieldValidationRule,
-  FormConfigRecord,
-  FormElement,
-  FormSection,
+import {
+  CBS_PROPERTY_STRUCTURE,
+  type FieldValidationRule,
+  type FormConfigRecord,
+  type FormElement,
+  type FormSection,
 } from "@/lib/data-schemas";
 import { evaluateFieldCondition } from "./field-rules";
 import { getFieldValue } from "./path-utils";
@@ -241,7 +242,7 @@ export function validateFormFields(
             validateFormFields(field.PROP as FormElement[], currentValues, `${fieldKey}.${idx}`),
           );
         });
-      } else if (field.STRUCTURE !== "M") {
+      } else if (field.STRUCTURE !== CBS_PROPERTY_STRUCTURE.MULTI) {
         // A single object group always has its inner fields; a repeating set with no rows has none
         Object.assign(errors, validateFormFields(field.PROP, currentValues, fieldKey));
       }

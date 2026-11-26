@@ -10,7 +10,7 @@ import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { FormElement, ModelProperty } from "@/lib/data-schemas";
+import { CBS_PROPERTY_STRUCTURE, type FormElement, type ModelProperty } from "@/lib/data-schemas";
 
 export interface PaletteVariableItemProps {
   property: ModelProperty;
@@ -51,7 +51,7 @@ export function PaletteVariableItem({
   };
 
   const isRequired = Boolean(property.REQUIRED);
-  const isMulti = property.STRUCTURE === "M";
+  const isMulti = property.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI;
 
   return (
     <button

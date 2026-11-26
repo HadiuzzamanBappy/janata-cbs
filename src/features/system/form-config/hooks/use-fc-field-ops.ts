@@ -8,7 +8,11 @@
 "use client";
 
 import * as React from "react";
-import type { FormConfigRecord, FormElement } from "@/lib/data-schemas";
+import {
+  CBS_PROPERTY_STRUCTURE,
+  type FormConfigRecord,
+  type FormElement,
+} from "@/lib/data-schemas";
 import { updateFieldDeep } from "./fc-field-tree";
 import { useFcFieldMovement } from "./use-fc-field-movement";
 
@@ -46,7 +50,7 @@ export function useFcFieldOps(
           LABEL: fieldLabel,
           TYPE: fieldTemplate?.TYPE || "String",
           LENGTH: fieldTemplate?.LENGTH ?? 35,
-          STRUCTURE: fieldTemplate?.STRUCTURE || "S",
+          STRUCTURE: fieldTemplate?.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
           REQUIRED: fieldTemplate?.REQUIRED ?? false,
           DISABLED: fieldTemplate?.DISABLED ?? false,
           WIDTH: fieldTemplate?.WIDTH ?? "md",

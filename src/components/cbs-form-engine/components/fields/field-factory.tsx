@@ -18,7 +18,7 @@ import {
   toBooleanValue,
 } from "@/lib/cbs-form-spec";
 import { formatCurrency, formatNameToLabel } from "@/lib/core-utils";
-import { CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
+import { CBS_PROPERTY_STRUCTURE, CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { useFieldOptions } from "../../hooks/use-field-options";
 import { useMultiValue } from "../../hooks/use-multi-value";
@@ -61,13 +61,22 @@ function ScalarFieldFactory({
   }, [isDynamic, refetch]);
   const widget = useMemo(
     () =>
-      resolveWidgetType(field.TYPE, param, field.WIDGET, (field.STRUCTURE as "S" | "M") || "S", {
-        length: field.LENGTH,
-        modelName: field.MODELNAME,
-      }),
+      resolveWidgetType(
+        field.TYPE,
+        param,
+        field.WIDGET,
+        field.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
+        {
+          length: field.LENGTH,
+          modelName: field.MODELNAME,
+        },
+      ),
     [field.TYPE, param, field.WIDGET, field.STRUCTURE, field.LENGTH, field.MODELNAME],
   );
-  const isMulti = field.STRUCTURE === "M" && widget !== "checkbox" && widget !== "checkbox-group";
+  const isMulti =
+    field.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI &&
+    widget !== "checkbox" &&
+    widget !== "checkbox-group";
   const inputWidthClass = useMemo(
     () => getInputWidthClass(field.WIDTH, field.LENGTH, field.TYPE, widget),
     [field.WIDTH, field.LENGTH, field.TYPE, widget],
@@ -85,7 +94,7 @@ function ScalarFieldFactory({
     if (isBooleanWidget) {
       return toBooleanValue(isBooleanOn(rawDefault, field.BOOLEAN_CONFIG), field.BOOLEAN_CONFIG);
     }
-    if ((field.TYPE || "").toLowerCase() === "number") {
+    if (field.TYPE === CBS_PROPERTY_TYPE.NUMBER) {
       const n = Number(rawDefault);
       return Number.isNaN(n) ? rawDefault : n;
     }

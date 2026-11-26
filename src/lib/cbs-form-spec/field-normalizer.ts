@@ -1,5 +1,6 @@
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
+  CBS_PARAMETER_TYPE,
   CBS_PROPERTY_STRUCTURE,
   CBS_PROPERTY_TYPE,
   DEFAULT_PROPERTY_LENGTH,
@@ -11,7 +12,6 @@ import {
   type ModelProperty,
   type PropertyStructure,
   type PropertyType,
-  type PropertyWidth,
   resolvePhysicalLength,
   resolvePhysicalStructure,
   SEMANTIC_WIDTH_TOKENS,
@@ -27,7 +27,7 @@ import {
  * physical DB column LENGTH (<=6 xs, <=16 sm, <=40 md, <=80 lg, <=150 xl, >150 xxl), or TYPE.
  */
 export function deriveSemanticWidth(
-  width?: PropertyWidth,
+  width?: SemanticWidthToken,
   length?: number,
   type?: string,
 ): SemanticWidthToken {
@@ -70,9 +70,11 @@ export function resolveWidgetType(
   const hasLookup =
     Boolean(
       param &&
-        (param.type === "M" ||
-          param.type === "A" ||
-          (param.type === "O" && Array.isArray(param.data) && param.data.length > 0)),
+        (param.type === CBS_PARAMETER_TYPE.MODEL ||
+          param.type === CBS_PARAMETER_TYPE.ARRAY ||
+          (param.type === CBS_PARAMETER_TYPE.OPTIONS &&
+            Array.isArray(param.data) &&
+            param.data.length > 0)),
     ) || Boolean(modelName?.trim());
 
   if (explicitWidget) {
@@ -113,8 +115,11 @@ export function normalizeParameter(raw?: Record<string, unknown> | null): FormEl
     return { code, label: String(d.label ?? code).trim() || code };
   });
 
-  const rawType = String(raw.type ?? "O").toUpperCase();
-  const normalizedType = (rawType === "M" || rawType === "A" ? rawType : "O") as "O" | "M" | "A";
+  const rawType = String(raw.type ?? "").toUpperCase();
+  const normalizedType: FormFieldParameter["type"] =
+    rawType === CBS_PARAMETER_TYPE.MODEL || rawType === CBS_PARAMETER_TYPE.ARRAY
+      ? rawType
+      : CBS_PARAMETER_TYPE.OPTIONS;
 
   return {
     type: normalizedType,
@@ -139,7 +144,7 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
 
   if (!param && modelName) {
     param = {
-      type: "M",
+      type: CBS_PARAMETER_TYPE.MODEL,
       modelName,
       data: [],
     };
@@ -167,7 +172,6 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     LENGTH: normLength,
     STRUCTURE: normStructure,
     REQUIRED: Boolean(p.REQUIRED),
-    DISABLED: false,
     WIDTH: deriveSemanticWidth(undefined, p.LENGTH, p.TYPE),
     WIDGET: effectiveWidget,
     PARAMETER: param,

@@ -8,7 +8,13 @@
 
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
-import { formElementsContainerSchema } from "./form-engine-schema";
+import {
+  CBS_PARAMETER_TYPE,
+  type FieldVisibilityCondition,
+  type FormElement,
+  formElementsContainerSchema,
+} from "./form-engine-schema";
+import { CHOICE_WIDGETS } from "./form-widget-schema";
 import { modelConfigRecordSchema } from "./model-config-schema";
 
 /* ========================================================================== */
@@ -59,27 +65,16 @@ export const gfcResponseSchema = modelConfigRecordSchema.extend({
 /* 4. SAVE RULES (SFC): what may be written to CONFIG.FORM                    */
 /* ========================================================================== */
 
-type FormField = FormConfigRecord["frmElements"]["sections"][number]["fields"][number];
-type FieldCondition = NonNullable<FormField["VISIBLE_WHEN"]>;
-
 const ROUTINE_GROUPS = [
   { key: "rtnValidate", label: "Validation Routine" },
   { key: "rtnBeforeAuth", label: "Before-Auth Routine" },
   { key: "rtnAfterAuth", label: "After-Auth Routine" },
 ] as const;
 
-/** Widgets that pick from a list, so they need options unless a model lookup (MODELNAME) feeds them. */
-const CHOICE_WIDGETS: ReadonlySet<string> = new Set([
-  "select",
-  "radio-group",
-  "segmented",
-  "checkbox-group",
-]);
-
 /** Condition targets are form fields (first path segment) or the record's audit block. */
 const AUDIT_PATH_PREFIX = "auditData.";
 
-function conditionTargets(condition: FieldCondition): string[] {
+function conditionTargets(condition: FieldVisibilityCondition): string[] {
   if ("and" in condition && Array.isArray(condition.and))
     return condition.and.flatMap(conditionTargets);
   if ("or" in condition && Array.isArray(condition.or))
@@ -176,7 +171,7 @@ type IssueFn = (path: (string | number)[], message: string) => void;
  * within it, and each inner field meets the same rules as a top-level field.
  */
 function checkInnerFields(
-  group: FormField,
+  group: FormElement,
   groupPath: (string | number)[],
   groupDisplay: string,
   issue: IssueFn,
@@ -205,7 +200,7 @@ function checkInnerFields(
 
 /** Save rules of one field (top-level or inner): label, rule targets, options and ranges. */
 function checkFieldRules(
-  field: FormField,
+  field: FormElement,
   fieldPath: (string | number)[],
   display: string,
   issue: IssueFn,
@@ -219,7 +214,7 @@ function checkFieldRules(
     for (const target of conditionTargets(condition)) {
       if (!isKnownTarget(target)) {
         issue(
-          [...fieldPath, key, "field"],
+          "field" in condition ? [...fieldPath, key, "field"] : [...fieldPath, key],
           `Field "${display}" ${key} points at unknown field "${target}"`,
         );
       }
@@ -258,7 +253,9 @@ function checkFieldRules(
   }
 
   const options =
-    field.PARAMETER?.type === "O" || !field.PARAMETER ? (field.PARAMETER?.data ?? []) : null;
+    field.PARAMETER?.type === CBS_PARAMETER_TYPE.OPTIONS || !field.PARAMETER
+      ? (field.PARAMETER?.data ?? [])
+      : null;
   if (
     CHOICE_WIDGETS.has(field.WIDGET ?? "") &&
     field.TYPE !== "Boolean" &&

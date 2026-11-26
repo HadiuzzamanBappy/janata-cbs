@@ -150,7 +150,7 @@ export function createModelProperty(
     SN: sn,
     NAME: "",
     TYPE: CBS_PROPERTY_TYPE.STRING,
-    STRUCTURE: "S",
+    STRUCTURE: CBS_PROPERTY_STRUCTURE.SINGLE,
     LENGTH: DEFAULT_PROPERTY_LENGTH,
     REQUIRED: false,
     MODELNAME: "",

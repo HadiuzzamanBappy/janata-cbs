@@ -9,7 +9,7 @@
  * @module features/system/form-config/fields/fc-lookup-fields
  */
 
-import type { FormSection } from "@/lib/data-schemas";
+import { CBS_PARAMETER_TYPE, CBS_PROPERTY_STRUCTURE, type FormSection } from "@/lib/data-schemas";
 
 /**
  * Dropdown Source: Static List vs Lookup.
@@ -29,12 +29,12 @@ export const DROPDOWN_SOURCE_SELECTOR_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "O",
+      DEFAULTVALUE: CBS_PARAMETER_TYPE.OPTIONS,
       PARAMETER: {
-        type: "O",
+        type: CBS_PARAMETER_TYPE.OPTIONS,
         data: [
-          { code: "O", label: "Static List" },
-          { code: "M", label: "Lookup" },
+          { code: CBS_PARAMETER_TYPE.OPTIONS, label: "Static List" },
+          { code: CBS_PARAMETER_TYPE.MODEL, label: "Lookup" },
         ],
       },
     },
@@ -56,7 +56,7 @@ export const DROPDOWN_OPTIONS_SECTION: FormSection = {
       NAME: "PARAMETER.data",
       LABEL: "Options List",
       TYPE: "Array",
-      STRUCTURE: "M",
+      STRUCTURE: CBS_PROPERTY_STRUCTURE.MULTI,
       LENGTH: 0,
       WIDTH: "full",
       PROP: [
@@ -124,7 +124,7 @@ export const DROPDOWN_LOOKUP_SECTION: FormSection = {
       ENRICHTEXT:
         "Flat List: 1 record = 1 option (e.g. BRANCH, CUSTOMER). Array List: unwrap nested items from a category record (e.g. LOOKUP -> GENDER).",
       PARAMETER: {
-        type: "O",
+        type: CBS_PARAMETER_TYPE.OPTIONS,
         data: [
           { code: "flat", label: "Flat List" },
           { code: "array", label: "Array List" },

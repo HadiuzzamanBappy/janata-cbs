@@ -2,7 +2,7 @@
 
 Audit of everything a form layout touches, from the three schema files out to the designer, the compiler, the form engine and the proxy. It follows the model-config audit and uses the same rules: one source per rule, no dead code, no legacy aliases, smallest safe change, and every compatibility boundary flagged before it moves.
 
-- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete.
+- **Baseline:** `dev` at `bfcc02d` (2026-11-26). **Progress:** Phase 1 B1 to B6 applied (uncommitted). B6 per D6 = option B (tabs group by `groupId`, Add tab inserts after the group, save stores a group's tabs together). Also: new section and tab-group ids never repeat one already on the form (`generateClientToken(prefix, taken)`), and `ungroupSection` moved to `use-fc-section-zones.ts` to keep `use-fc-section-ops.ts` within budget. Phase 1 complete (`75f120c`). Phase 2 applied (uncommitted); see the notes under §4.
 - **Scope:** `src/lib/data-schemas/form-{config,engine,widget}-schema.ts` and every unit that reads or writes their types (about 95 files, about 13k lines).
 - **Not in scope:** model-config (already audited); inquiry-config and menu-designer, except where they share the form engine.
 
@@ -184,6 +184,16 @@ One phase is one reviewable change (one commit when you ask for it), in risk ord
 | **9** | Docs                                                                         | N1, N2, N4, N5 and every README the phases above change | `form-config/README.md`, `cbs-form-spec/README.md`, `cbs-form-engine/README.md`, `data-schemas/README.md`, `MASTER_AUDIT_RUNBOOK.md`, AGENTS §2 (`pnpm deprecated`)                                        | —                                         | —                                                                                                |
 
 **Manual smoke test** (no browser automation suite exists): in FC, drop a model field, an object group, a card and a tab group; reorder; move a tab between groups; change width to `md` and save; reload and check that the width is kept; open the Preview tab; open the form as an operational screen (`<FORM>,` command); also open MODEL.CONFIG, INQUIRY.CONFIG and MENU.DESIGN, because they share the engine.
+
+**Phase 2 as applied** (owner choices: constants only where the value is an untyped string or an ambiguous letter; `isWidgetCompatibleWithType` kept because `verify:schemas` imports it):
+
+- New in `data-schemas`: `CBS_PARAMETER_TYPE` (the `PARAMETER.type` enum is built from it), `DEFAULT_ARRAY_LOOKUP_MODEL`, `FORM_DENSITIES` / `FormDensity` / `DEFAULT_FORM_DENSITY`, `FORM_LAYOUTS` / `FormLayout` / `DEFAULT_FORM_LAYOUT`, `CHOICE_WIDGETS`, `INLINE_WIDTH_WIDGETS` (plus the private `SINGLE_VALUE_WIDGETS`). `layout-grid` lost its `"radio"`, a widget that doesn't exist.
+- Constants replace the literals in logic code: parameter type (`O`/`M`/`A`), structure (`S`/`M`), `TYPE === CBS_PROPERTY_TYPE.NUMBER` (was a lowercase compare). The `STRUCTURE: "S"` and `containerType` literals in typed spec data stay as they are.
+- Designer: `NEW_TAB_IN_GROUP_TARGET` in `canvas-drop-dispatcher.ts`. `"canvas-root"` was dead (no drop target registers it, and no caller passes it), so its three checks were deleted.
+- Removed: the `PropertyWidth` alias, the `FieldCondition` and `FormField` aliases (D11 narrowed: only one condition walker exists, so there was nothing to share), `case ARRAY`, a redundant `as const`, and `DISABLED: false` in the normalizer. Six schema exports used only in their own file are now private.
+- N7: an `and` / `or` condition error now points at `VISIBLE_WHEN`; a single condition keeps `.field`, which the suite asserts.
+- X12 dropped: `.default().optional()` keeps `FormConfigRecord` sparse, the way the serializer writes it. Removing it breaks 20 sites (16 mock layouts, 4 suite lines).
+- Docs: parameter type `L` ("local catalog") was never in the schema; README and hook headers now say `A` (array lookup).
 
 ---
 

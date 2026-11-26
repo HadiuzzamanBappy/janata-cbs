@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type { FormElement, ModelProperty } from "@/lib/data-schemas";
+import { CBS_PROPERTY_STRUCTURE, type FormElement, type ModelProperty } from "@/lib/data-schemas";
 
 export interface PaletteObjectGroupProps {
   parent: ModelProperty;
@@ -43,7 +43,10 @@ export function PaletteObjectGroup({
   const objectFieldElement: FormElement = {
     ...modelPropToFormElement(parent),
     TYPE: "Array",
-    STRUCTURE: parent.STRUCTURE === "M" ? "M" : "S",
+    STRUCTURE:
+      parent.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI
+        ? CBS_PROPERTY_STRUCTURE.MULTI
+        : CBS_PROPERTY_STRUCTURE.SINGLE,
     PROP: childSubFields,
   };
 
@@ -128,7 +131,7 @@ export function PaletteObjectGroup({
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            {parent.STRUCTURE === "M" && (
+            {parent.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI && (
               <Badge
                 variant="outline"
                 className="text-3xs h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"

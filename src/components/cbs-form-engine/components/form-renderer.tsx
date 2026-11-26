@@ -21,7 +21,7 @@ import {
   validateValues,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { AuditData } from "@/lib/data-schemas";
+import { type AuditData, DEFAULT_FORM_DENSITY, DEFAULT_FORM_LAYOUT } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
@@ -50,12 +50,12 @@ export function FormRenderer({
   showAuditSection = false,
   auditVariant = "inline",
   hideHeader = false,
-  layout = "horizontal",
-  density = "compact",
+  layout = DEFAULT_FORM_LAYOUT,
+  density = DEFAULT_FORM_DENSITY,
   className,
 }: FormRendererProps) {
-  const effectiveLayout = frmElements?.layout || layout || "horizontal";
-  const effectiveDensity = frmElements?.density || density || "compact";
+  const effectiveLayout = frmElements?.layout || layout || DEFAULT_FORM_LAYOUT;
+  const effectiveDensity = frmElements?.density || density || DEFAULT_FORM_DENSITY;
   const layoutValue = React.useMemo(
     () => ({ layout: effectiveLayout, density: effectiveDensity }),
     [effectiveLayout, effectiveDensity],

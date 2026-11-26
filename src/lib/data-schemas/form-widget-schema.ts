@@ -29,11 +29,36 @@ const formWidgetTypeSchema = z.enum([
 export type FormWidgetType = z.infer<typeof formWidgetTypeSchema>;
 export const FORM_WIDGET_TYPES = formWidgetTypeSchema.options;
 
+/** Widgets that pick from a list, so they need options unless a model lookup feeds them. */
+export const CHOICE_WIDGETS: ReadonlySet<string> = new Set<FormWidgetType>([
+  "select",
+  "radio-group",
+  "segmented",
+  "checkbox-group",
+]);
+
+/** Widgets holding one value, so they need a Single (`S`) column. */
+const SINGLE_VALUE_WIDGETS: ReadonlySet<string> = new Set<FormWidgetType>([
+  "checkbox",
+  "switch",
+  "radio-group",
+  "segmented",
+]);
+
+/** Widgets sized by their content (`w-auto`), never by the field's width token. */
+export const INLINE_WIDTH_WIDGETS: ReadonlySet<string> = new Set<FormWidgetType>([
+  "switch",
+  "checkbox",
+  "radio-group",
+  "checkbox-group",
+  "segmented",
+]);
+
 /* ========================================================================== */
 /* 2. TYPE-TO-WIDGET COMPATIBILITY CONSTRAINT MATRIX                          */
 /* ========================================================================== */
 
-export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidgetType[]> = {
+const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidgetType[]> = {
   String: ["text", "textarea", "select", "radio-group", "segmented", "checkbox", "checkbox-group"],
   Number: ["number", "amount", "rate", "select", "radio-group", "segmented"],
   Boolean: ["switch", "checkbox", "radio-group", "segmented"],
@@ -41,7 +66,7 @@ export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidg
   DateTime: ["datetime", "date"],
   Time: ["time"],
   Array: [],
-} as const;
+};
 
 export function getDefaultWidgetForType(type: PropertyType | string): FormWidgetType {
   const normalized = (type || CBS_PROPERTY_TYPE.STRING).trim();
@@ -56,14 +81,12 @@ export function getDefaultWidgetForType(type: PropertyType | string): FormWidget
       return "checkbox";
     case CBS_PROPERTY_TYPE.TIME:
       return "time";
-    case CBS_PROPERTY_TYPE.ARRAY:
-      return "text";
     default:
       return "text";
   }
 }
 
-export interface WidgetEligibilityContext {
+interface WidgetEligibilityContext {
   type: PropertyType | string;
   structure?: PropertyStructure;
   length?: number;
@@ -95,9 +118,7 @@ export function getCompatibleWidgets({
 
   return baseAllowed.filter((w) => {
     if (w === "checkbox-group") return structure === CBS_PROPERTY_STRUCTURE.MULTI;
-    if (w === "checkbox" || w === "switch" || w === "radio-group" || w === "segmented") {
-      return structure === CBS_PROPERTY_STRUCTURE.SINGLE;
-    }
+    if (SINGLE_VALUE_WIDGETS.has(w)) return structure === CBS_PROPERTY_STRUCTURE.SINGLE;
     if (w === "textarea") {
       return length === undefined || length >= 80;
     }

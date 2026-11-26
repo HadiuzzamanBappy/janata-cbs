@@ -1,7 +1,10 @@
 import {
+  CBS_PARAMETER_TYPE,
+  DEFAULT_ARRAY_LOOKUP_MODEL,
   DEFAULT_PROPERTY_LENGTH,
   type FormConfigRecord,
   type FormElement,
+  type FormFieldParameter,
   type FormSection,
   type PropertyType,
   resolvePhysicalLength,
@@ -73,15 +76,17 @@ function sanitizeFormElement(field: FormElement): FormElement {
 
   const p = cleanField.PARAMETER;
   const pType = String(p?.type ?? "").toUpperCase();
-  const rawModel = String(p?.modelName ?? "").trim() || (pType === "A" ? "LOOKUP" : "");
-  if ((pType === "M" || pType === "A") && rawModel) {
+  const rawModel =
+    String(p?.modelName ?? "").trim() ||
+    (pType === CBS_PARAMETER_TYPE.ARRAY ? DEFAULT_ARRAY_LOOKUP_MODEL : "");
+  if ((pType === CBS_PARAMETER_TYPE.MODEL || pType === CBS_PARAMETER_TYPE.ARRAY) && rawModel) {
     const codeStr = String(p?.codeField ?? "").trim();
     const dispStr = String(p?.displayField ?? "").trim();
     const condStr = String(p?.condition ?? "").trim();
     const recIdStr = String(p?.recordId ?? "").trim();
     const arrFieldStr = String(p?.arrayField ?? "").trim();
     sanitized.PARAMETER = {
-      type: pType as "M" | "A",
+      type: pType as FormFieldParameter["type"],
       modelName: rawModel,
       data: [],
       ...(recIdStr ? { recordId: recIdStr } : {}),
@@ -90,11 +95,11 @@ function sanitizeFormElement(field: FormElement): FormElement {
       ...(condStr ? { condition: condStr } : {}),
       ...(codeStr ? { codeField: codeStr } : {}),
     };
-  } else if ((pType === "O" || !pType) && Array.isArray(p?.data)) {
+  } else if ((pType === CBS_PARAMETER_TYPE.OPTIONS || !pType) && Array.isArray(p?.data)) {
     const rawArr = p.data;
     if (rawArr.length > 0) {
       sanitized.PARAMETER = {
-        type: "O",
+        type: CBS_PARAMETER_TYPE.OPTIONS,
         data: rawArr.map((opt) => ({
           code: String(opt.code ?? ""),
           label: String(opt.label ?? opt.code ?? ""),

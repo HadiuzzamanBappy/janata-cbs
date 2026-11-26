@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
+import { NEW_TAB_IN_GROUP_TARGET } from "../canvas-drop-dispatcher";
 import { type DragPayload, isContainerPayload } from "./use-tab-group-drop";
 
 export interface TabStripItemProps {
@@ -162,7 +163,7 @@ export function TabStripItem(props: TabStripItemProps) {
             groupId: groupId,
             groupTitle: parsed.title || `Tab ${totalTabs + 1}`,
           },
-          "new-tab-in-group",
+          NEW_TAB_IN_GROUP_TARGET,
         );
       }
     } catch {

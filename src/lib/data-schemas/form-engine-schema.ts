@@ -11,8 +11,18 @@ const parameterOptionItemSchema = z.object({
   label: z.string(),
 });
 
+/** Where a choice field's options come from: fixed list, model lookup, or an array inside a record. */
+export const CBS_PARAMETER_TYPE = {
+  OPTIONS: "O",
+  MODEL: "M",
+  ARRAY: "A",
+} as const;
+
+/** The model an array lookup (`type: "A"`) reads when it names none. */
+export const DEFAULT_ARRAY_LOOKUP_MODEL = "LOOKUP";
+
 const formFieldParameterSchema = z.object({
-  type: z.enum(["O", "M", "A"]).default("O"),
+  type: z.enum(CBS_PARAMETER_TYPE).default(CBS_PARAMETER_TYPE.OPTIONS),
   data: z.array(parameterOptionItemSchema).default([]),
   modelName: z.string().optional(),
   recordId: z.string().optional(),
@@ -108,9 +118,8 @@ export const propertyWidthSchema = z.preprocess((val) => {
   }
   return "md";
 }, semanticWidthTokenSchema.default("md"));
-export type PropertyWidth = SemanticWidthToken;
 
-export const baseFormElementSchema = baseFieldSchema.extend({
+const baseFormElementSchema = baseFieldSchema.extend({
   REQUIRED: z
     .union([z.boolean(), z.null()])
     .transform((v) => (v === null ? undefined : v))
@@ -153,20 +162,30 @@ export const formElementSchema: z.ZodType<FormElement> = baseFormElementSchema.e
  * - 'card': Standard elevated card box with title bar and optional collapse
  * - 'tab': Tab pane clustered inside a TabGroup header
  */
-export const formContainerTypeSchema = z.enum(["card", "tab"]);
+const formContainerTypeSchema = z.enum(["card", "tab"]);
 export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
+
+/** Spacing presets for a form or one container. */
+export const FORM_DENSITIES = ["compact", "normal", "spacious"] as const;
+export type FormDensity = (typeof FORM_DENSITIES)[number];
+export const DEFAULT_FORM_DENSITY: FormDensity = "compact";
+
+/** Label placement: label beside the input (`horizontal`) or above it (`stacked`). */
+export const FORM_LAYOUTS = ["horizontal", "stacked"] as const;
+export type FormLayout = (typeof FORM_LAYOUTS)[number];
+export const DEFAULT_FORM_LAYOUT: FormLayout = "horizontal";
 
 /**
  * Universal Container Visual & Behavioral Configuration:
  * Allows configuring styling, borders, density, badges, icons, and behavior per container.
  */
-export const containerConfigSchema = z.object({
+const containerConfigSchema = z.object({
   /**
    * Card style preset ("ghost" = frameless). No schema default so a parsed layout
    * leaves it unset until explicitly configured.
    */
   variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
-  density: z.enum(["compact", "normal", "spacious"]).optional(),
+  density: z.enum(FORM_DENSITIES).optional(),
 
   // Tab Group container styling & height modes (renderers fall back to "card" / "auto")
   tabVariant: z.enum(["card", "workbench", "pills"]).optional(),
@@ -186,7 +205,7 @@ export const containerConfigSchema = z.object({
 });
 export type ContainerConfig = z.infer<typeof containerConfigSchema>;
 
-export const formSectionSchema = z.object({
+const formSectionSchema = z.object({
   id: z.string().min(1, "Section ID is required"),
   title: z.string().optional(),
   description: z.string().optional(),
@@ -212,8 +231,8 @@ export const formSectionSchema = z.object({
 export type FormSection = z.infer<typeof formSectionSchema>;
 
 export const formElementsContainerSchema = z.object({
-  layout: z.enum(["horizontal", "stacked"]).optional(),
-  density: z.enum(["compact", "normal", "spacious"]).optional(),
+  layout: z.enum(FORM_LAYOUTS).optional(),
+  density: z.enum(FORM_DENSITIES).optional(),
   sections: z.array(formSectionSchema).default([]),
 });
 export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;

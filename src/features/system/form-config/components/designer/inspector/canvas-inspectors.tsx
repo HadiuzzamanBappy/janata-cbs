@@ -10,7 +10,13 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormSection } from "@/lib/data-schemas";
+import {
+  DEFAULT_FORM_DENSITY,
+  DEFAULT_FORM_LAYOUT,
+  type FormDensity,
+  type FormLayout,
+  type FormSection,
+} from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import {
   CONTAINER_PROPERTIES_SECTION,
@@ -21,18 +27,15 @@ import {
 import { useOptionalDesignerContext } from "../context/designer-context";
 
 export interface RootCanvasInspectorProps {
-  layout?: "horizontal" | "stacked";
-  density?: "compact" | "normal" | "spacious";
-  onUpdateFormConfig?: (patch: {
-    layout?: "horizontal" | "stacked";
-    density?: "compact" | "normal" | "spacious";
-  }) => void;
+  layout?: FormLayout;
+  density?: FormDensity;
+  onUpdateFormConfig?: (patch: { layout?: FormLayout; density?: FormDensity }) => void;
   disabled?: boolean;
 }
 
 export function RootCanvasInspector({
-  layout = "horizontal",
-  density = "compact",
+  layout = DEFAULT_FORM_LAYOUT,
+  density = DEFAULT_FORM_DENSITY,
   onUpdateFormConfig,
   disabled = false,
 }: RootCanvasInspectorProps) {
@@ -43,11 +46,11 @@ export function RootCanvasInspector({
       if (!onUpdateFormConfig) return;
       if (fieldKey === "layout") {
         onUpdateFormConfig({
-          layout: (value as "horizontal" | "stacked") || "horizontal",
+          layout: (value as FormLayout) || DEFAULT_FORM_LAYOUT,
         });
       } else if (fieldKey === "density") {
         onUpdateFormConfig({
-          density: (value as "compact" | "normal" | "spacious") || "compact",
+          density: (value as FormDensity) || DEFAULT_FORM_DENSITY,
         });
       }
     },

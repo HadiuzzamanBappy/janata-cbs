@@ -9,11 +9,15 @@
 "use client";
 
 import * as React from "react";
-
-export type FormDensity = "compact" | "normal" | "spacious";
+import {
+  DEFAULT_FORM_DENSITY,
+  DEFAULT_FORM_LAYOUT,
+  type FormDensity,
+  type FormLayout,
+} from "@/lib/data-schemas";
 
 export interface FormLayoutContextValue {
-  layout: "horizontal" | "stacked";
+  layout: FormLayout;
   density: FormDensity;
 }
 
@@ -55,8 +59,8 @@ export const FORM_DENSITY_CLASSES: Record<
 };
 
 export const FormLayoutContext = React.createContext<FormLayoutContextValue>({
-  layout: "horizontal",
-  density: "compact",
+  layout: DEFAULT_FORM_LAYOUT,
+  density: DEFAULT_FORM_DENSITY,
 });
 
 /**

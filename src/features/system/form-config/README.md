@@ -54,7 +54,7 @@ A layout can use the 14 widget types in `FORM_WIDGET_TYPES` (`@/lib/data-schemas
 | `rate`                                                 | `RATE_CONFIG.decimals`, `suffix` (default `%`), `VALIDATION.min` / `max`                                     | Decimals and range validated; suffix badge            |
 | `date`, `datetime`                                     | `DATE_CONFIG.minDateOffset` / `maxDateOffset` (whole days from today in bank time)                           | Picker limits and validation                          |
 | `switch`, `checkbox`                                   | `BOOLEAN_CONFIG.activeLabel` / `inactiveLabel`, and for String columns `trueValue` / `falseValue` (e.g. Y/N) | Badge text; value stored (else `true` / `false`)      |
-| `select`, `radio-group`, `segmented`, `checkbox-group` | `PARAMETER`: fixed options (`O`), model lookup (`M`), local catalog (`L`)                                    | Option source                                         |
+| `select`, `radio-group`, `segmented`, `checkbox-group` | `PARAMETER`: fixed options (`O`), model lookup (`M`), array lookup (`A`)                                     | Option source                                         |
 | `text`, `textarea`, `time`                             | none (text uses the Rules tab)                                                                               | —                                                     |
 
 Basics tab: label, width, required, read-only, help tooltip, **default value** (filled once on new records) and **fixed value** (always written on input, shown read-only; replaces the default).
@@ -73,7 +73,7 @@ Field pickers list only the fields placed on the form. Inspector specs carry no 
 
 **Object groups** (model `Array` properties with `PROP`) drop onto the canvas with all their inner fields, listed inside the group's card (`canvas/canvas-object-fields.tsx`). An inner field is selected, configured (same inspector: label, widget, width, rules), reordered or removed like any field; the palette puts a removed one back. Lookups go through `hooks/fc-field-tree.ts` (inner fields are identified by `SN`). At runtime `ObjectField` evaluates each inner field's `VISIBLE_WHEN` / `DISABLED_WHEN`, and `FormRenderer` finds its `TRANSFORM` / `CASCADE` / `ON_CHANGE` by value key (`findFieldSpecByKey`: `ADDRESS.city`, `ITEMS.0.code`).
 
-Which widgets a field may use depends on its model type. That rule lives in one place, `COMPATIBLE_WIDGETS_FOR_TYPE` in `form-widget-schema.ts`, and `resolveWidgetType()` in `@/lib/cbs-form-spec` ignores an incompatible choice.
+Which widgets a field may use depends on its model type. That rule lives in one place, `COMPATIBLE_WIDGETS_FOR_TYPE` in `form-widget-schema.ts` (read through `getCompatibleWidgets()`), and `resolveWidgetType()` in `@/lib/cbs-form-spec` ignores an incompatible choice.
 
 ---
 

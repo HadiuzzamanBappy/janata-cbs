@@ -5,11 +5,12 @@
  * @module features/system/form-config/components/designer/canvas/canvas-drop-dispatcher
  */
 
-import type {
-  ContainerConfig,
-  FormContainerType,
-  FormElement,
-  FormSection,
+import {
+  CBS_PROPERTY_STRUCTURE,
+  type ContainerConfig,
+  type FormContainerType,
+  type FormElement,
+  type FormSection,
 } from "@/lib/data-schemas";
 import type { AddSectionFn } from "./canvas-types";
 
@@ -28,7 +29,7 @@ export function createNewFieldFromTemplate(
     LABEL: template.LABEL || "New Field",
     TYPE: template.TYPE || "String",
     LENGTH: template.LENGTH ?? 35,
-    STRUCTURE: template.STRUCTURE || "S",
+    STRUCTURE: template.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
     REQUIRED: Boolean(template.REQUIRED),
     DISABLED: template.DISABLED ?? false,
     WIDTH: template.WIDTH ?? "md",
@@ -54,8 +55,12 @@ export interface DispatchPaletteDropOptions {
   onAddSection: AddSectionFn;
 }
 
+/** Drop target id for "add as a new tab" on a tab strip; it names no section. */
+export const NEW_TAB_IN_GROUP_TARGET = "new-tab-in-group";
+
 /**
  * Dispatches dragged palette payload (variables or containers) to target sections or canvas.
+ * No `targetSectionId` means the canvas root (between blocks).
  */
 export function dispatchPaletteDrop({
   payload,
@@ -81,7 +86,7 @@ export function dispatchPaletteDrop({
 
   const droppedField = data.element || data.field;
   if ((data.type === "palette-variable" || data.type === "palette-field") && droppedField) {
-    if (targetSectionId && targetSectionId !== "canvas-root") {
+    if (targetSectionId) {
       onAddFieldToSection(targetSectionId, droppedField, insertIndex);
     } else {
       // Direct drop on canvas root: create an independent standalone field block at targetIndex.
@@ -96,7 +101,7 @@ export function dispatchPaletteDrop({
     const targetSec = targetSectionId ? sections.find((s) => s.id === targetSectionId) : null;
     if (
       targetSec &&
-      targetSectionId !== "new-tab-in-group" &&
+      targetSectionId !== NEW_TAB_IN_GROUP_TARGET &&
       data.initialFields &&
       data.initialFields.length > 0
     ) {
@@ -107,7 +112,8 @@ export function dispatchPaletteDrop({
     }
 
     const isTargetTabGroup =
-      targetSectionId === "new-tab-in-group" || (targetSec && targetSec.containerType === "tab");
+      targetSectionId === NEW_TAB_IN_GROUP_TARGET ||
+      (targetSec && targetSec.containerType === "tab");
     const targetGroupId = isTargetTabGroup ? data.groupId || targetSec?.groupId : undefined;
     const effectiveGroupTitle = isTargetTabGroup
       ? data.title || data.groupTitle || "New Tab"

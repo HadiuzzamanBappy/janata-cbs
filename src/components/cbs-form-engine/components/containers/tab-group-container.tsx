@@ -10,7 +10,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas";
+import { DEFAULT_FORM_DENSITY, type FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
 import { CardContainer } from "./card-container";
@@ -66,7 +66,7 @@ export function TabGroupContainer({
 
   const { density: rootDensity } = useFormLayout();
   const isViewMode = mode !== CbsRecordFunction.INPUT;
-  const effectiveDensity = activeConfig.density || rootDensity || "compact";
+  const effectiveDensity = activeConfig.density || rootDensity || DEFAULT_FORM_DENSITY;
   const tabBodyPadding = isViewMode
     ? FORM_DENSITY_CLASSES[effectiveDensity].cardPaddingView
     : FORM_DENSITY_CLASSES[effectiveDensity].cardPadding;

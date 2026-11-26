@@ -11,8 +11,10 @@
 import type { ReactNode } from "react";
 import type {
   AuditData,
+  FormDensity,
   FormElement,
   FormElementsContainer,
+  FormLayout,
   FormSection,
 } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
@@ -83,7 +85,7 @@ export interface SectionCardProps {
   disabled?: boolean;
   mode?: CbsScreenMode;
   hideHeader?: boolean;
-  layout?: "horizontal" | "stacked";
+  layout?: FormLayout;
 }
 
 export interface FormRendererProps {
@@ -101,7 +103,7 @@ export interface FormRendererProps {
   showAuditSection?: boolean;
   auditVariant?: "inline" | "card";
   hideHeader?: boolean;
-  layout?: "horizontal" | "stacked";
-  density?: "compact" | "normal" | "spacious";
+  layout?: FormLayout;
+  density?: FormDensity;
   className?: string;
 }

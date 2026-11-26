@@ -14,6 +14,7 @@ import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsCommand } from "@/lib/cbs-command";
 import { type CbsScreenProps, type CbsScreenTab, createCopyPasteActions } from "@/lib/cbs-screen";
+import { DEFAULT_FORM_DENSITY, DEFAULT_FORM_LAYOUT } from "@/lib/data-schemas";
 import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
@@ -97,8 +98,8 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             formTitle={formData.title}
             formDescription={formData.description}
             authNumber={formData.authNumber}
-            rootLayout={formData.frmElements?.layout ?? "horizontal"}
-            rootDensity={formData.frmElements?.density ?? "compact"}
+            rootLayout={formData.frmElements?.layout ?? DEFAULT_FORM_LAYOUT}
+            rootDensity={formData.frmElements?.density ?? DEFAULT_FORM_DENSITY}
             validationErrors={validationErrors}
             onUpdateFormConfig={(patch) => {
               setFormData((prev) => ({

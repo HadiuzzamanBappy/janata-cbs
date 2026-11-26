@@ -3,7 +3,7 @@
  * @module form-engine/hooks/use-model-lookup
  *
  * Core Invariants:
- * - Resolves dynamic CBS model lookup options when parameter.type === 'M' or 'L'.
+ * - Resolves dynamic CBS model lookup options when parameter.type === 'M' or 'A'.
  * - Backed by centralized cbsQueries so multiple fields referencing the same lookup table
  *   share one cached React Query request.
  * - Evaluates custom in-memory condition filtering (e.g. "STATUS == 'ACTIVE'").
@@ -14,7 +14,11 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
-import type { FormFieldParameter } from "@/lib/data-schemas";
+import {
+  CBS_PARAMETER_TYPE,
+  DEFAULT_ARRAY_LOOKUP_MODEL,
+  type FormFieldParameter,
+} from "@/lib/data-schemas";
 import type { WidgetOption } from "../types";
 
 /**
@@ -24,8 +28,12 @@ import type { WidgetOption } from "../types";
  * @returns Array of resolved lookup options and query loading state.
  */
 export function useModelLookup(param: FormFieldParameter | undefined, enabled: boolean = true) {
-  const isTypeSupported = param?.type === "M" || param?.type === "A";
-  const rawModel = param?.modelName?.trim() || (param?.type === "A" ? "LOOKUP" : "") || "";
+  const isTypeSupported =
+    param?.type === CBS_PARAMETER_TYPE.MODEL || param?.type === CBS_PARAMETER_TYPE.ARRAY;
+  const rawModel =
+    param?.modelName?.trim() ||
+    (param?.type === CBS_PARAMETER_TYPE.ARRAY ? DEFAULT_ARRAY_LOOKUP_MODEL : "") ||
+    "";
   const cleanModel = rawModel.toUpperCase();
   const isModelLookup = isTypeSupported && Boolean(cleanModel);
 
@@ -64,7 +72,8 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
     // - Mode A (Array Mode): unwrap from specified arrayField (or default itemArray) within target record
     // - Mode M (Flat Mode): use records directly as options without magic auto-detect
     let itemsToMap: unknown[] = filtered;
-    const isArrayMode = param?.type === "A" || Boolean(param?.recordId?.trim());
+    const isArrayMode =
+      param?.type === CBS_PARAMETER_TYPE.ARRAY || Boolean(param?.recordId?.trim());
 
     if (isArrayMode) {
       const arrayKey = param?.arrayField?.trim() || "itemArray";

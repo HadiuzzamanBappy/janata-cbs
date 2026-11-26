@@ -11,6 +11,7 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/core-utils";
+import { DEFAULT_FORM_DENSITY } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import type { SectionCardProps } from "../../types";
 import { FieldGrid } from "../fields/field-grid";
@@ -56,7 +57,7 @@ export function CardContainer({
 
   const shouldShowHeader = !hideHeader && variant !== "ghost" && hasHeader;
 
-  const effectiveDensity = config.density || rootDensity || "compact";
+  const effectiveDensity = config.density || rootDensity || DEFAULT_FORM_DENSITY;
   const densityTokens = FORM_DENSITY_CLASSES[effectiveDensity];
   const stackGap = isViewMode ? densityTokens.stackView : densityTokens.stack;
 

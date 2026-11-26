@@ -3,6 +3,7 @@
 import * as React from "react";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
+import { NEW_TAB_IN_GROUP_TARGET } from "../canvas-drop-dispatcher";
 
 export type DragPayload = Record<string, unknown>;
 
@@ -107,7 +108,7 @@ export function useTabGroupDrop(params: TabGroupDropParams) {
           const title = String(parsed.title || parsed.groupTitle || `Tab ${n}`);
           onDropPaletteItem(
             { ...parsed, containerType: "tab", groupId, title, groupTitle: title },
-            "new-tab-in-group",
+            NEW_TAB_IN_GROUP_TARGET,
           );
         }
       } catch {
@@ -170,7 +171,7 @@ export function useTabGroupDrop(params: TabGroupDropParams) {
               title,
               groupTitle: title,
             },
-            "new-tab-in-group",
+            NEW_TAB_IN_GROUP_TARGET,
           );
           return;
         }

@@ -12,7 +12,12 @@ import {
   getBlockGapSectionIndex,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import { type FormElement, getDefaultWidgetForType, type PropertyType } from "@/lib/data-schemas";
+import {
+  CBS_PROPERTY_STRUCTURE,
+  type FormElement,
+  getDefaultWidgetForType,
+  type PropertyType,
+} from "@/lib/data-schemas";
 import { findModelPropDeep } from "../../../hooks/fc-field-tree";
 import { useOptionalDesignerContext } from "../context/designer-context";
 import { CanvasObjectFields } from "./canvas-object-fields";
@@ -82,7 +87,10 @@ export function CanvasFieldCard({
     }
 
     // 4. Structure override (e.g. Model is M, but form chose S)
-    if (matchedProp?.STRUCTURE === "M" && field.STRUCTURE === "S") {
+    if (
+      matchedProp?.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI &&
+      field.STRUCTURE === CBS_PROPERTY_STRUCTURE.SINGLE
+    ) {
       list.push({ key: "structure", label: "SINGLE", variant: "outline" });
     }
 

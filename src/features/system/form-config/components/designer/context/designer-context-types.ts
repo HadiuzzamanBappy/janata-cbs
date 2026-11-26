@@ -1,5 +1,11 @@
 import type * as React from "react";
-import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
+import type {
+  FormDensity,
+  FormElement,
+  FormLayout,
+  FormSection,
+  ModelProperty,
+} from "@/lib/data-schemas";
 import type { FormConfigValidationError } from "../../../hooks/fc-validation";
 import type { AddSectionFn } from "../canvas/canvas-types";
 
@@ -7,14 +13,14 @@ export interface DesignerContextValue {
   formTitle?: string;
   formDescription?: string;
   authNumber?: number;
-  rootLayout?: "horizontal" | "stacked";
-  rootDensity?: "compact" | "normal" | "spacious";
+  rootLayout?: FormLayout;
+  rootDensity?: FormDensity;
   onUpdateFormConfig?: (patch: {
     title?: string;
     description?: string;
     authNumber?: number;
-    layout?: "horizontal" | "stacked";
-    density?: "compact" | "normal" | "spacious";
+    layout?: FormLayout;
+    density?: FormDensity;
   }) => void;
   targetModel?: string;
   modelProperties?: ModelProperty[];
@@ -85,14 +91,14 @@ export interface DesignerProviderProps {
   formTitle?: string;
   formDescription?: string;
   authNumber?: number;
-  rootLayout?: "horizontal" | "stacked";
-  rootDensity?: "compact" | "normal" | "spacious";
+  rootLayout?: FormLayout;
+  rootDensity?: FormDensity;
   onUpdateFormConfig?: (patch: {
     title?: string;
     description?: string;
     authNumber?: number;
-    layout?: "horizontal" | "stacked";
-    density?: "compact" | "normal" | "spacious";
+    layout?: FormLayout;
+    density?: FormDensity;
   }) => void;
   isCompact?: boolean;
   targetModel?: string;

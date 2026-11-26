@@ -15,7 +15,7 @@ import {
   getGridColsClass,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas";
+import { DEFAULT_FORM_DENSITY, type FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FORM_DENSITY_CLASSES, useFormLayout } from "../form-layout-context";
 import { UnifiedFieldFactory } from "./field-factory";
@@ -42,7 +42,7 @@ export function FieldGrid({
   const { density: rootDensity } = useFormLayout();
   const effectiveCols = numCols || section.columns || 1;
   const isViewMode = mode !== CbsRecordFunction.INPUT;
-  const effectiveDensity = section.containerConfig?.density || rootDensity || "compact";
+  const effectiveDensity = section.containerConfig?.density || rootDensity || DEFAULT_FORM_DENSITY;
   const gridGapClass = isViewMode
     ? FORM_DENSITY_CLASSES[effectiveDensity].gridGapView
     : FORM_DENSITY_CLASSES[effectiveDensity].gridGap;

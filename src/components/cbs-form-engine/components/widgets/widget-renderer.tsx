@@ -9,6 +9,7 @@
  */
 
 import { resolveFieldDateRange } from "@/lib/cbs-form-spec";
+import { CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
 import type { WidgetRendererProps } from "../../types";
 import { AmountWidget } from "./amount-widget";
 import { CheckboxGroupWidget } from "./checkbox-group-widget";
@@ -60,7 +61,7 @@ export function renderFieldWidget({
           placeholder={placeholder}
           options={resolvedOptions}
           loading={modelLoading}
-          isNumeric={field.TYPE.toLowerCase() === "number"}
+          isNumeric={field.TYPE === CBS_PROPERTY_TYPE.NUMBER}
           label={effectiveLabel}
           onFetchOptions={onFetchOptions}
         />

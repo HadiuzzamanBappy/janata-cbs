@@ -8,7 +8,7 @@
  * - Single row fallback (cols <= 1) assigns full row span ("w-full col-span-1") to all fields.
  */
 
-import type { PropertyWidth, SemanticWidthToken } from "@/lib/data-schemas";
+import { INLINE_WIDTH_WIDGETS, type SemanticWidthToken } from "@/lib/data-schemas";
 import { deriveSemanticWidth } from "./field-normalizer";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,21 +70,12 @@ export const SEMANTIC_INPUT_WIDTH_CLASSES: Record<SemanticWidthToken, string> = 
  * @returns Tailwind CSS width utility string.
  */
 export function getInputWidthClass(
-  width?: PropertyWidth,
+  width?: SemanticWidthToken,
   length?: number,
   type?: string,
   widget?: string,
 ): string {
-  if (
-    widget === "switch" ||
-    widget === "checkbox" ||
-    widget === "radio" ||
-    widget === "radio-group" ||
-    widget === "checkbox-group" ||
-    widget === "segmented"
-  ) {
-    return "w-auto";
-  }
+  if (widget && INLINE_WIDTH_WIDGETS.has(widget)) return "w-auto";
   if (widget === "date") {
     return "w-full sm:max-w-44";
   }
@@ -134,7 +125,7 @@ export function getGridColsClass(cols?: number): string {
  */
 export function getFieldColSpanClass(
   cols: number = 1,
-  width?: PropertyWidth,
+  width?: SemanticWidthToken,
   length?: number,
   type?: string,
 ): string {

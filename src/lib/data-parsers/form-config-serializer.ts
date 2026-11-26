@@ -18,7 +18,7 @@ const SECTION_STRINGS = ["title", "description", "groupId", "groupTitle"] as con
 /**
  * Sanitizes a FormElement for database persistence and wire JSON output:
  * - Removes client-only identifiers (`id: "f_..."`)
- * - Omits default falsy flags (`REQUIRED: false`, `DISABLED: false`)
+ * - Omits default falsy flags (`REQUIRED: false`, `DISABLED: false`); keeps any set `WIDTH`
  * - Omits empty text overrides and compresses sparse JSON
  */
 function sanitizeFormElement(field: FormElement): FormElement {
@@ -39,7 +39,8 @@ function sanitizeFormElement(field: FormElement): FormElement {
 
   if (cleanField.REQUIRED) sanitized.REQUIRED = true;
   if (cleanField.DISABLED) sanitized.DISABLED = true;
-  if (cleanField.WIDTH && cleanField.WIDTH !== "md") sanitized.WIDTH = cleanField.WIDTH;
+  // Kept whenever set: an unset width is derived from LENGTH on load, so "md" is not a default
+  if (cleanField.WIDTH) sanitized.WIDTH = cleanField.WIDTH;
   if (cleanField.WIDGET) sanitized.WIDGET = cleanField.WIDGET;
   if (cleanField.MODELNAME) sanitized.MODELNAME = String(cleanField.MODELNAME).trim().toUpperCase();
 
@@ -146,6 +147,31 @@ function sanitizeFormSection(section: FormSection): FormSection {
 }
 
 /**
+ * Moves each tab group's tabs up to its first tab, so the stored order is the rendered order
+ * (`buildRenderBlocks` groups tabs by `groupId`, untitled-group tabs together).
+ */
+function groupTabsTogether(sections: FormSection[]): FormSection[] {
+  const groups = new Map<string, FormSection[]>();
+  const ordered: (FormSection | FormSection[])[] = [];
+  for (const section of sections) {
+    if (section.containerType !== "tab") {
+      ordered.push(section);
+      continue;
+    }
+    const key = section.groupId?.trim() ?? "";
+    const group = groups.get(key);
+    if (group) {
+      group.push(section);
+    } else {
+      const created = [section];
+      groups.set(key, created);
+      ordered.push(created);
+    }
+  }
+  return ordered.flat();
+}
+
+/**
  * Produces a clean, sparse FormConfigRecord ready for database wire persistence.
  */
 export function sanitizeFormConfigRecord(record: FormConfigRecord): FormConfigRecord {
@@ -176,7 +202,7 @@ export function sanitizeFormConfigRecord(record: FormConfigRecord): FormConfigRe
     result.frmElements = {
       ...(record.frmElements.layout ? { layout: record.frmElements.layout } : {}),
       ...(record.frmElements.density ? { density: record.frmElements.density } : {}),
-      sections: record.frmElements.sections.map(sanitizeFormSection),
+      sections: groupTabsTogether(record.frmElements.sections).map(sanitizeFormSection),
     };
   }
 

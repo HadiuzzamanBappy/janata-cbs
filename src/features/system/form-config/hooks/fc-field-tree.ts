@@ -9,6 +9,10 @@
 
 import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
 
+/** Every section and tab-group id on the form, so a generated id never repeats one. */
+export const takenContainerIds = (sections: FormSection[]): Set<string> =>
+  new Set(sections.flatMap((s) => (s.groupId ? [s.id, s.groupId] : [s.id])));
+
 export interface FieldLocation {
   field: FormElement;
   section: FormSection;

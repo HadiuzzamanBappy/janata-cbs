@@ -1,6 +1,6 @@
 /**
  * @fileoverview Container zone conversion and tab grouping hook for Form Designer.
- * Transforms sections between Card boxes and Tab Group panes.
+ * Transforms sections between Card boxes and Tab Group panes, and ungroups a card into standalone cards.
  *
  * @module features/system/form-config/hooks/use-fc-section-zones
  */
@@ -10,9 +10,12 @@
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas";
+import { takenContainerIds } from "./fc-field-tree";
 
 export function useFcSectionZones(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
+  setSelectedSectionId: (id: string | null) => void,
+  setSelectedFieldId: (id: string | null) => void,
 ) {
   const convertSectionZone = React.useCallback(
     (
@@ -29,7 +32,7 @@ export function useFcSectionZones(
 
         let updatedSec: FormSection;
         if (targetType === "tab") {
-          const grpId = opts?.groupId || generateClientToken("tabgrp");
+          const grpId = opts?.groupId || generateClientToken("tabgrp", takenContainerIds(sections));
           const title = opts?.groupTitle || targetSec.title || "Tab";
           updatedSec = {
             ...targetSec,
@@ -132,5 +135,39 @@ export function useFcSectionZones(
     [setFormData],
   );
 
-  return { convertSectionZone, mergeTabGroups };
+  /** Unpacks a card's fields, each into its own untitled standalone card. */
+  const ungroupSection = React.useCallback(
+    (id: string) => {
+      setFormData((prev) => {
+        const sections = prev.frmElements?.sections || [];
+        const secIndex = sections.findIndex((s) => s.id === id);
+        if (secIndex === -1) return prev;
+
+        const taken = takenContainerIds(sections);
+        const standaloneSections: FormSection[] = (sections[secIndex].fields || []).map((f) => {
+          const newId = generateClientToken("sec_field", taken);
+          taken.add(newId);
+          return {
+            id: newId,
+            title: "",
+            containerType: "card" as const,
+            columns: 1,
+            collapsible: false,
+            isCollapsed: false,
+            fields: [f],
+          };
+        });
+
+        const updatedSections = [...sections];
+        updatedSections.splice(secIndex, 1, ...standaloneSections);
+        return { ...prev, frmElements: { ...prev.frmElements, sections: updatedSections } };
+      });
+
+      setSelectedSectionId(null);
+      setSelectedFieldId(null);
+    },
+    [setFormData, setSelectedSectionId, setSelectedFieldId],
+  );
+
+  return { convertSectionZone, mergeTabGroups, ungroupSection };
 }

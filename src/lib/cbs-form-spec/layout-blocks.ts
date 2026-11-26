@@ -3,7 +3,7 @@
  * @module cbs-form-spec/layout-blocks
  *
  * Core Invariants:
- * - Contiguous/adjacent tab sections sharing a `groupId` are clustered into a unified tab group block.
+ * - Tab sections sharing a `groupId` form one tab group block, placed at the group's first tab.
  * - Single sections (cards and root containers) remain independent and render sequentially.
  * - Pure layout calculation with zero DOM or UI framework dependencies.
  */
@@ -21,13 +21,6 @@ export type RenderBlock =
 // Render Block Clustering
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Clusters form sections into render blocks while preserving visual designer sequence.
- * Contiguous tabs with matching `groupId` form tab groups; all others remain standalone blocks.
- *
- * @param sections List of form sections from the compiled specification.
- * @returns Array of clustered RenderBlocks ready for layout orchestration.
- */
 /**
  * The field spec behind a value key: a top-level `NAME`, or an inner field of an object group
  * (`ADDRESS.city`, or `ITEMS.0.code` for a repeating set; numeric segments are row indexes).
@@ -47,6 +40,15 @@ export function findFieldSpecByKey(sections: FormSection[], key: string): FormEl
   return current;
 }
 
+/**
+ * Clusters form sections into render blocks. Every tab with the same `groupId` (untitled-group
+ * tabs together) joins one tab group, placed where the group's first tab is, even when other
+ * sections sit between its tabs; all others remain standalone blocks. `sanitizeFormConfigRecord`
+ * stores a group's tabs together, so a saved layout's order is its rendered order.
+ *
+ * @param sections List of form sections from the compiled specification.
+ * @returns Array of clustered RenderBlocks ready for layout orchestration.
+ */
 export function buildRenderBlocks(sections: FormSection[]): RenderBlock[] {
   const blocks: RenderBlock[] = [];
   const groupBlockMap = new Map<

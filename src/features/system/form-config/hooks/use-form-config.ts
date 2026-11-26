@@ -72,43 +72,44 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       setLoading(true);
       try {
         const res = await cbs.send<Record<string, unknown>>(cbs.formConfig.get(cleanId));
-        if (isApiSuccess(res) && res.data) {
-          setRawRecord(res.data);
-          const parsed = parseGfcResponse(res.data);
-          if (parsed.success) {
-            const { model, form, isNew } = parsed.data;
-            setTargetModelRecord(model);
+        // A failed GFC (no such model) already raised its toast in cbs.send; no draft without a model
+        if (!isApiSuccess(res) || !res.data) return;
 
-            // 1. Existing Form Config: hydrate saved layout into canvas
-            if (!isNew && form) {
-              hydrate(form);
-              setMode(targetMode);
-              setSelectedSectionId(null);
-              setSelectedFieldId(null);
-              return;
-            }
-
-            // A stored layout that fails to parse must never be replaced by a blank draft
-            if (!isNew) {
-              toast.add({
-                title: "Form Config Unreadable",
-                description: `Stored layout for #${cleanId} could not be parsed.`,
-                type: "error",
-              });
-              return;
-            }
-
-            // 2. New Form Config (FORMCONTROL is {}): initialize clean empty draft
-            if (targetMode === CbsRecordFunction.INPUT) {
-              initDraft(cleanId);
-              return;
-            }
-          }
+        setRawRecord(res.data);
+        const parsed = parseGfcResponse(res.data);
+        if (!parsed.success) {
+          toast.add({
+            title: "Form Config Unreadable",
+            description: `Response for #${cleanId} has no model record.`,
+            type: "error",
+          });
+          return;
         }
 
-        if (targetMode === CbsRecordFunction.INPUT) {
-          initDraft(cleanId);
+        const { model, form, isNew } = parsed.data;
+        setTargetModelRecord(model);
+
+        // 1. Existing Form Config: hydrate saved layout into canvas
+        if (form) {
+          hydrate(form);
+          setMode(targetMode);
+          setSelectedSectionId(null);
+          setSelectedFieldId(null);
+          return;
         }
+
+        // A stored layout that fails to parse must never be replaced by a blank draft
+        if (!isNew) {
+          toast.add({
+            title: "Form Config Unreadable",
+            description: `Stored layout for #${cleanId} could not be parsed.`,
+            type: "error",
+          });
+          return;
+        }
+
+        // 2. New Form Config (FORMCONTROL is {}): initialize clean empty draft
+        if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
       } catch {
         // cbs.send already raised the toast; keep the current draft rather than a blank one
       } finally {

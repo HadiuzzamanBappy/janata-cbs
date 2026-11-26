@@ -10,8 +10,10 @@ import type { ZodError } from "zod";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import {
   type FormConfigRecord,
+  type FormElement,
   formConfigSaveSchema,
   type ModelConfigRecord,
+  type ModelProperty,
 } from "@/lib/data-schemas";
 
 export type FormConfigTabKey = "general" | "formDesigner" | "routines" | "preview" | "json";
@@ -90,20 +92,31 @@ export function validateFormConfig(
     : mapZodIssuesToFcValidationErrors(parsed.error.issues, formData);
   if (!model) return issues;
 
-  const modelNames = new Set(model.PROPERTIES.map((p) => p.NAME.toLowerCase()));
   (formData.frmElements?.sections ?? []).forEach((section, sIdx) => {
-    (section.fields ?? []).forEach((field, fIdx) => {
-      const name = (field.NAME || "").trim();
-      if (!name || modelNames.has(name.toLowerCase())) return;
-      issues.push({
-        id: `formDesigner-model-${section.id}-${fIdx}`,
-        tab: "formDesigner",
-        fieldKey: "NAME",
-        sectionId: section.id,
-        fieldId: fieldIdOf(field, fIdx),
-        message: `${section.title?.trim() || `Section #${sIdx + 1}`}: Field "${name}" is not in model ${model.TABLENAME}`,
+    const secDisplay = section.title?.trim() || `Section #${sIdx + 1}`;
+    // Matched by name, as compileFormSpec merges them; inner fields against the group's PROP
+    const flagMissing = (fields: FormElement[], props: ModelProperty[], prefix: string) => {
+      const byName = new Map(props.map((p) => [p.NAME.toLowerCase(), p]));
+      fields.forEach((field, fIdx) => {
+        const name = (field.NAME || "").trim();
+        if (!name) return;
+        const path = prefix ? `${prefix}.${name}` : name;
+        const prop = byName.get(name.toLowerCase());
+        if (!prop) {
+          issues.push({
+            id: `formDesigner-model-${section.id}-${path}`,
+            tab: "formDesigner",
+            fieldKey: "NAME",
+            sectionId: section.id,
+            fieldId: fieldIdOf(field, fIdx),
+            message: `${secDisplay}: Field "${path}" is not in model ${model.TABLENAME}`,
+          });
+          return;
+        }
+        if (field.PROP?.length) flagMissing(field.PROP, prop.PROP ?? [], path);
       });
-    });
+    };
+    flagMissing(section.fields ?? [], model.PROPERTIES, "");
   });
   return issues;
 }

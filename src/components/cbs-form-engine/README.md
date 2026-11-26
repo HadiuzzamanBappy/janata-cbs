@@ -9,7 +9,7 @@ Layer L4: renders any form from a compiled `FormConfigRecord` (produced by [`@/l
 ```text
 FormRenderer                groups sections into blocks; applies TRANSFORM, CASCADE and ON_CHANGE on every change
  ├─ CardContainer           a section as a card (collapsible)
- └─ TabGroupContainer       adjacent tab sections as one tab bar
+ └─ TabGroupContainer       tab sections sharing a groupId as one tab bar
      └─ FieldGrid           12-column grid; evaluates VISIBLE_WHEN, DISABLED_WHEN, DISABLED and FIXEDVALUE
          └─ UnifiedFieldFactory   scalar → FieldRow + WidgetRenderer; PROP object or repeating set → ObjectField
 AuditContainer              maker-checker trailer: inputter, authorizer, times, revision
@@ -33,7 +33,7 @@ AuditContainer              maker-checker trailer: inputter, authorizer, times, 
 |               | `components/form-preview.tsx`                   | Live preview used by the Model Config and Form Config designers                                     |
 |               | `components/form-layout-context.tsx`            | Label layout: `"horizontal"` or `"stacked"`                                                         |
 | Containers    | `components/containers/card-container.tsx`      | Section card (`default`, `subtle`, `bordered`, `elevated`, `ghost`; collapsible)                    |
-|               | `components/containers/tab-group-container.tsx` | Tab bar for adjacent tab sections                                                                   |
+|               | `components/containers/tab-group-container.tsx` | Tab bar for tab sections sharing a `groupId`                                                        |
 |               | `components/containers/audit-container.tsx`     | Maker-checker audit trailer                                                                         |
 | Fields        | `components/fields/field-grid.tsx`              | 12-column grid and field rules                                                                      |
 |               | `components/fields/field-factory.tsx`           | `UnifiedFieldFactory`: picks `FieldRow` or `ObjectField`                                            |

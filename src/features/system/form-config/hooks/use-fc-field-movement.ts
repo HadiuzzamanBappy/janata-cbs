@@ -10,6 +10,7 @@
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, FormElement, FormSection } from "@/lib/data-schemas";
+import { takenContainerIds } from "./fc-field-tree";
 
 export function isMatchingField(field: FormElement, identifier: string): boolean {
   return field.SN === identifier || field.NAME === identifier;
@@ -75,7 +76,7 @@ export function useFcFieldMovement(
         if (targetSecId === "canvas-root" || targetSecId.startsWith("gap-")) {
           // Move field out of its current section directly to root canvas as an independent item
           const newCardSec: FormSection = {
-            id: generateClientToken("sec_field"),
+            id: generateClientToken("sec_field", takenContainerIds(sections)),
             title: "",
             containerType: "card",
             columns: 1,

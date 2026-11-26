@@ -17,6 +17,7 @@ import type {
   FormElement,
   FormSection,
 } from "@/lib/data-schemas";
+import { takenContainerIds } from "./fc-field-tree";
 import { useFcSectionReorder } from "./use-fc-section-reorder";
 import { useFcSectionZones } from "./use-fc-section-zones";
 
@@ -25,7 +26,7 @@ export function useFcSectionOps(
   setSelectedSectionId: (id: string | null) => void,
   setSelectedFieldId: (id: string | null) => void,
 ) {
-  const zones = useFcSectionZones(setFormData);
+  const zones = useFcSectionZones(setFormData, setSelectedSectionId, setSelectedFieldId);
   const reorder = useFcSectionReorder(setFormData);
 
   const addSection = React.useCallback(
@@ -42,7 +43,8 @@ export function useFcSectionOps(
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const nextIndex = sections.length + 1;
-        const newId = generateClientToken("sec");
+        const taken = takenContainerIds(sections);
+        const newId = generateClientToken("sec", taken);
         const defaultTitle =
           customTitle !== undefined
             ? customTitle
@@ -51,7 +53,7 @@ export function useFcSectionOps(
               : "";
 
         const targetGroupId =
-          containerType === "tab" ? groupId || generateClientToken("tabgrp") : groupId;
+          containerType === "tab" ? groupId || generateClientToken("tabgrp", taken) : groupId;
         const existingTabInGroup =
           containerType === "tab" && targetGroupId
             ? sections.find((s) => s.containerType === "tab" && s.groupId === targetGroupId)
@@ -86,14 +88,21 @@ export function useFcSectionOps(
             return !isEmptySection;
           });
 
-        let updatedSections: FormSection[];
-        if (insertIndex !== undefined) {
-          const boundedIndex = Math.max(0, Math.min(insertIndex, cleanedExistingSections.length));
-          updatedSections = [...cleanedExistingSections];
-          updatedSections.splice(boundedIndex, 0, newSection);
-        } else {
-          updatedSections = [...cleanedExistingSections, newSection];
-        }
+        // Without an index, a new tab in an existing group goes after the group's last tab
+        const count = cleanedExistingSections.length;
+        const peerIdx = existingTabInGroup
+          ? cleanedExistingSections.findLastIndex(
+              (s) => s.containerType === "tab" && s.groupId === targetGroupId,
+            )
+          : -1;
+        const at =
+          insertIndex !== undefined
+            ? Math.max(0, Math.min(insertIndex, count))
+            : peerIdx >= 0
+              ? peerIdx + 1
+              : count;
+        const updatedSections = [...cleanedExistingSections];
+        updatedSections.splice(at, 0, newSection);
 
         setSelectedSectionId(newId);
         if (initialFields.length > 0) {
@@ -229,50 +238,11 @@ export function useFcSectionOps(
     [setFormData, setSelectedSectionId, setSelectedFieldId],
   );
 
-  const ungroupSection = React.useCallback(
-    (id: string) => {
-      setFormData((prev) => {
-        const sections = prev.frmElements?.sections || [];
-        const secIndex = sections.findIndex((s) => s.id === id);
-        if (secIndex === -1) return prev;
-
-        const secToUngroup = sections[secIndex];
-        const fields = secToUngroup?.fields || [];
-
-        // If card has fields, unpack each field into an untitled standalone section
-        const standaloneSections: FormSection[] = fields.map((f) => ({
-          id: generateClientToken("sec_field"),
-          title: "",
-          containerType: "card" as const,
-          columns: 1,
-          collapsible: false,
-          isCollapsed: false,
-          fields: [f],
-        }));
-
-        const updatedSections = [...sections];
-        updatedSections.splice(secIndex, 1, ...standaloneSections);
-
-        return {
-          ...prev,
-          frmElements: {
-            ...prev.frmElements,
-            sections: updatedSections,
-          },
-        };
-      });
-
-      setSelectedSectionId(null);
-      setSelectedFieldId(null);
-    },
-    [setFormData, setSelectedSectionId, setSelectedFieldId],
-  );
-
   return {
     addSection,
     updateSection,
     removeSection,
-    ungroupSection,
+    ungroupSection: zones.ungroupSection,
     reorderSections: reorder.reorderSections,
     convertSectionZone: zones.convertSectionZone,
     mergeTabGroups: zones.mergeTabGroups,

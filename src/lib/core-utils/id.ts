@@ -16,7 +16,12 @@ export function generateIdempotencyKey(): string {
 
 /**
  * Generates a short unique token for client-side ephemeral UI items (multi-value rows, scratch blocks).
+ * Pass `taken` (ids already in use) to guarantee the token repeats none of them.
  */
-export function generateClientToken(prefix = "id"): string {
-  return `${prefix}_${generateIdempotencyKey().slice(0, 8)}`;
+export function generateClientToken(prefix = "id", taken?: ReadonlySet<string>): string {
+  let token: string;
+  do {
+    token = `${prefix}_${generateIdempotencyKey().slice(0, 8)}`;
+  } while (taken?.has(token));
+  return token;
 }

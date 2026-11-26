@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { setFieldValue } from "@/lib/cbs-form-spec";
+import { resolveWidgetType, setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import {
   CBS_PROPERTY_TYPE,
@@ -27,7 +27,6 @@ import {
   type FormElement,
   type FormWidgetType,
   getCompatibleWidgets,
-  getDefaultWidgetForType,
   type ModelProperty,
   type PropertyType,
 } from "@/lib/data-schemas";
@@ -64,7 +63,6 @@ export function FieldInspector({
 
   const physicalType = (matchedModelProp?.TYPE || field.TYPE || "String") as PropertyType;
   const isArrayField = physicalType === CBS_PROPERTY_TYPE.ARRAY;
-  const currentWidget = (field.WIDGET || getDefaultWidgetForType(physicalType)) as FormWidgetType;
 
   const isPhysicalMulti = matchedModelProp?.STRUCTURE === "M";
   const fieldStructure =
@@ -78,6 +76,17 @@ export function FieldInspector({
     ""
   ).trim();
   const hasModel = Boolean(modelName);
+  // The widget the engine renders (lookups resolve to select), so the inspector matches the form
+  const currentWidget = resolveWidgetType(
+    physicalType,
+    field.PARAMETER,
+    field.WIDGET,
+    fieldStructure,
+    {
+      length: fieldLength,
+      modelName,
+    },
+  );
 
   const eligibleWidgetsSet = React.useMemo(() => {
     return new Set(

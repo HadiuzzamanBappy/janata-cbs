@@ -13,6 +13,7 @@ import {
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { type FormElement, getDefaultWidgetForType, type PropertyType } from "@/lib/data-schemas";
+import { findModelPropDeep } from "../../../hooks/fc-field-tree";
 import { useOptionalDesignerContext } from "../context/designer-context";
 import { CanvasObjectFields } from "./canvas-object-fields";
 import { selectableProps } from "./selectable";
@@ -41,9 +42,11 @@ export function CanvasFieldCard({
   const fieldErrors = ctx ? ctx.getFieldErrors(fieldId) : [];
   const hasErrors = fieldErrors.length > 0;
 
-  const matchedProp = React.useMemo(() => {
-    return ctx?.modelProperties?.find((p) => p.SN === field.SN || p.NAME === field.NAME);
-  }, [ctx?.modelProperties, field.SN, field.NAME]);
+  // Same lookup as the property inspector: by SN at any depth (inner fields too), else NAME
+  const matchedProp = React.useMemo(
+    () => findModelPropDeep(ctx?.modelProperties ?? [], field) ?? undefined,
+    [ctx?.modelProperties, field],
+  );
 
   const overrides = React.useMemo(() => {
     const list: {

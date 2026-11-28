@@ -13,13 +13,14 @@ import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../hooks/mc-validation";
+import type { CommittedPropertyLookup } from "../hooks/use-mc-property-ops";
 import { McPropertyInspector } from "./property/mc-property-inspector";
 import { McPropertyList } from "./property/mc-property-list";
 
 interface McPropertiesTabProps {
   properties: ModelProperty[];
   isReadOnly: boolean;
-  isFieldCommitted: (sn: string) => boolean;
+  committedProperty: CommittedPropertyLookup;
   /** Selected property SN, owned by the screen. */
   selectedSN: string | null;
   onSelectSN: (sn: string | null) => void;
@@ -33,7 +34,7 @@ interface McPropertiesTabProps {
 export function McPropertiesTab({
   properties,
   isReadOnly,
-  isFieldCommitted,
+  committedProperty,
   selectedSN,
   onSelectSN,
   validationErrors = [],
@@ -107,7 +108,7 @@ export function McPropertiesTab({
               selectedSN={selectedSN}
               onSelectSN={handleSelectSN}
               isReadOnly={isReadOnly}
-              isFieldCommitted={isFieldCommitted}
+              committedProperty={committedProperty}
               validationErrors={validationErrors}
               onAddField={onAddField}
               onAddSubField={onAddSubField}
@@ -122,7 +123,7 @@ export function McPropertiesTab({
           selectedSN={selectedSN}
           onSelectSN={handleSelectSN}
           isReadOnly={isReadOnly}
-          isFieldCommitted={isFieldCommitted}
+          committedProperty={committedProperty}
           validationErrors={validationErrors}
           onAddField={onAddField}
           onAddSubField={onAddSubField}
@@ -137,7 +138,7 @@ export function McPropertiesTab({
             property={selectedProperty}
             isSubProperty={isSubProperty}
             isReadOnly={isReadOnly}
-            isCommitted={isFieldCommitted(selectedProperty.SN)}
+            committed={committedProperty(selectedProperty.SN)}
             validationErrors={validationErrors}
             onUpdate={onUpdateField}
             onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}

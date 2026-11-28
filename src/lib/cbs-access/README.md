@@ -18,15 +18,15 @@ The React wrapper is `useCbsAccess()` in `src/hooks/use-cbs-access.ts`. It fills
 
 ## 🏛️ Rules evaluated by `evaluateCbsAccess()`
 
-| Capability     | Needs right    | And the record must be                                                 | Never in `IDLE` |
-| -------------- | -------------- | ---------------------------------------------------------------------- | --------------- |
-| `canSee`       | `S`            | —                                                                      |                 |
-| `canInput`     | `I`            | —                                                                      |                 |
-| `canDelete`    | `D`            | `UA`, `NEW` or no status yet (an `AU` record is reversed, not deleted) | ✓               |
-| `canHold`      | `H` **or** `I` | anything except `AU`                                                   | ✓               |
-| `canAuthorize` | `A`            | `UA`, **and** the user is not the record's inputter                    | ✓               |
-| `canReverse`   | `R`            | `AU`                                                                   | ✓               |
-| `canList`      | `L`            | —                                                                      |                 |
+| Capability     | Needs right | And the record must be                                                 | Never in `IDLE` |
+| -------------- | ----------- | ---------------------------------------------------------------------- | --------------- |
+| `canSee`       | `S`         | —                                                                      |                 |
+| `canInput`     | `I`         | —                                                                      |                 |
+| `canDelete`    | `D`         | `UA`, `NEW` or no status yet (an `AU` record is reversed, not deleted) | ✓               |
+| `canHold`      | `H`         | anything except `AU`                                                   | ✓               |
+| `canAuthorize` | `A`         | `UA`, **and** the user is not the record's inputter                    | ✓               |
+| `canReverse`   | `R`         | `AU`                                                                   | ✓               |
+| `canList`      | `L`         | —                                                                      |                 |
 
 Flags:
 
@@ -45,7 +45,7 @@ Flags:
 `/api/proxy` calls `verifyUserRecordAccess(currUser, body.requestType, body.recordFunction)` before every dispatch. The request needs every right it implies, and gets **403** if the session user lacks one:
 
 - the controlled function it sends (`CBS_CONTROLLED_FUNCTIONS`: `I`, `A`, `D`, `R`, `H`);
-- the right its verb carries by itself: `AUT`/`AMC` need `A`, `DEL` needs `D`, `REV`/`TRV` need `R`, `HLD` needs `H`, whatever function is sent;
+- the right its verb carries by itself: `AUT` needs `A`, `DEL` needs `D`, `REV`/`TRV` need `R`, `HLD` needs `H`, whatever function is sent;
 - `I` for any other mutation that names no controlled function, so leaving `recordFunction` out (or sending `S` with a `PUT`) never skips the check.
 
 Reads (`GET`, `INQ` with `S`) need no controlled right.

@@ -8,7 +8,7 @@ import {
 } from "./model-config-schema";
 
 /* ========================================================================== */
-/* SAVE RULES (SMC): what may be written to MODEL.CONFIG                      */
+/* SAVE RULES (PUT): what may be written to MODEL.CONFIG                      */
 /* ========================================================================== */
 
 const TABLE_NAME_PATTERN = /^[A-Z][A-Z0-9_.]*$/;
@@ -86,9 +86,9 @@ function checkProperties(
 }
 
 /**
- * The record schema plus the rules a save must meet. Reads (GMC, GFC) and browser drafts stay on
+ * The record schema plus the rules a save must meet. Reads (GET, GFC) and browser drafts stay on
  * `modelConfigRecordSchema`, so a stored model that predates a rule still loads.
- * Used by the MODEL.CONFIG screen before saving and by `/api/proxy` on every SMC.
+ * Used by the MODEL.CONFIG screen before saving and by `/api/proxy` on every PUT to MODEL.CONFIG.
  */
 export const modelConfigSaveSchema = modelConfigRecordSchema.superRefine((data, ctx) => {
   if (!TABLE_NAME_PATTERN.test(data.TABLENAME)) {
@@ -113,10 +113,11 @@ export const modelConfigSaveSchema = modelConfigRecordSchema.superRefine((data, 
       path: ["SERVICEPATH"],
     });
   }
-  if (!Number.isInteger(data.AUTHLEVEL) || data.AUTHLEVEL < 0) {
+  // The wire `authLevel` is 0-9, so a higher level could never be authorized
+  if (!Number.isInteger(data.AUTHLEVEL) || data.AUTHLEVEL < 0 || data.AUTHLEVEL > 9) {
     ctx.addIssue({
       code: "custom",
-      message: "Authorization Level must be a whole number of 0 or more (0 = no authorization).",
+      message: "Authorization Level must be a whole number from 0 to 9 (0 = no authorization).",
       path: ["AUTHLEVEL"],
     });
   }

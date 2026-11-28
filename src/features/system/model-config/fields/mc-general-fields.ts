@@ -49,7 +49,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
           field: "auditData.recStatus",
           operator: "truthy",
         },
-        ENRICHTEXT: "Two-letter CBS module prefix (e.g. SC, AC, CU; locked once created).",
+        ENRICHTEXT: "CBS module prefix, up to 4 letters (e.g. SC, AC, CU; locked once created).",
       },
       {
         SN: "3",
@@ -117,11 +117,11 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LABEL: "Authorization Level",
         TYPE: "Number",
         STRUCTURE: "S",
-        LENGTH: 2,
+        LENGTH: 1,
         REQUIRED: true,
         WIDTH: "xs",
         ENRICHTEXT:
-          "Number of Maker-Checker authorization levels a record needs (0 = no authorization).",
+          "Number of Maker-Checker authorization levels a record needs (0 to 9; 0 = no authorization).",
       },
       {
         SN: "8",

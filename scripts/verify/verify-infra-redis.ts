@@ -162,7 +162,7 @@ async function runSuite() {
   );
 
   const modelDesc = resolveCacheDescriptor({
-    requestType: CbsRequestType.GMC,
+    requestType: CbsRequestType.GET,
     controlName: CbsControlTable.MODEL_CONFIG,
     recordFunction: CbsRecordFunction.SEE,
     recordId: "CUSTOMER",

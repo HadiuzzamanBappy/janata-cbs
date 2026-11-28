@@ -5,7 +5,7 @@
  * 1. Gateway Runtime Mode Switch (isStaticMode)
  * 2. Database Router Table Resolution (resolveTable)
  * 3. Operator Authentication & Session Minting (loginProcess)
- * 4. Metamodel Form Schema Introspection (GMC)
+ * 4. Metamodel Form Schema Introspection (GET on MODEL.CONFIG, GFC)
  * 5. Navigation Menu Tree Hierarchy (GUM)
  * 6. Versioned Presentation Configuration (FORM.CONFIG)
  * 7. Tabular Inquiry Rows (INQ)
@@ -157,22 +157,22 @@ async function runSuite() {
         loginOld.statusCode === 401,
     );
 
-    // 4. Metamodel Form Schema Introspection (GMC)
-    // 4a. Pure Model Schema (when base model name passed)
-    const gmcModelInput = { requestType: "GMC", controlName: "ACCOUNT" };
-    const gmcModelRes = getMockProxyResponse("GMC", "ACCOUNT");
-    const gmcModelData = gmcModelRes.data as Record<string, unknown> | undefined;
-    const gmcModelProps = (gmcModelData?.PROPERTIES ?? gmcModelData?.properties) as
+    // 4. Metamodel Form Schema Introspection
+    // 4a. Model record: a plain GET on MODEL.CONFIG keyed by the model name
+    const modelGetInput = { requestType: "GET", controlName: "MODEL.CONFIG", recordId: "ACCOUNT" };
+    const modelGetRes = getMockProxyResponse("GET", "MODEL.CONFIG", "ACCOUNT");
+    const modelGetData = modelGetRes.data as Record<string, unknown> | undefined;
+    const modelGetProps = (modelGetData?.PROPERTIES ?? modelGetData?.properties) as
       | unknown[]
       | undefined;
     recordTest(
-      "4a. Metamodel Model Schema Introspection (GMC -> MODEL.CONFIG)",
-      gmcModelInput,
+      "4a. Model Record Read (GET -> MODEL.CONFIG)",
+      modelGetInput,
       {
-        tableName: gmcModelData?.TABLENAME ?? gmcModelData?.tableName,
-        propertiesCount: gmcModelProps?.length,
+        tableName: modelGetData?.TABLENAME ?? modelGetData?.tableName,
+        propertiesCount: modelGetProps?.length,
       },
-      gmcModelRes.status === "SUCCESS" && Boolean(gmcModelProps?.length),
+      modelGetRes.status === "SUCCESS" && Boolean(modelGetProps?.length),
     );
 
     // 4b. Form Configuration (when form layout version passed via GFC)

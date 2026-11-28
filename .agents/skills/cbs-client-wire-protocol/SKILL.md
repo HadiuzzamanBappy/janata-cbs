@@ -41,7 +41,7 @@ await sendMutation(cbs.model("CUSTOMER").save(changedFields, { recordId }), {
 });
 ```
 
-- **Every mutation** (`isCbsMutationRequest()`: `PUT`, `AUT`, `DEL`, `HLD`, `REV`, `SMC`, `SFC`, …) needs a UUIDv4 `idempotencyKey`. `sendMutation()` adds it, reuses it when an unchanged payload is retried after a network or 5xx failure, and rotates it after a definite result. Calling `cbs.send()` directly with a mutation **fails validation**.
+- **Every mutation** (`isCbsMutationRequest()`: `PUT`, `AUT`, `DEL`, `HLD`, `REV`, `SFC`, …) needs a UUIDv4 `idempotencyKey`. `sendMutation()` adds it, reuses it when an unchanged payload is retried after a network or 5xx failure, and rotates it after a definite result. Calling `cbs.send()` directly with a mutation **fails validation**.
 - Send only changed fields on an amend (`computeDelta()` from `@/lib/cbs-record`; see the form lifecycle skill).
 - After a successful mutation, call `broadcastRecordMutation(control, recordId)` from `@/lib/cbs-screen` so other tabs and popups refresh.
 

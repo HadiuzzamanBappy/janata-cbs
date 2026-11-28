@@ -14,7 +14,7 @@ const controlActionSchema = z.enum(["SCREEN", "POPUP", "SETTINGS"]);
 
 /**
  * Visual / functional classification for executable CBS commands:
- * - "FORM": Interactive input/maintenance form (GMC screen)
+ * - "FORM": Interactive input/maintenance form (OpsForm screen)
  * - "INQUIRY": Read-only query / inquiry screen
  * - "REPORT": Analytical or ledger report screen
  * - "SETTINGS": System configuration / preferences dialog

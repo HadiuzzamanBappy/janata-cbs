@@ -35,23 +35,30 @@ const proxyLogger = logger.withContext("PROXY_API");
 
 /**
  * Config saves whose `data` is checked here too, so a direct API call can't skip the screen's rules.
- * Dedicated verbs (SMC, SFC) are keyed by request type; a generic PUT by `PUT:<CONTROL>`.
+ * A dedicated verb (SFC) is keyed by request type; a generic PUT by `PUT:<CONTROL>`.
  */
 const SAVE_DATA_SCHEMAS: Readonly<Partial<Record<string, ZodType>>> = {
-  [CbsRequestType.SMC]: modelConfigSaveSchema,
   [CbsRequestType.SFC]: formConfigSaveSchema,
+  [`${CbsRequestType.PUT}:${CbsControlTable.MODEL_CONFIG}`]: modelConfigSaveSchema,
   [`${CbsRequestType.PUT}:${CbsControlTable.INQUIRY_CONFIG}`]: inquiryConfigSaveSchema,
 };
 
-/** Authorize, Delete and Reverse act on the stored record and carry no definition to check. */
+/**
+ * Authorize, Delete and Reverse act on the stored record: they carry no definition to check, and
+ * any `data` sent with them is dropped, so a crafted call can't slip an unchecked record through.
+ */
 const NO_DEFINITION_FUNCTIONS: ReadonlySet<string> = new Set([
   CbsRecordFunction.AUTHORIZE,
   CbsRecordFunction.DELETE,
   CbsRecordFunction.REVERSE,
 ]);
 
+function actsOnStoredRecord(body: CbsWirePayload): boolean {
+  return NO_DEFINITION_FUNCTIONS.has((body.recordFunction ?? "").trim().toUpperCase());
+}
+
 function saveDataSchemaFor(body: CbsWirePayload): ZodType | undefined {
-  if (NO_DEFINITION_FUNCTIONS.has((body.recordFunction ?? "").trim().toUpperCase())) return;
+  if (actsOnStoredRecord(body)) return;
   const control = (body.controlName ?? "").trim().toUpperCase();
   return SAVE_DATA_SCHEMAS[body.requestType] ?? SAVE_DATA_SCHEMAS[`${body.requestType}:${control}`];
 }
@@ -130,10 +137,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     }
 
     // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session). A checked
-    // config save forwards the parsed record, so keys the schema strips never reach the core.
+    // config save forwards the parsed record, so keys the schema strips never reach the core;
+    // Authorize, Delete and Reverse forward no data at all.
     const requested = buildGrpcEnvelope(
       session,
-      dataCheck ? { ...body, data: dataCheck.data as Record<string, unknown> } : body,
+      actsOnStoredRecord(body)
+        ? { ...body, data: undefined }
+        : dataCheck
+          ? { ...body, data: dataCheck.data as Record<string, unknown> }
+          : body,
     );
 
     // 4. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)

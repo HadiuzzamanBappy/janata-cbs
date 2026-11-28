@@ -54,21 +54,6 @@ export function getMockFormPayload(command: string): unknown {
 }
 
 /**
- * Handles GMC (Get Model Configuration) - Returns pure Model definition schema.
- */
-export function handleGetModelConfig(payload: CbsWirePayload): ApiResponse {
-  const target = (payload.recordId || payload.controlName || "").trim().toUpperCase();
-  const baseModel = target.split(",")[0].trim();
-
-  const modelPayload = resolveModelDefinition(baseModel);
-  if (!modelPayload) {
-    return notFoundResult(`Model configuration for "${target}" not found`);
-  }
-
-  return successResult(modelPayload, `Model schema for ${target} loaded from simulated database`);
-}
-
-/**
  * Handles GFC (Get Form Configuration).
  * Returns the canonical combined GfcResponse envelope:
  * The base ModelConfigRecord + nested FORMCONTROL layout.

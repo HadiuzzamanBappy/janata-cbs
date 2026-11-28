@@ -61,13 +61,13 @@ A `$` suffix on the name is ignored. `@mock/core` reads tables through `resolveT
 
 `handleMutation()` in `mock/core/handlers/mutation-handlers.ts` keeps the lifecycle deliberately simple:
 
-| Request type                      | Status written                 |
-| --------------------------------- | ------------------------------ |
-| `PUT`, `SMC`, `SFC`, `SMR`        | `UA`                           |
-| `AUT`, `AMC`, `ATT`, `CTT`, `AFT` | `AU` (and `recCurrNumber` + 1) |
-| `HLD`                             | `HLD`                          |
-| `DEL`, `DTR`                      | `DEL`                          |
-| `REV`, `TRV`                      | `REV`                          |
+| Request type               | Status written                 |
+| -------------------------- | ------------------------------ |
+| `PUT`, `SFC`, `SMR`        | `UA`                           |
+| `AUT`, `ATT`, `CTT`, `AFT` | `AU` (and `recCurrNumber` + 1) |
+| `HLD`                      | `HLD`                          |
+| `DEL`, `DTR`               | `DEL`                          |
+| `REV`, `TRV`               | `REV`                          |
 
 The updated record is always written to `LIVE` under its ID. On `AU`, any `INAU` copy is removed. `HIS` and `DEL` are never written. So offline, a saved draft shows up in normal reads straight away. History screens show only the seeded history, and the mock doesn't enforce Four-Eyes.
 

@@ -40,7 +40,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
     loading,
     submitting,
     validationErrors,
-    isFieldCommitted,
+    committedProperty,
     fetchRecord,
     handleValidate,
     handleSubmit,
@@ -85,7 +85,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
           <McPropertiesTab
             properties={formData.PROPERTIES || []}
             isReadOnly={isReadOnly}
-            isFieldCommitted={isFieldCommitted}
+            committedProperty={committedProperty}
             selectedSN={selectedPropertySN}
             onSelectSN={setSelectedPropertySN}
             validationErrors={validationErrors}
@@ -115,7 +115,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       baseline,
       rawRecord,
       formData,
-      isFieldCommitted,
+      committedProperty,
       isReadOnly,
       mode,
       removeField,

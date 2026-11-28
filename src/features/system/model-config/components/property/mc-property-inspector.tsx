@@ -16,12 +16,14 @@ import type { ModelProperty } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { getPropertyInspectorSections } from "../../fields/mc-property-fields";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
+import { COMMITTED_LOCKED_KEYS } from "../../hooks/use-mc-property-ops";
 
 interface McPropertyInspectorProps {
   property?: ModelProperty;
   isSubProperty?: boolean;
   isReadOnly: boolean;
-  isCommitted?: boolean;
+  /** The saved copy of this column; undefined for a draft column. */
+  committed?: ModelProperty;
   validationErrors?: ModelValidationErrorItem[];
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
   onToggleSidebar?: () => void;
@@ -33,13 +35,16 @@ export function McPropertyInspector({
   property,
   isSubProperty = false,
   isReadOnly,
-  isCommitted = false,
+  committed,
   validationErrors = [],
   onUpdate,
   onToggleSidebar,
   isSidebarOpen = false,
   showSidebarToggle = false,
 }: McPropertyInspectorProps) {
+  const isCommitted = Boolean(committed);
+  // A saved optional column can't become required: stored rows may hold nulls
+  const requiredLocked = Boolean(committed && !committed.REQUIRED);
   const inspectorSections = React.useMemo(() => {
     const base = getPropertyInspectorSections(isSubProperty);
     if (!isCommitted) return base;
@@ -47,22 +52,30 @@ export function McPropertyInspector({
     return base.map((sec) => ({
       ...sec,
       fields: sec.fields.map((f) => {
-        if (
-          f.NAME === "NAME" ||
-          f.NAME === "TYPE" ||
-          f.NAME === "STRUCTURE" ||
-          f.NAME === "MODELNAME"
-        ) {
+        if (COMMITTED_LOCKED_KEYS.has(f.NAME)) {
           return {
             ...f,
             DISABLED: true,
             ENRICHTEXT: `${f.LABEL} is locked once committed to database.`,
           };
         }
+        if (f.NAME === "REQUIRED" && requiredLocked) {
+          return {
+            ...f,
+            DISABLED: true,
+            ENRICHTEXT: "A saved optional column can't become required: stored rows may be empty.",
+          };
+        }
+        if (f.NAME === "LENGTH") {
+          return {
+            ...f,
+            ENRICHTEXT: `${f.ENRICHTEXT} Saved at ${committed?.LENGTH}: it can only grow.`,
+          };
+        }
         return f;
       }),
     }));
-  }, [isSubProperty, isCommitted]);
+  }, [committed?.LENGTH, isSubProperty, isCommitted, requiredLocked]);
   // Map external domain validation errors for this specific property
   const propertyErrors = React.useMemo(() => {
     const map: Record<string, string> = {};

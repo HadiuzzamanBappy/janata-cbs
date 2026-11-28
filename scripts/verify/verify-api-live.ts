@@ -7,7 +7,7 @@
  * 2. Menu Item Catalog List (GRL on MENU)
  * 3. Menu Tree ID Search (SBI on MENU.TREE)
  * 4. Navigation Menu Tree Structure (GET on MENU.TREE)
- * 5. Data Metamodel Introspection (GMC on MODEL.CONFIG)
+ * 5. Data Metamodel Introspection (GET on MODEL.CONFIG)
  * 6. Form Layout Presentation Spec (GFC on CONFIG.FORM)
  * 7. Branch Directory Catalog (GRL on BRANCH)
  * 8. Live HTTP Proxy Endpoint (/api/proxy) probe
@@ -273,12 +273,12 @@ async function runSuite() {
     },
   );
 
-  // ── 4. Metamodel Form Schema (MODEL.CONFIG / GMC) ──
-  console.log("\n── 4. Metamodel Spec Introspection (MODEL.CONFIG / GMC) ──");
+  // ── 4. Metamodel Form Schema (MODEL.CONFIG / GET) ──
+  console.log("\n── 4. Metamodel Spec Introspection (MODEL.CONFIG / GET) ──");
   await testDispatch(
-    "4.1 GMC on MODEL.CONFIG for ACCOUNT: Returns field property definitions",
+    "4.1 GET on MODEL.CONFIG for ACCOUNT: Returns field property definitions",
     {
-      requestType: CbsRequestType.GMC,
+      requestType: CbsRequestType.GET,
       controlName: "MODEL.CONFIG",
       recordFunction: CbsRecordFunction.SEE,
       recordId: "ACCOUNT",

@@ -7,7 +7,6 @@ import {
   handleChangePassword,
   handleGetFormConfig,
   handleGetMenu,
-  handleGetModelConfig,
   handleInquiry,
   handleLogin,
   handleMutation,
@@ -62,11 +61,6 @@ export function getMockProxyResponse(
     return handleGetMenu();
   }
 
-  // 1. GMC (Get Model Configuration Schema)
-  if (reqType === CbsRequestType.GMC) {
-    return handleGetModelConfig(normalizedPayload);
-  }
-
   // 2. GFC (Get Form Configuration Layout Presentation)
   if (reqType === CbsRequestType.GFC) {
     return handleGetFormConfig(normalizedPayload);
@@ -108,7 +102,7 @@ export function getMockProxyResponse(
     return handleSeeRecord(normalizedPayload);
   }
 
-  // 8. Transactional Mutations (PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, SMR, DTR, ATT, CTT, AFT)
+  // 8. Transactional Mutations (PUT, AUT, DEL, HLD, REV, TRV, SFC, SMR, DTR, ATT, CTT, AFT)
   const isMutation =
     reqType === CbsRequestType.PUT ||
     reqType === CbsRequestType.AUT ||
@@ -116,8 +110,6 @@ export function getMockProxyResponse(
     reqType === CbsRequestType.HLD ||
     reqType === CbsRequestType.REV ||
     reqType === CbsRequestType.TRV ||
-    reqType === CbsRequestType.SMC ||
-    reqType === CbsRequestType.AMC ||
     reqType === CbsRequestType.SFC ||
     reqType === CbsRequestType.SMR ||
     reqType === CbsRequestType.DTR ||

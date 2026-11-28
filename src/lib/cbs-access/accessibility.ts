@@ -20,7 +20,6 @@ export function hasAccessibilityRight(
 /** Verbs that are a controlled function by themselves, whatever `recordFunction` says. */
 const REQUEST_TYPE_RIGHTS: Readonly<Partial<Record<string, CbsRecordFunction>>> = {
   [CbsRequestType.AUT]: CbsRecordFunction.AUTHORIZE,
-  [CbsRequestType.AMC]: CbsRecordFunction.AUTHORIZE,
   [CbsRequestType.DEL]: CbsRecordFunction.DELETE,
   [CbsRequestType.REV]: CbsRecordFunction.REVERSE,
   [CbsRequestType.TRV]: CbsRecordFunction.REVERSE,

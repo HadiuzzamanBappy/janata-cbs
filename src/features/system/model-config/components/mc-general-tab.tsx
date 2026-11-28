@@ -39,9 +39,12 @@ export function McGeneralTab({
   }, [validationErrors]);
 
   // The pattern checkboxes are a UI helper over IDPATTERN ("PF#IS"): show the stored tokens as
-  // ticked, so editing them extends the saved pattern instead of starting from nothing
+  // ticked, so editing them extends the saved pattern instead of starting from nothing.
+  // A model saved without ID rules has no IDDEF (the record is loaded unvalidated).
   const values = React.useMemo(() => {
-    const idDef = formData.IDDEF as ModelConfigRecord["IDDEF"] & { idPatternSelect?: string[] };
+    const idDef = (formData.IDDEF ?? {}) as Partial<ModelConfigRecord["IDDEF"]> & {
+      idPatternSelect?: string[];
+    };
     if (idDef.idPatternSelect) return formData;
     const tokens = (idDef.IDPATTERN || "").split("#").filter(Boolean);
     return { ...formData, IDDEF: { ...idDef, idPatternSelect: tokens } };

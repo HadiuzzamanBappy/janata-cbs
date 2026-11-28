@@ -278,7 +278,7 @@ async function runSuite() {
       },
     ],
   };
-  // Production path: GMC/GFC records reach the client through parseGfcResponse, which
+  // Production path: GET/GFC records reach the client through parseGfcResponse, which
   // unwraps the envelope and runs sanitizeModelConfigRecord on the model half.
   const parsedModel = parseGfcResponse(rawModelPayload);
   const sanitizedModel = parsedModel.success ? parsedModel.data.model : undefined;

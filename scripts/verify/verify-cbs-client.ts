@@ -207,19 +207,26 @@ async function runSuite() {
       treeGet.recordId === "",
   );
 
-  // --- 3. Meta-Configuration Protocol Overrides ---
-  console.log("\n── 3. Meta-Configuration Protocol Overrides ──");
-  const mcGet = cbs.modelConfig.get("USER");
-  const mcSave = cbs.modelConfig.save({ TABLENAME: "USER" });
-  const mcAuth = cbs.modelConfig.authorize("USER");
+  // --- 3. Meta-Configuration Protocol ---
+  console.log("\n── 3. Meta-Configuration Protocol ──");
+  const mcGet = cbs.modelConfig.get("branch");
+  const mcSave = cbs.modelConfig.save({ TABLENAME: "BRANCH" }, { recordId: "BRANCH" });
+  const mcAuth = cbs.modelConfig.authorize("BRANCH");
   recordTest(
-    "3.1 cbs.modelConfig: Emits dedicated GMC, SMC, and AMC wire verbs",
-    'cbs.modelConfig.{get, save, authorize}("USER")',
-    { get: mcGet.requestType, save: mcSave.requestType, auth: mcAuth.requestType },
-    mcGet.requestType === CbsRequestType.GMC &&
-      mcSave.requestType === CbsRequestType.SMC &&
-      mcAuth.requestType === CbsRequestType.AMC &&
-      mcGet.controlName === CbsControlTable.MODEL_CONFIG,
+    "3.1 cbs.modelConfig: Base record verbs GET (SEE), PUT and AUT on MODEL.CONFIG, keyed by model",
+    'cbs.modelConfig.{get("branch"), save(…, { recordId: "BRANCH" }), authorize("BRANCH")}',
+    {
+      get: [mcGet.requestType, mcGet.recordFunction, mcGet.recordId],
+      save: [mcSave.requestType, mcSave.recordId],
+      auth: mcAuth.requestType,
+    },
+    mcGet.requestType === CbsRequestType.GET &&
+      mcGet.recordFunction === CbsRecordFunction.SEE &&
+      mcGet.recordId === "BRANCH" &&
+      mcSave.requestType === CbsRequestType.PUT &&
+      mcSave.recordId === "BRANCH" &&
+      mcAuth.requestType === CbsRequestType.AUT &&
+      [mcGet, mcSave, mcAuth].every((p) => p.controlName === CbsControlTable.MODEL_CONFIG),
   );
 
   const fcGet = cbs.formConfig.get("USER.MGT,V1");
@@ -407,7 +414,7 @@ async function runSuite() {
       networkToasts.length === 1 && schemaToasts.length === 1,
     );
 
-    // F. An operational form is a CONFIG.FORM entry read only by GFC: never GMC, never a model-only form
+    // F. An operational form is a CONFIG.FORM entry read only by GFC: no separate model read, never a model-only form
     const gfcModel = {
       TABLENAME: "ACCOUNT",
       DESCRIPTION: "Account",
@@ -459,7 +466,7 @@ async function runSuite() {
     const onlyGfc = (r: { sent: Array<{ requestType: unknown }> }) =>
       r.sent.length === 1 && r.sent[0].requestType === CbsRequestType.GFC;
     recordTest(
-      "6.7 cbsQueries.formConfig.schema: One GFC per form; no entry fails with no GMC and no model-only form",
+      "6.7 cbsQueries.formConfig.schema: One GFC per form; no entry fails with no separate model read and no model-only form",
       ["ACCOUNT,1.0.0", "ACCOUNT", "ACCOUNT,", "ACCOUNT (empty FORMCONTROL)", "NOPE (not found)"],
       { versioned, bare, trailingComma, noEntry, notFound },
       [versioned, bare, trailingComma, noEntry, notFound].every(onlyGfc) &&

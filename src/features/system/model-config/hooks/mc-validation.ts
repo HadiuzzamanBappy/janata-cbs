@@ -13,6 +13,7 @@ import {
   type ModelProperty,
   modelConfigSaveSchema,
 } from "@/lib/data-schemas";
+import type { CommittedPropertyLookup } from "./use-mc-property-ops";
 
 export type ModelConfigTabKey = "general" | "properties";
 
@@ -64,12 +65,56 @@ function mapZodIssuesToValidationErrors(
 }
 
 /**
- * Validates a MODEL.CONFIG draft against the save rules (`modelConfigSaveSchema`, the same check
- * `/api/proxy` runs on SMC).
+ * Rules for a column already saved to the database, which existing rows depend on: its LENGTH
+ * may only grow (a shorter one truncates stored values) and it can't become required (stored
+ * rows may hold nulls).
  */
-export function validateModelConfig(formData: ModelConfigRecord): ModelValidationErrorItem[] {
+function committedColumnErrors(
+  properties: readonly ModelProperty[],
+  committedProperty: CommittedPropertyLookup,
+): ModelValidationErrorItem[] {
+  const errors: ModelValidationErrorItem[] = [];
+  const check = (prop: ModelProperty) => {
+    const saved = committedProperty(prop.SN);
+    if (!saved) return;
+    const add = (fieldKey: string, message: string) =>
+      errors.push({
+        id: `properties-${prop.SN}-${fieldKey}-committed`,
+        tab: "properties",
+        sn: prop.SN,
+        nodeId: prop.SN,
+        fieldKey,
+        message: `Property #${prop.SN}: ${message}`,
+      });
+    if (Number(prop.LENGTH) < Number(saved.LENGTH)) {
+      add("LENGTH", `Length can't be shorter than the saved ${saved.LENGTH}`);
+    }
+    if (prop.REQUIRED && !saved.REQUIRED) {
+      add("REQUIRED", "A saved optional column can't become required");
+    }
+  };
+  for (const prop of properties) {
+    check(prop);
+    for (const sub of prop.PROP ?? []) check(sub);
+  }
+  return errors;
+}
+
+/**
+ * Validates a MODEL.CONFIG draft against the save rules (`modelConfigSaveSchema`, the same check
+ * `/api/proxy` runs on every PUT to MODEL.CONFIG), plus the rules for already-saved columns,
+ * which need the saved copy and so run only here.
+ */
+export function validateModelConfig(
+  formData: ModelConfigRecord,
+  committedProperty: CommittedPropertyLookup,
+): ModelValidationErrorItem[] {
+  const properties = formData.PROPERTIES || [];
   const validation = modelConfigSaveSchema.safeParse(formData);
-  return validation.success
-    ? []
-    : mapZodIssuesToValidationErrors(validation.error.issues, formData.PROPERTIES || []);
+  return [
+    ...(validation.success
+      ? []
+      : mapZodIssuesToValidationErrors(validation.error.issues, properties)),
+    ...committedColumnErrors(properties, committedProperty),
+  ];
 }

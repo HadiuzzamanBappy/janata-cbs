@@ -69,7 +69,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
 }
 
 /**
- * Handles Mutations (PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, ATT, CTT, AFT)
+ * Handles Mutations (PUT, AUT, DEL, HLD, REV, TRV, SFC, ATT, CTT, AFT)
  * with consistent dual-control audit status transitions.
  */
 /** Mutations reach the mock as the proxy's envelope, which carries the session branch. */
@@ -79,13 +79,11 @@ export function handleMutation(
   const reqType = (payload.requestType || "").trim().toUpperCase();
   const statusMap: Record<string, { label: string; code: string }> = {
     AUT: { label: "authorized", code: "AU" },
-    AMC: { label: "authorized", code: "AU" },
     HLD: { label: "held", code: "HLD" },
     DEL: { label: "deleted", code: "DEL" },
     REV: { label: "reversed", code: "REV" },
     TRV: { label: "reversed", code: "REV" },
     PUT: { label: "saved", code: "UA" },
-    SMC: { label: "saved", code: "UA" },
     SFC: { label: "saved", code: "UA" },
     SMR: { label: "saved", code: "UA" },
     DTR: { label: "deleted", code: "DEL" },

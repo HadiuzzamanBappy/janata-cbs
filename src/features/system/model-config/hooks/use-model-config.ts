@@ -41,10 +41,10 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     addSubField,
     updateField,
     removeField,
-    isFieldCommitted,
+    committedProperty,
     markAsCommitted,
     clearCommitted,
-  } = useMcPropertyOps(setFormData);
+  } = useMcPropertyOps(formData.PROPERTIES || [], setFormData);
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
@@ -86,8 +86,31 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setRecordId(cleanId);
       setValidationErrors([]);
 
+      const notFound = () => {
+        if (targetMode === CbsRecordFunction.INPUT) {
+          initDraft(cleanId);
+          return;
+        }
+        toast.add({
+          title: "Model Not Found",
+          description: `No model #${cleanId} in MODEL.CONFIG`,
+          type: "error",
+        });
+      };
+      const recordFunction = Object.values(CbsRecordFunction).includes(
+        targetMode as CbsRecordFunction,
+      )
+        ? (targetMode as CbsRecordFunction)
+        : CbsRecordFunction.SEE;
+
       try {
-        const record = await queryClient.fetchQuery(cbsQueries.modelConfig.record(cleanId));
+        // The screen always reads fresh: another user may have saved or authorized the model.
+        // `enabled` is observer-only, and `cleanId` is already known to be non-empty.
+        const { enabled: _enabled, ...recordQuery } = cbsQueries.modelConfig.record(
+          cleanId,
+          recordFunction,
+        );
+        const record = await queryClient.query({ ...recordQuery, staleTime: 0 });
         if (record?.TABLENAME) {
           setRawRecord(record);
           hydrate(record);
@@ -100,12 +123,12 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           });
           return;
         }
-        if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
+        notFound();
       } catch (err) {
         // Only a model the core says doesn't exist becomes a new draft. Any other failure keeps
         // the screen as it is: a blank draft saved over an existing model would drop its columns.
         if (err instanceof ModelConfigNotFoundError) {
-          if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
+          notFound();
           return;
         }
         toast.add({
@@ -121,7 +144,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   );
 
   const handleValidate = React.useCallback((): boolean => {
-    const errors = validateModelConfig(formData);
+    const errors = validateModelConfig(formData, committedProperty);
     if (errors.length > 0) {
       setValidationErrors(errors);
       toast.add({
@@ -138,10 +161,11 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       type: "success",
     });
     return true;
-  }, [formData]);
+  }, [committedProperty, formData]);
 
   const { handleSubmit, handleAuthorize, handleHold, handleDelete, handleReverse } = useMcActions({
     formData,
+    committedProperty,
     recordId,
     setSubmitting,
     setValidationErrors,
@@ -191,7 +215,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     addSubField,
     updateField,
     removeField,
-    isFieldCommitted,
+    committedProperty,
     handleCreateNew,
     resetToIdle,
   };

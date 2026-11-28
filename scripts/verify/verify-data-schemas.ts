@@ -154,11 +154,12 @@ async function runSuite() {
     modelSchemaResult.success === true,
   );
 
-  // 4b. Save rules (SMC): stricter than reads, so stored models still load
+  // 4b. Save rules (PUT on MODEL.CONFIG): stricter than reads, so stored models still load
   const saveIssues = modelConfigSaveSchema
     .safeParse({
       ...sampleModel,
       TABLENAME: "test table",
+      AUTHLEVEL: 10,
       PROPERTIES: [{ NAME: "amount", TYPE: "Number", LENGTH: 0 }],
       IDDEF: {
         IDPREFIX: "TT",
@@ -173,6 +174,7 @@ async function runSuite() {
     "TABLENAME",
     "ACCESS",
     "SERVICEPATH",
+    "AUTHLEVEL",
     "IDDEF.SEQUENCELENGTH",
     "PROPERTIES.0.LENGTH",
   ];
@@ -188,7 +190,7 @@ async function runSuite() {
     PROPERTIES: [],
   });
   recordTest(
-    "4b. Model Save Schema: uppercase table, G/B, service name, numeric sequence, positive length, ≥1 property",
+    "4b. Model Save Schema: uppercase table, G/B, service name, auth level 0-9, numeric sequence, positive length, ≥1 property",
     { readSampleAccess: sampleModel.ACCESS, readSampleService: sampleModel.SERVICEPATH },
     { saveIssues, cleanSave: cleanSave.success, emptySave: emptySave.success },
     JSON.stringify(saveIssues) === JSON.stringify(expectedSaveIssues) &&
@@ -490,6 +492,23 @@ async function runSuite() {
       missingKeyResult.success === false &&
       readResult.success === true &&
       responseResult.success === true,
+  );
+
+  // 7b. Known verbs only: a verb the proxy has no save rules or rights for never passes
+  const retiredVerbs = ["SMC", "GMC", "AMC"].map(
+    (requestType) =>
+      cbsWirePayloadSchema.safeParse({
+        ...validMutationWire,
+        requestType,
+        controlName: "MODEL.CONFIG",
+      }).success,
+  );
+  const lowerGet = cbsWirePayloadSchema.safeParse({ ...readWire, requestType: " get " });
+  recordTest(
+    "7b. Wire Schema: Rejects verbs outside CbsRequestType; known verbs are trimmed and uppercased",
+    { rejected: ["SMC", "GMC", "AMC"], normalized: " get " },
+    { retiredVerbsAccepted: retiredVerbs, lowerGet: lowerGet.success && lowerGet.data.requestType },
+    retiredVerbs.every((ok) => !ok) && lowerGet.success && lowerGet.data.requestType === "GET",
   );
 
   // 8. Metamodel Inheritance Defense: FormElement inherits baseFieldSchema + presentation overrides

@@ -45,11 +45,8 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
       cleanStatus === CbsRecordStatus.NEW ||
       cleanStatus === "");
 
-  // 4. Can Hold: Requires 'I' or 'H' right on non-authorized drafts
-  const canHold =
-    (hasRight(CbsRecordFunction.HOLD) || hasRight(CbsRecordFunction.INPUT)) &&
-    !isIdle &&
-    cleanStatus !== CbsRecordStatus.AU;
+  // 4. Can Hold: Requires the 'H' right (as the proxy does) on non-authorized drafts
+  const canHold = hasRight(CbsRecordFunction.HOLD) && !isIdle && cleanStatus !== CbsRecordStatus.AU;
 
   // 5. Can Authorize: Requires 'A' right, pending 'UA' status, not in IDLE, and passes Four-Eyes
   const canAuthorize =

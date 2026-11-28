@@ -14,11 +14,10 @@ import {
   type MenuItem,
   type ModelConfigRecord,
 } from "@/lib/data-schemas";
-import { CbsControlTable } from "@/types";
+import { CbsControlTable, CbsRecordFunction } from "@/types";
 import { createModelPayloads } from "../payloads/base-model";
 import { formConfigPayloads } from "../payloads/form-config";
 import { menuTreePayloads } from "../payloads/menu-tree";
-import { modelConfigPayloads } from "../payloads/model-config";
 import { sendCbsRequest } from "../transport/proxy-client";
 
 export interface ResolvedFormSchemaData {
@@ -31,6 +30,7 @@ export const SCHEMA_ROOT_KEYS = {
   inquiryConfig: ["cbs", "inquiry-schema"] as const,
 } as const;
 
+const modelConfigPayloads = createModelPayloads(CbsControlTable.MODEL_CONFIG);
 const inquiryConfigPayloads = createModelPayloads(CbsControlTable.INQUIRY_CONFIG);
 
 /**
@@ -38,6 +38,16 @@ const inquiryConfigPayloads = createModelPayloads(CbsControlTable.INQUIRY_CONFIG
  * Any other failure is a plain Error, so a designer never mistakes an outage for a new model.
  */
 export class ModelConfigNotFoundError extends Error {}
+
+/** A model's record ID: the base model of a command (`USER.MGT,V1` and `USER.MGT$X` → `USER.MGT`). */
+function modelConfigRecordId(modelId: string): string {
+  return modelId.split("$")[0].split(",")[0].trim().toUpperCase();
+}
+
+/** Query-key prefix shared by every record-function read of one model, for invalidation. */
+export function modelConfigRecordKey(modelId: string) {
+  return ["cbs", "model-config", "record", modelConfigRecordId(modelId)] as const;
+}
 
 /**
  * Tier: Screen Blueprints & Metadata Schemas (Sidebar Navigation, Forms, Inquiries, Metamodels).
@@ -61,16 +71,24 @@ export const schemaQueries = {
       },
     }),
 
-  modelConfigRecord: (modelId: string) => {
-    const cleanId = modelId.split("$")[0].split(",")[0].trim().toUpperCase();
+  /**
+   * A MODEL.CONFIG record read with the screen's record function: `S` reads the live model, while
+   * a maintenance function (I/A/H/R/D) lets the core return the pending copy that function acts on.
+   */
+  modelConfigRecord: (
+    modelId: string,
+    recordFunction: CbsRecordFunction = CbsRecordFunction.SEE,
+  ) => {
+    const cleanId = modelConfigRecordId(modelId);
     return queryOptions<ModelConfigRecord>({
-      queryKey: ["cbs", "model-config", "record", cleanId] as const,
+      queryKey: [...modelConfigRecordKey(cleanId), recordFunction] as const,
       enabled: Boolean(cleanId),
       staleTime: 5 * 60 * 1000,
       queryFn: async () => {
-        const res = await sendCbsRequest<unknown>(modelConfigPayloads.get(cleanId), {
-          silent: true,
-        });
+        const res = await sendCbsRequest<unknown>(
+          modelConfigPayloads.get(cleanId, { recordFunction }),
+          { silent: true },
+        );
         const record = isApiSuccess(res) ? extractModelConfigRecord(res.data) : null;
         if (!record) {
           const message = res.message || `Failed to load MODEL.CONFIG for "${cleanId}"`;

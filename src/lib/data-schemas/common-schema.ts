@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CBS_RECORD_STATUSES, isCbsMutationRequest } from "@/types";
+import { CBS_RECORD_STATUSES, CbsRequestType, isCbsMutationRequest } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* 1. Protocol & Banking Enums (Zero Fallbacks, Strict Whitelist)             */
@@ -66,10 +66,17 @@ export const DEFAULT_SERVICE = "default";
 /** A service name (jar name = DB `servicePath` = `SERVICE_<NAME>_URL`): letters and digits. */
 export const SERVICE_NAME_PATTERN = /^[A-Za-z0-9]+$/;
 
+/** A verb the BFF doesn't know would skip its save rules, rights mapping and idempotency check. */
+const KNOWN_REQUEST_TYPES: ReadonlySet<string> = new Set<string>(Object.values(CbsRequestType));
+
 export const cbsWirePayloadSchema = z
   .object({
     idempotencyKey: z.uuid("Idempotency key must be a valid UUID").optional(),
-    requestType: z.string().trim().toUpperCase().min(1, "Request type is required"),
+    requestType: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .refine((v) => KNOWN_REQUEST_TYPES.has(v), "Unknown request type"),
     controlName: z.string().optional(),
     recordFunction: z.string().optional(),
     recordId: z.string().optional(),

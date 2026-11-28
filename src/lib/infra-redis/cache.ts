@@ -147,20 +147,22 @@ export async function autoInvalidateOnMutation(target: {
     return 0;
   }
 
+  // Spec keys are the record ID, which can differ from the ID the data names (model `USER.MGT`
+  // has TABLENAME `USER_MGT`), so both are cleared.
   const payload = target.data as Record<string, unknown> | undefined;
-  const targetId = (
+  const dataId =
     (payload?.TABLENAME as string) ||
     (payload?.formId as string) ||
     (payload?.inquiryId as string) ||
     (payload?.targetModel as string) ||
-    target.recordId ||
-    ""
-  )
-    .trim()
-    .toUpperCase();
+    "";
+  const targetIds = new Set(
+    [target.recordId || "", dataId].map((id) => id.trim().toUpperCase()).filter(Boolean),
+  );
 
-  if (targetId) {
-    return invalidateCache(targetId);
+  if (targetIds.size > 0) {
+    const counts = await Promise.all([...targetIds].map((id) => invalidateCache(id)));
+    return counts.reduce((sum, n) => sum + n, 0);
   }
 
   if (ctrl === CbsControlTable.MENU_TREE || ctrl === CbsControlTable.MENU) {

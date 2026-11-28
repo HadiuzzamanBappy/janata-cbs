@@ -18,9 +18,12 @@ import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import { type CbsWirePayload, isApiSuccess, type ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, validateModelConfig } from "./mc-validation";
+import type { CommittedPropertyLookup } from "./use-mc-property-ops";
 
 export interface UseMcActionsParams {
   formData: ModelConfigRecord;
+  /** Saved columns, for the rules only a saved column has (see `validateModelConfig`). */
+  committedProperty: CommittedPropertyLookup;
   recordId: string;
   setSubmitting: (val: boolean) => void;
   setValidationErrors: (errors: ModelValidationErrorItem[]) => void;
@@ -30,6 +33,7 @@ export interface UseMcActionsParams {
 
 export function useMcActions({
   formData,
+  committedProperty,
   recordId,
   setSubmitting,
   setValidationErrors,
@@ -63,7 +67,7 @@ export function useMcActions({
           await Promise.all([
             syncId
               ? queryClient.invalidateQueries({
-                  queryKey: cbsQueries.modelConfig.record(syncId).queryKey,
+                  queryKey: cbsQueries.modelConfig.recordKey(syncId),
                 })
               : Promise.resolve(),
             queryClient.invalidateQueries({ queryKey: cbsQueries.formConfig.schemaRootKey }),
@@ -78,7 +82,7 @@ export function useMcActions({
   );
 
   const handleSubmit = React.useCallback(async () => {
-    const errors = validateModelConfig(formData);
+    const errors = validateModelConfig(formData, committedProperty);
     if (errors.length > 0) {
       setValidationErrors(errors);
       toast.add({
@@ -103,7 +107,7 @@ export function useMcActions({
         onSuccess: () => resetToIdle(),
       },
     );
-  }, [executeMutation, formData, recordId, resetToIdle, setValidationErrors]);
+  }, [committedProperty, executeMutation, formData, recordId, resetToIdle, setValidationErrors]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;

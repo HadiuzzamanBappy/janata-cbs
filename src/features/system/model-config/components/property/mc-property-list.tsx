@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/core-utils";
 import { CBS_PROPERTY_TYPE, type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
+import type { CommittedPropertyLookup } from "../../hooks/use-mc-property-ops";
 import { McPropertyItem } from "./mc-property-item";
 
 interface McPropertyListProps {
@@ -29,7 +30,7 @@ interface McPropertyListProps {
   selectedSN: string | null;
   onSelectSN: (sn: string) => void;
   isReadOnly: boolean;
-  isFieldCommitted?: (sn: string) => boolean;
+  committedProperty?: CommittedPropertyLookup;
   validationErrors?: ModelValidationErrorItem[];
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
@@ -42,7 +43,7 @@ export function McPropertyList({
   selectedSN,
   onSelectSN,
   isReadOnly,
-  isFieldCommitted,
+  committedProperty,
   validationErrors = [],
   onAddField,
   onAddSubField,
@@ -156,7 +157,7 @@ export function McPropertyList({
           </div>
         ) : (
           filteredProperties.map((prop) => {
-            const isCommitted = isFieldCommitted ? isFieldCommitted(prop.SN) : true;
+            const isCommitted = committedProperty ? Boolean(committedProperty(prop.SN)) : true;
 
             return (
               <div key={prop.SN} className="flex flex-col">
@@ -179,7 +180,7 @@ export function McPropertyList({
                         prop={sub}
                         isSelected={sub.SN === selectedSN}
                         isReadOnly={isReadOnly}
-                        isCommitted={isFieldCommitted ? isFieldCommitted(sub.SN) : true}
+                        isCommitted={committedProperty ? Boolean(committedProperty(sub.SN)) : true}
                         validationErrors={validationErrors}
                         onSelect={onSelectSN}
                         onDelete={onDeleteField}

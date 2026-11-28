@@ -3,9 +3,13 @@ import { createModelPayloads } from "./payloads/base-model";
 import { formConfigPayloads } from "./payloads/form-config";
 import { inquiryPayloads } from "./payloads/inquiry";
 import { menuTreePayloads } from "./payloads/menu-tree";
-import { modelConfigPayloads } from "./payloads/model-config";
 import { lookupQueries } from "./queries/lookups";
-import { ModelConfigNotFoundError, SCHEMA_ROOT_KEYS, schemaQueries } from "./queries/schemas";
+import {
+  ModelConfigNotFoundError,
+  modelConfigRecordKey,
+  SCHEMA_ROOT_KEYS,
+  schemaQueries,
+} from "./queries/schemas";
 import { cbsAuth } from "./transport/auth-client";
 import { type SendCbsOptions, sendCbsRequest } from "./transport/proxy-client";
 
@@ -43,6 +47,7 @@ export const cbsQueries = {
   // Meta-configuration designers & operational blueprints
   modelConfig: {
     record: schemaQueries.modelConfigRecord,
+    recordKey: modelConfigRecordKey,
   },
   formConfig: {
     schemaRootKey: SCHEMA_ROOT_KEYS.formConfig,
@@ -68,7 +73,7 @@ export const cbs = {
   menuTree: menuTreePayloads,
 
   // Meta-configuration designers
-  modelConfig: modelConfigPayloads,
+  modelConfig: createModelPayloads(CbsControlTable.MODEL_CONFIG),
   formConfig: formConfigPayloads,
   inquiryConfig: createModelPayloads(CbsControlTable.INQUIRY_CONFIG),
 

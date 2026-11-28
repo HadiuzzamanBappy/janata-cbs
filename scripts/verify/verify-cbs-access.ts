@@ -126,6 +126,25 @@ recordTest(
     !pendingAccess.canReverse,
 );
 
+// 3.2 Hold needs the 'H' right, as the proxy's HLD check does: Input alone is not enough
+const inputOnlyAccess = evaluateCbsAccess({
+  userId: "TELLER02",
+  recordInputter: "TELLER01",
+  recordStatus: "UA",
+  mode: "I",
+  grantedRights: ["I", "S"],
+});
+recordTest(
+  "3.2 Hold Right: An 'I'-only user can't Hold, and the reason names the missing 'H'",
+  'grantedRights: ["I", "S"], recordStatus: "UA"',
+  {
+    canHold: inputOnlyAccess.canHold,
+    reason: inputOnlyAccess.getDisableReason(CbsRecordFunction.HOLD),
+  },
+  !inputOnlyAccess.canHold &&
+    (inputOnlyAccess.getDisableReason(CbsRecordFunction.HOLD) ?? "").includes("'H'"),
+);
+
 // --- 4. Live Authorized Record (AU) Lifecycle Actions ---
 console.log("\n── 4. Live Authorized Record (AU) Lifecycle ──");
 const liveAccess = evaluateCbsAccess({

@@ -15,73 +15,79 @@ import {
   type ModelProperty,
 } from "@/lib/data-schemas";
 
+/** Keys a committed (saved) column can never change: the stored data depends on them. */
+export const COMMITTED_LOCKED_KEYS: ReadonlySet<string> = new Set([
+  "NAME",
+  "TYPE",
+  "STRUCTURE",
+  "MODELNAME",
+]);
+
+/** The committed copy of a column by SN, or undefined for a draft column. */
+export type CommittedPropertyLookup = (sn: string) => ModelProperty | undefined;
+
+/** Highest numeric SN suffix (after the last `_`) in a list, so a deleted draft SN is never reused. */
+function maxSnSuffix(props: readonly ModelProperty[]): number {
+  return props.reduce((max, p) => {
+    const num = Number.parseInt(p.SN.split("_").pop() ?? "", 10);
+    return !Number.isNaN(num) && num > max ? num : max;
+  }, 0);
+}
+
 export function useMcPropertyOps(
+  properties: readonly ModelProperty[],
   setFormData: React.Dispatch<React.SetStateAction<ModelConfigRecord>>,
 ) {
-  const [committedSnSet, setCommittedSnSet] = React.useState<Set<string>>(new Set());
+  const [committed, setCommitted] = React.useState<ReadonlyMap<string, ModelProperty>>(new Map());
+
+  // The latest columns, plus any added since the last render, so two quick adds get distinct SNs
+  const propertiesRef = React.useRef(properties);
+  React.useLayoutEffect(() => {
+    propertiesRef.current = properties;
+  }, [properties]);
 
   const markAsCommitted = React.useCallback((props: ModelProperty[]) => {
-    const set = new Set<string>();
-    props.forEach((p) => {
-      set.add(p.SN);
-      p.PROP?.forEach((sub) => {
-        set.add(sub.SN);
-      });
-    });
-    setCommittedSnSet(set);
+    const map = new Map<string, ModelProperty>();
+    for (const p of props) {
+      map.set(p.SN, p);
+      for (const sub of p.PROP ?? []) map.set(sub.SN, sub);
+    }
+    setCommitted(map);
   }, []);
 
   const addField = React.useCallback((): string => {
-    let createdSn = "";
-    setFormData((prev) => {
-      const props = prev.PROPERTIES || [];
-      const maxSn = props.reduce((max, p) => {
-        const num = Number.parseInt(p.SN, 10);
-        return !Number.isNaN(num) && num > max ? num : max;
-      }, 0);
-      const nextSn = String(maxSn + 1);
-      createdSn = nextSn;
-      const newField = createModelProperty(nextSn);
-      return {
-        ...prev,
-        PROPERTIES: [...props, newField],
-      };
-    });
-    return createdSn;
+    const newField = createModelProperty(String(maxSnSuffix(propertiesRef.current) + 1));
+    propertiesRef.current = [...propertiesRef.current, newField];
+    setFormData((prev) => ({ ...prev, PROPERTIES: [...(prev.PROPERTIES || []), newField] }));
+    return newField.SN;
   }, [setFormData]);
 
   const addSubField = React.useCallback(
     (parentSn: string): string => {
-      let createdSn = "";
-      setFormData((prev) => {
-        const props = (prev.PROPERTIES || []).map((p) => {
-          if (p.SN !== parentSn) return p;
-          const currentChildren = p.PROP || [];
-          // Next after the highest suffix: a count would reuse an SN after a draft delete
-          const maxSuffix = currentChildren.reduce((max, sub) => {
-            const num = Number.parseInt(sub.SN.split("_").pop() ?? "", 10);
-            return !Number.isNaN(num) && num > max ? num : max;
-          }, 0);
-          const nextSn = `${parentSn}_${maxSuffix + 1}`;
-          createdSn = nextSn;
-          // Sub-properties are only offered on Array properties, so the parent type is unchanged
-          return { ...p, PROP: [...currentChildren, createModelProperty(nextSn)] };
-        });
-        return { ...prev, PROPERTIES: props };
-      });
-      return createdSn;
+      const parent = propertiesRef.current.find((p) => p.SN === parentSn);
+      if (!parent) return "";
+      // Sub-properties are only offered on Array properties, so the parent type is unchanged
+      const newSub = createModelProperty(`${parentSn}_${maxSnSuffix(parent.PROP ?? []) + 1}`);
+      const withSub = (p: ModelProperty) =>
+        p.SN === parentSn ? { ...p, PROP: [...(p.PROP || []), newSub] } : p;
+      propertiesRef.current = propertiesRef.current.map(withSub);
+      setFormData((prev) => ({ ...prev, PROPERTIES: (prev.PROPERTIES || []).map(withSub) }));
+      return newSub.SN;
     },
     [setFormData],
   );
 
   const updateField = React.useCallback(
     (sn: string, patch: Partial<ModelProperty>) => {
-      // Invariant: Committed properties cannot change NAME, TYPE, STRUCTURE, or MODELNAME
-      const isCommitted = committedSnSet.has(sn);
-      const safePatch = isCommitted
+      // A committed column keeps its locked keys, and an optional one never becomes required
+      // (existing rows may hold nulls). A shorter LENGTH is reported by validation instead,
+      // so typing a longer value digit by digit isn't blocked.
+      const saved = committed.get(sn);
+      const safePatch = saved
         ? Object.fromEntries(
             Object.entries(patch).filter(
-              ([k]) => k !== "NAME" && k !== "TYPE" && k !== "STRUCTURE" && k !== "MODELNAME",
+              ([k, v]) =>
+                !COMMITTED_LOCKED_KEYS.has(k) && !(k === "REQUIRED" && v && !saved.REQUIRED),
             ),
           )
         : patch;
@@ -102,19 +108,19 @@ export function useMcPropertyOps(
         return { ...prev, PROPERTIES: updated };
       });
     },
-    [committedSnSet, setFormData],
+    [committed, setFormData],
   );
 
-  const isFieldCommitted = React.useCallback(
-    (sn: string) => committedSnSet.has(sn),
-    [committedSnSet],
+  const committedProperty = React.useCallback<CommittedPropertyLookup>(
+    (sn) => committed.get(sn),
+    [committed],
   );
 
   const removeDraftField = React.useCallback(
     (sn: string) => {
       setFormData((prev) => {
         // Core Banking Rule: Committed properties in database cannot be deleted (append-only schema evolution)
-        if (committedSnSet.has(sn)) {
+        if (committed.has(sn)) {
           return prev;
         }
 
@@ -136,11 +142,11 @@ export function useMcPropertyOps(
         };
       });
     },
-    [committedSnSet, setFormData],
+    [committed, setFormData],
   );
 
   const clearCommitted = React.useCallback(() => {
-    setCommittedSnSet(new Set());
+    setCommitted(new Map());
   }, []);
 
   return {
@@ -148,7 +154,7 @@ export function useMcPropertyOps(
     addSubField,
     updateField,
     removeField: removeDraftField,
-    isFieldCommitted,
+    committedProperty,
     markAsCommitted,
     clearCommitted,
   };

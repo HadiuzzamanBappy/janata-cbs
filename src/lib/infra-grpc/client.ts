@@ -16,7 +16,7 @@ import {
   type LoginRequest,
 } from "./generated/service";
 
-const MAX_GRPC_MESSAGE_BYTES = 16 * 1024 * 1024; // 16 MB for large INQ / GMC / GFC payloads
+const MAX_GRPC_MESSAGE_BYTES = 16 * 1024 * 1024; // 16 MB for large INQ / GFC payloads
 
 /**
  * Single source of truth for static mock vs live gRPC runtime mode.

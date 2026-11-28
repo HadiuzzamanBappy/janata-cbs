@@ -23,10 +23,10 @@ flowchart TD
 
 Two records meet in this path:
 
-| Record | What it holds | Owner screen | Schema |
-| --- | --- | --- | --- |
-| Model (`MODEL.CONFIG`) | The database columns: `NAME`, `TYPE`, `LENGTH`, `STRUCTURE`, `REQUIRED`, `MODELNAME` | MODEL.CONFIG | `modelConfigRecordSchema` (`src/lib/data-schemas/model-config-schema.ts`) |
-| Form layout (`CONFIG.FORM`) | How those columns look: sections, cards, tabs, widgets, widths, rules | FORM.CONFIG | `formConfigRecordSchema` (`src/lib/data-schemas/form-config-schema.ts`) |
+| Record                      | What it holds                                                                        | Owner screen | Schema                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------- |
+| Model (`MODEL.CONFIG`)      | The database columns: `NAME`, `TYPE`, `LENGTH`, `STRUCTURE`, `REQUIRED`, `MODELNAME` | MODEL.CONFIG | `modelConfigRecordSchema` (`src/lib/data-schemas/model-config-schema.ts`) |
+| Form layout (`CONFIG.FORM`) | How those columns look: sections, cards, tabs, widgets, widths, rules                | FORM.CONFIG  | `formConfigRecordSchema` (`src/lib/data-schemas/form-config-schema.ts`)   |
 
 The model says **what** a field is. The form says **how** it is shown. The compiler joins the two at runtime.
 
@@ -79,11 +79,11 @@ In INPUT mode, a new form gets a fresh draft; a failed response stops after the 
 
 **What happens.** Everything you do on the Designer tab changes one draft `FormConfigRecord` held in the designer context. Three parts work on it:
 
-| Part | Job | Files (`src/features/system/form-config/components/designer/`) |
-| --- | --- | --- |
-| Palette | Lists model columns and containers (card, tab group) to drag in | `field-palette.tsx`, `palette/*` |
-| Canvas | Shows sections, cards, tab groups and fields; accepts drops and reorders | `designer-canvas.tsx`, `canvas/*`, `canvas/tab-group/*` |
-| Inspector | Edits the selected form, container or field | `property-inspector.tsx`, `inspector/*` |
+| Part      | Job                                                                      | Files (`src/features/system/form-config/components/designer/`) |
+| --------- | ------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Palette   | Lists model columns and containers (card, tab group) to drag in          | `field-palette.tsx`, `palette/*`                               |
+| Canvas    | Shows sections, cards, tab groups and fields; accepts drops and reorders | `designer-canvas.tsx`, `canvas/*`, `canvas/tab-group/*`        |
+| Inspector | Edits the selected form, container or field                              | `property-inspector.tsx`, `inspector/*`                        |
 
 How drag and drop works:
 
@@ -155,7 +155,7 @@ Tabs: tabs with the same `groupId` are drawn as one tab group and saved together
 1. **Session.** No session gives 401; a pending password change gives 403.
 2. **Wire shape.** `cbsWirePayloadSchema.safeParse`.
 3. **Rights.** `verifyUserRecordAccess` (RIDASHL). The proxy checks rights, not Four-Eyes; Four-Eyes lives in the UI (AGENTS §3.3).
-4. **Save rules.** `SAVE_DATA_SCHEMAS` runs the **same** `formConfigSaveSchema` as the screen on `body.data` (also SMC for models and PUT for INQUIRY.CONFIG). A direct API call can't skip the screen's rules.
+4. **Save rules.** `SAVE_DATA_SCHEMAS` runs the **same** `formConfigSaveSchema` as the screen on `body.data` (also PUT for MODEL.CONFIG and INQUIRY.CONFIG). A direct API call can't skip the screen's rules.
 5. **Forward the checked record.** The proxy sends `dataCheck.data` (the parsed result), not the raw body. Form fields are a plain `z.object` built from the column shape, so a key the designer doesn't author is removed at any depth. Model properties stay loose.
 6. `buildGrpcEnvelope` takes user and branch from the session, never from the browser. Then come cache, `dispatch()` and `autoInvalidateOnMutation` (`src/lib/infra-redis/cache.ts`).
 
@@ -241,19 +241,19 @@ flowchart LR
 
 Each rule below has exactly one definition. To prove it, search for the name: you should find one definition and only callers elsewhere.
 
-| Rule | Single home |
-| --- | --- |
-| Lookup or options of a field | `resolveFieldParameter`, `hasFieldOptions`, `isArrayLookup` in `form-engine-schema.ts` |
-| Field ↔ model column, by name (runtime and save check) | `modelPropertyMatcher` in `cbs-form-spec/compile.ts` |
-| Field ↔ model column, by `SN` at any depth (designer) | `findModelPropDeep` in `form-config/hooks/fc-field-tree.ts` |
-| Widget for a field | `resolveWidgetType` in `cbs-form-spec/field-normalizer.ts` |
-| Widget sets (choice, inline width) | `CHOICE_WIDGETS`, `INLINE_WIDTH_WIDGETS` in `form-widget-schema.ts` |
-| Density and layout values | `FORM_DENSITIES`, `FORM_LAYOUTS` in `form-engine-schema.ts` |
-| Which tab's settings govern a tab group | `resolveTabGroupConfig` in `cbs-form-spec/layout-blocks.ts` |
-| Badge colour of a container | `containerBadgeTone` in `cbs-form-engine/components/form-layout-context.tsx` |
-| Loose value equality in rules | `looseEquals` in `cbs-form-spec/field-rules.ts` (private) |
-| Designer drag data | `designerDragPayloadSchema` + `readDragPayload` |
-| Save rules (screen and proxy) | `formConfigSaveSchema` |
+| Rule                                                   | Single home                                                                            |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Lookup or options of a field                           | `resolveFieldParameter`, `hasFieldOptions`, `isArrayLookup` in `form-engine-schema.ts` |
+| Field ↔ model column, by name (runtime and save check) | `modelPropertyMatcher` in `cbs-form-spec/compile.ts`                                   |
+| Field ↔ model column, by `SN` at any depth (designer)  | `findModelPropDeep` in `form-config/hooks/fc-field-tree.ts`                            |
+| Widget for a field                                     | `resolveWidgetType` in `cbs-form-spec/field-normalizer.ts`                             |
+| Widget sets (choice, inline width)                     | `CHOICE_WIDGETS`, `INLINE_WIDTH_WIDGETS` in `form-widget-schema.ts`                    |
+| Density and layout values                              | `FORM_DENSITIES`, `FORM_LAYOUTS` in `form-engine-schema.ts`                            |
+| Which tab's settings govern a tab group                | `resolveTabGroupConfig` in `cbs-form-spec/layout-blocks.ts`                            |
+| Badge colour of a container                            | `containerBadgeTone` in `cbs-form-engine/components/form-layout-context.tsx`           |
+| Loose value equality in rules                          | `looseEquals` in `cbs-form-spec/field-rules.ts` (private)                              |
+| Designer drag data                                     | `designerDragPayloadSchema` + `readDragPayload`                                        |
+| Save rules (screen and proxy)                          | `formConfigSaveSchema`                                                                 |
 
 ---
 
@@ -282,17 +282,17 @@ All clean, except `verify:schemas` **`10d`**, which you have chosen to keep fail
 
 ## 12. What the audit changed, and what is still open
 
-| Phase | Commit | Result |
-| --- | --- | --- |
-| 1. Bugs | `75f120c` | `md` width kept on save; inspector shows the engine's widget; deep model match; no draft on a failed GFC; inner fields checked against the model |
-| 2. Schema constants | `c1f9af1` | Parameter types, densities, layouts and widget sets defined once; dead aliases and exports removed |
-| 3. Compiler rules | `cb77910` | `PARAMETER` rules, name matching, tab group settings and rule equality defined once; only `type: "A"` is an array lookup |
-| 4. Engine API | `e0f3a34` | Dead renderer props and the 12-column path removed; one `errors` prop; AUTO width |
-| 5. Drag and sections | `c16e703` | Checked drag data; explicit drop targets; 3 drop fixes; no inspector defaults |
-| 6. Parser and client | `3f2abc3` | GFC parsed per schema; checked model fallback; `recordId` required on save |
-| 7. Boundary | `edb237b` | Unknown field keys removed; proxy forwards checked data; radio prefix alias and model widget reads removed |
-| 8. Size budget | `82135dc` | Inspector, section grid, tab specs and field badges split; every file within budget |
-| 9. Docs | not committed | READMEs, runbook and AGENTS §2 (`pnpm deprecated`) match the code; dead `combobox` widget case removed |
+| Phase                | Commit        | Result                                                                                                                                           |
+| -------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Bugs              | `75f120c`     | `md` width kept on save; inspector shows the engine's widget; deep model match; no draft on a failed GFC; inner fields checked against the model |
+| 2. Schema constants  | `c1f9af1`     | Parameter types, densities, layouts and widget sets defined once; dead aliases and exports removed                                               |
+| 3. Compiler rules    | `cb77910`     | `PARAMETER` rules, name matching, tab group settings and rule equality defined once; only `type: "A"` is an array lookup                         |
+| 4. Engine API        | `e0f3a34`     | Dead renderer props and the 12-column path removed; one `errors` prop; AUTO width                                                                |
+| 5. Drag and sections | `c16e703`     | Checked drag data; explicit drop targets; 3 drop fixes; no inspector defaults                                                                    |
+| 6. Parser and client | `3f2abc3`     | GFC parsed per schema; checked model fallback; `recordId` required on save                                                                       |
+| 7. Boundary          | `edb237b`     | Unknown field keys removed; proxy forwards checked data; radio prefix alias and model widget reads removed                                       |
+| 8. Size budget       | `82135dc`     | Inspector, section grid, tab specs and field badges split; every file within budget                                                              |
+| 9. Docs              | not committed | READMEs, runbook and AGENTS §2 (`pnpm deprecated`) match the code; dead `combobox` widget case removed                                           |
 
 **Still open:**
 

@@ -70,7 +70,7 @@ export function McPropertyItem({
         <span
           className={cn(
             "font-mono text-3xs px-1 rounded shrink-0",
-            isSub ? "py-0.2" : "py-0.5",
+            isSub ? "py-px" : "py-0.5",
             isSelected && !isSub
               ? "bg-primary/15 text-primary font-bold border border-primary/25"
               : "bg-muted text-muted-foreground font-medium",

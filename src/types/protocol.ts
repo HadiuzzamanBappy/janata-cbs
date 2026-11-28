@@ -42,13 +42,7 @@ export const CbsRequestType = {
   /** Refresh materialize view ('RMV') */
   RMV: "RMV",
 
-  // --- Model & Form Config Verbs ---
-  /** Get model definition ('GMC') */
-  GMC: "GMC",
-  /** Save model definition ('SMC') */
-  SMC: "SMC",
-  /** Auth model config ('AMC') */
-  AMC: "AMC",
+  // --- Form Config Verbs ---
   /** Save form config ('SFC') */
   SFC: "SFC",
   /** Get form control that is form (version) and model definition ('GFC') */
@@ -106,8 +100,6 @@ const CBS_MUTATION_REQUEST_TYPES: ReadonlySet<string> = new Set<string>([
   CbsRequestType.REV,
   CbsRequestType.TRV,
   CbsRequestType.HLD,
-  CbsRequestType.SMC,
-  CbsRequestType.AMC,
   CbsRequestType.SFC,
   CbsRequestType.SMR,
   CbsRequestType.DTR,

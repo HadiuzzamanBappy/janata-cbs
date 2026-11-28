@@ -9,6 +9,7 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
+import { tabFieldErrors } from "@/lib/cbs-screen";
 import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { MODEL_CONFIG_SECTIONS } from "../fields/mc-general-fields";
@@ -27,16 +28,10 @@ export function McGeneralTab({
   isReadOnly,
   validationErrors = [],
 }: McGeneralTabProps) {
-  // 1. Map external domain validation errors to field names
-  const errorMap = React.useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const err of validationErrors) {
-      if (err.tab === "general" && err.fieldKey) {
-        map[err.fieldKey] = err.message;
-      }
-    }
-    return map;
-  }, [validationErrors]);
+  const errorMap = React.useMemo(
+    () => tabFieldErrors(validationErrors, "general"),
+    [validationErrors],
+  );
 
   // The pattern checkboxes are a UI helper over IDPATTERN ("PF#IS"): show the stored tokens as
   // ticked, so editing them extends the saved pattern instead of starting from nothing.

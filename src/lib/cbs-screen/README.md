@@ -49,6 +49,7 @@ src/lib/cbs-screen/
 ### 4. Validation & Focus Utilities (`validation.ts`)
 
 - **`mapZodIssuesToTabs`**: Maps raw `z.ZodIssue[]` into tab-addressed `CbsScreenValidationError<TTab>[]` for high-density multi-tab forms.
+- **`tabFieldErrors(errors, tab)`**: One tab's errors as the `fieldKey → message` map a `FormRenderer` takes (the first error per field). The designers' General and Routines tabs use it. The warning toast that goes with a failed validation is `toastValidationIssues(count)` in `@/components/cbs-screen`.
 - **`focusFormField(fieldKey?, nodeId?)`**: Smoothly scrolls and auto-focuses the offending input element when an operator clicks an error in the validation checklist drawer. Uses `escapeCss` and selector try-catch guards to handle dotted/bracketed paths without throwing DOM exceptions.
 
 ### 5. Scaffold Models (`types.ts`)

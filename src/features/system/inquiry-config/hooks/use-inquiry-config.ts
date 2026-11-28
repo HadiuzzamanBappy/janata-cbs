@@ -15,7 +15,7 @@ import { useIcColumnOps } from "./use-ic-column-ops";
 import { useIcFilterOps } from "./use-ic-filter-ops";
 import { INITIAL_INQUIRY_CONFIG, useIcPersistence } from "./use-ic-persistence";
 
-export function useInquiryConfig(initialId?: string, tabId?: string) {
+export function useInquiryConfig(tabId?: string) {
   const {
     recordId,
     setRecordId,
@@ -31,7 +31,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     dirtyKeys,
     resolvedInitialId,
     resolvedInitialMode,
-  } = useIcPersistence(initialId, tabId);
+  } = useIcPersistence(tabId);
 
   const filterOps = useIcFilterOps(setFormData);
   const columnOps = useIcColumnOps(setFormData);

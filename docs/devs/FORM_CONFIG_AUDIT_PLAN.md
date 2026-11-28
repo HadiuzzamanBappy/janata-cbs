@@ -52,14 +52,14 @@ The model says **what** a field is. The form says **how** it is shown. The compi
 
 ## Step 2. Loading a form: GFC and the parser
 
-**What happens.** You enter a form ID such as `USER.MGT,V1`. `useFormConfig().fetchRecord` sends `cbs.formConfig.get(id)`, which is a `GFC` request. The core answers with **one** record: the model's columns plus a `FORMCONTROL` key that holds the stored layout. `parseGfcResponse()` splits them:
+**What happens.** You enter a form ID such as `USER.MGT,V1`. `useFormConfig().fetchRecord` sends `cbs.formConfig.get(id, { recordFunction })`, which is a `GFC` request with the screen mode's record function (`recordFunctionOfMode`), so Authorize reviews the pending layout, not the live one. The core answers with **one** record: the model's columns plus a `FORMCONTROL` key that holds the stored layout. `parseGfcResponse()` splits them:
 
 1. `FORMCONTROL` is taken off the record.
 2. The model half is checked with `modelConfigRecordSchema`. If a required header such as `SERVICEPATH` is missing, the parser tries `modelConfigRecordSchema.partial()`, so the field palette still loads with checked columns. If that also fails, the result is `{ success: false }`.
-3. The layout half is checked with `formConfigRecordSchema`, then cleaned by `sanitizeFormConfigRecord()`.
-4. `isNew` is true only when there is no stored layout at all. A stored layout that fails to parse is **not** new, so a blank draft can never overwrite it.
+3. The layout half is read **leniently**: it is checked with `formConfigRecordSchema`, and each part that fails is dropped and listed in `repairs` (a bad value drops that key; a missing required key drops its section or field). Then it is cleaned by `sanitizeFormConfigRecord()`. The designer opens a repaired layout with a "Stored Layout Repaired" warning, and the save rules stay strict, so saving stores a clean copy. A running screen (`cbsQueries.formConfig.schema`) refuses a repaired layout instead, because a dropped field could take wrong input.
+4. `isNew` is true only when `FORMCONTROL` is empty. Any stored layout, even one holding only a description, is **not** new, so a blank draft can never overwrite it.
 
-In INPUT mode, a new form gets a fresh draft; a failed response stops after the error toast.
+In INPUT mode, a new form gets a fresh draft; in any other mode it shows "Form Not Found". A failed response stops after the error toast. Loading clears the previous form's validation errors.
 
 **Read:**
 
@@ -72,6 +72,7 @@ In INPUT mode, a new form gets a fresh draft; a failed response stops after the 
 
 - [ ] `pnpm verify:parsers` passes.
 - [ ] Open FC, load an existing form from `mock/db/SC_FORM_CONFIG.ts`: the canvas shows its layout. Load an unknown ID: you get one error toast and no "New Form Config Draft" toast.
+- [ ] Load a new version of an existing form (`CUSTOMER,V9`): it starts as a blank draft, not a copy of `CUSTOMER`. Open a form with no layout in See mode: "Form Not Found".
 
 ---
 

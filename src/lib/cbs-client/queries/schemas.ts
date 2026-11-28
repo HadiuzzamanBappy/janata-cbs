@@ -131,9 +131,13 @@ export const schemaQueries = {
         if (!parsed?.success) {
           throw new Error(`Form "${formId}" response from CONFIG.FORM is empty or invalid`);
         }
-        const { model, form, isNew } = parsed.data;
-        if (!isNew && !form) {
-          throw new Error(`Form "${formId}" in CONFIG.FORM could not be read`);
+        // A layout the parser had to repair never runs: a dropped field could take wrong input.
+        // Only the designer opens it, to repair and save it.
+        const { model, form, isNew, repairs } = parsed.data;
+        if (!isNew && (!form || repairs.length > 0)) {
+          throw new Error(
+            `Form "${formId}" in CONFIG.FORM could not be read. Open it in Form Design (FC) to repair it.`,
+          );
         }
         if (!form?.frmElements.sections.length) {
           throw new Error(`No form "${formId}" in CONFIG.FORM. Create it in Form Design (FC).`);

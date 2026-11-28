@@ -7,22 +7,14 @@ import type {
   ModelProperty,
 } from "@/lib/data-schemas";
 import type { FormConfigValidationError } from "../../../hooks/fc-validation";
+import type { FormRootPatch } from "../../../hooks/use-form-config";
 import type { AddSectionFn, ConvertSectionZoneFn } from "../canvas/canvas-types";
 import type { PaletteDragPayload, PaletteDropTarget } from "../canvas/drag-payload";
 
 export interface DesignerContextValue {
-  formTitle?: string;
-  formDescription?: string;
-  authNumber?: number;
   rootLayout?: FormLayout;
   rootDensity?: FormDensity;
-  onUpdateFormConfig?: (patch: {
-    title?: string;
-    description?: string;
-    authNumber?: number;
-    layout?: FormLayout;
-    density?: FormDensity;
-  }) => void;
+  onUpdateFormConfig?: (patch: FormRootPatch) => void;
   targetModel?: string;
   modelProperties?: ModelProperty[];
   sections: FormSection[];
@@ -85,18 +77,9 @@ export interface DesignerContextValue {
 
 export interface DesignerProviderProps {
   children: React.ReactNode;
-  formTitle?: string;
-  formDescription?: string;
-  authNumber?: number;
   rootLayout?: FormLayout;
   rootDensity?: FormDensity;
-  onUpdateFormConfig?: (patch: {
-    title?: string;
-    description?: string;
-    authNumber?: number;
-    layout?: FormLayout;
-    density?: FormDensity;
-  }) => void;
+  onUpdateFormConfig?: (patch: FormRootPatch) => void;
   isCompact?: boolean;
   targetModel?: string;
   modelProperties?: ModelProperty[];

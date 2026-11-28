@@ -10,9 +10,8 @@ export const INITIAL_MENU_TREE: MenuTreeRecord = {
   menuTree: [],
 };
 
-export function useMdPersistence(initialId?: string, tabId?: string) {
+export function useMdPersistence(tabId?: string) {
   return useCbsPersistence<MenuTreeRecord>({
-    initialId,
     tabId,
     initialData: INITIAL_MENU_TREE,
     schema: menuTreeRecordSchema,

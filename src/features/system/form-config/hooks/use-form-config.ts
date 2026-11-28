@@ -8,10 +8,18 @@
 "use client";
 
 import * as React from "react";
+import { toastValidationIssues } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
+import { recordFunctionOfMode } from "@/lib/cbs-access";
 import { cbs } from "@/lib/cbs-client";
+import { logger } from "@/lib/core-logger";
 import { parseGfcResponse } from "@/lib/data-parsers";
-import { isApiSuccess, type ModelConfigRecord } from "@/lib/data-schemas";
+import {
+  type FormDensity,
+  type FormLayout,
+  isApiSuccess,
+  type ModelConfigRecord,
+} from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type FormConfigValidationError, validateFormConfig } from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
@@ -21,7 +29,13 @@ import { useFcSectionOps } from "./use-fc-section-ops";
 
 export type { FormConfigValidationError };
 
-export function useFormConfig(initialId?: string, tabId?: string) {
+/** The form-wide layout settings the designer canvas edits. */
+export interface FormRootPatch {
+  layout?: FormLayout;
+  density?: FormDensity;
+}
+
+export function useFormConfig(tabId?: string) {
   const {
     recordId,
     setRecordId,
@@ -36,7 +50,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     reset,
     resolvedInitialId,
     resolvedInitialMode,
-  } = useFormConfigPersistence(initialId, tabId);
+  } = useFormConfigPersistence(tabId);
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
@@ -48,6 +62,25 @@ export function useFormConfig(initialId?: string, tabId?: string) {
 
   const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
   const fieldOps = useFcFieldOps(setFormData, setSelectedFieldId, setSelectedSectionId);
+
+  // A form ID is `<MODEL>,<VERSION>`: its model key is the part before the comma (never the
+  // model's TABLENAME, which can differ, e.g. USER.MGT vs USER_MGT)
+  const modelKey = recordId.split(",")[0].trim().toUpperCase();
+
+  const updateFormRoot = React.useCallback(
+    (patch: FormRootPatch) => {
+      setFormData((prev) => ({
+        ...prev,
+        frmElements: {
+          ...prev.frmElements,
+          sections: prev.frmElements?.sections || [],
+          ...(patch.layout !== undefined ? { layout: patch.layout } : {}),
+          ...(patch.density !== undefined ? { density: patch.density } : {}),
+        },
+      }));
+    },
+    [setFormData],
+  );
 
   const initDraft = React.useCallback(
     (cleanId: string) => {
@@ -69,9 +102,13 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       const cleanId = (id || "").trim().toUpperCase();
       if (!cleanId) return;
       setRecordId(cleanId);
+      setValidationErrors([]);
       setLoading(true);
       try {
-        const res = await cbs.send<Record<string, unknown>>(cbs.formConfig.get(cleanId));
+        // Each mode reads the copy it acts on: Authorize reviews the pending layout, not the live one
+        const res = await cbs.send<Record<string, unknown>>(
+          cbs.formConfig.get(cleanId, { recordFunction: recordFunctionOfMode(targetMode) }),
+        );
         // A failed GFC (no such model) already raised its toast in cbs.send; no draft without a model
         if (!isApiSuccess(res) || !res.data) return;
 
@@ -86,7 +123,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           return;
         }
 
-        const { model, form, isNew } = parsed.data;
+        const { model, form, isNew, repairs } = parsed.data;
         setTargetModelRecord(model);
 
         // 1. Existing Form Config: hydrate saved layout into canvas
@@ -95,6 +132,14 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           setMode(targetMode);
           setSelectedSectionId(null);
           setSelectedFieldId(null);
+          if (repairs.length > 0) {
+            logger.warn(`Stored layout #${cleanId} opened with invalid parts dropped`, { repairs });
+            toast.add({
+              title: "Stored Layout Repaired",
+              description: `${repairs.length} invalid part${repairs.length > 1 ? "s were" : " was"} dropped from #${cleanId}. Review the layout and save to store the repaired version.`,
+              type: "warning",
+            });
+          }
           return;
         }
 
@@ -108,8 +153,16 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           return;
         }
 
-        // 2. New Form Config (FORMCONTROL is {}): initialize clean empty draft
-        if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
+        // 2. New Form Config (FORMCONTROL is {}): a draft in Input, otherwise there is nothing to show
+        if (targetMode === CbsRecordFunction.INPUT) {
+          initDraft(cleanId);
+          return;
+        }
+        toast.add({
+          title: "Form Not Found",
+          description: `No stored layout for #${cleanId} in CONFIG.FORM.`,
+          type: "error",
+        });
       } catch {
         // cbs.send already raised the toast; keep the current draft rather than a blank one
       } finally {
@@ -123,15 +176,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const runValidation = React.useCallback(() => {
     const issues = validateFormConfig(formData, targetModelRecord);
     setValidationErrors(issues);
-    const issueCount = issues.length;
-    if (issueCount > 0) {
-      toast.add({
-        title: "Validation Failed",
-        description: `${issueCount} issue(s) detected`,
-        type: "warning",
-      });
-    }
-    return issueCount === 0;
+    if (issues.length > 0) toastValidationIssues(issues.length);
+    return issues.length === 0;
   }, [formData, targetModelRecord]);
 
   const handleValidate = React.useCallback(() => {
@@ -188,7 +234,9 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     setSelectedFieldId,
     validationErrors,
     targetModelRecord,
+    modelKey,
     rawRecord,
+    updateFormRoot,
     ...sectionOps,
     ...fieldOps,
     ...actions,

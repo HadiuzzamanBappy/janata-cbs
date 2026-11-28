@@ -1,6 +1,6 @@
 /**
  * @fileoverview Main Form Configuration Screen (FORM.CONFIG).
- * Provides a 4-tab workbench: General Metadata, Visual Form Designer,
+ * Provides a 5-tab workbench: General Metadata, Visual Form Designer, Routines,
  * Live Runtime Preview, and Wire JSON Inspection.
  *
  * @module features/system/form-config/sys-form-config
@@ -12,7 +12,6 @@ import { Code, Eye, FileText, Palette, Zap } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
-import { cbsCommand } from "@/lib/cbs-command";
 import { type CbsScreenProps, type CbsScreenTab, createCopyPasteActions } from "@/lib/cbs-screen";
 import { DEFAULT_FORM_DENSITY, DEFAULT_FORM_LAYOUT } from "@/lib/data-schemas";
 import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
@@ -21,15 +20,10 @@ import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
 import { FcRoutineTab } from "./components/fc-routine-tab";
+import type { FormConfigTabKey } from "./hooks/fc-validation";
 import { useFormConfig } from "./hooks/use-form-config";
 
-type FormConfigTabKey = "general" | "formDesigner" | "routines" | "preview" | "json";
-
-export function SysFormConfig({ command, tabId }: CbsScreenProps) {
-  const initialId = React.useMemo(() => {
-    return cbsCommand.parse(command || "").recordId;
-  }, [command]);
-
+export function SysFormConfig({ tabId }: CbsScreenProps) {
   const {
     recordId,
     setRecordId,
@@ -46,7 +40,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     setSelectedFieldId,
     validationErrors,
     targetModelRecord,
+    modelKey,
     rawRecord,
+    updateFormRoot,
     addSection,
     updateSection,
     removeSection,
@@ -67,7 +63,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     handleReverse,
     resetToIdle,
     fetchRecord,
-  } = useFormConfig(initialId, tabId);
+  } = useFormConfig(tabId);
 
   const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("general");
   const isReadOnly = !isRecordEditable(mode);
@@ -95,26 +91,10 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         badgeCount: validationErrors.filter((e) => e.tab === "formDesigner").length || undefined,
         content: (
           <FcDesignerTab
-            formTitle={formData.title}
-            formDescription={formData.description}
-            authNumber={formData.authNumber}
             rootLayout={formData.frmElements?.layout ?? DEFAULT_FORM_LAYOUT}
             rootDensity={formData.frmElements?.density ?? DEFAULT_FORM_DENSITY}
             validationErrors={validationErrors}
-            onUpdateFormConfig={(patch) => {
-              setFormData((prev) => ({
-                ...prev,
-                ...(patch.title !== undefined ? { title: patch.title } : {}),
-                ...(patch.description !== undefined ? { description: patch.description } : {}),
-                ...(patch.authNumber !== undefined ? { authNumber: patch.authNumber } : {}),
-                frmElements: {
-                  ...prev.frmElements,
-                  sections: prev.frmElements?.sections || [],
-                  ...(patch.layout !== undefined ? { layout: patch.layout } : {}),
-                  ...(patch.density !== undefined ? { density: patch.density } : {}),
-                },
-              }));
-            }}
+            onUpdateFormConfig={updateFormRoot}
             modelProperties={targetModelRecord?.PROPERTIES}
             targetModel={targetModelRecord?.TABLENAME}
             sections={formData.frmElements?.sections || []}
@@ -148,11 +128,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             formData={formData}
             setFormData={setFormData}
             isReadOnly={isReadOnly}
-            errors={Object.fromEntries(
-              validationErrors
-                .filter((e) => e.tab === "routines")
-                .map((e) => [e.fieldKey, e.message]),
-            )}
+            validationErrors={validationErrors}
           />
         ),
       },
@@ -175,6 +151,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       rawRecord,
       isReadOnly,
       targetModelRecord,
+      updateFormRoot,
       selectedSectionId,
       selectedFieldId,
       addSection,
@@ -231,22 +208,18 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       availableItems={[]}
       moreActions={createCopyPasteActions({
         code: CbsControlTable.FORM_CONFIG,
+        // A layout is pasted only into a form of the same model (both sides use the form ID's key)
         getValues: () => ({
           ...(formData as unknown as Record<string, unknown>),
-          _sourceModel: (targetModelRecord?.TABLENAME || recordId.split(",")[0] || "")
-            .trim()
-            .toUpperCase(),
+          _sourceModel: modelKey,
         }),
         canPaste: () => !isReadOnly,
         validatePaste: (copied) => {
           const src = String(copied._sourceModel || "")
             .trim()
             .toUpperCase();
-          const dest = (targetModelRecord?.TABLENAME || recordId.split(",")[0] || "")
-            .trim()
-            .toUpperCase();
-          if (src && dest && src !== dest) {
-            return `Cannot paste ${src} layout into ${dest}.`;
+          if (src && modelKey && src !== modelKey) {
+            return `Cannot paste ${src} layout into ${modelKey}.`;
           }
           return null;
         },

@@ -1,5 +1,5 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
+import { CbsControlTable, CbsRequestType } from "@/types";
 import { createModelPayloads, type ModelOptions } from "./base-model";
 
 /* -------------------------------------------------------------------------- */
@@ -11,42 +11,27 @@ const baseFormConfigPayloads = createModelPayloads(CbsControlTable.FORM_CONFIG);
 
 /**
  * Dedicated payload builder for CONFIG.FORM presentation operations.
- * Overrides `get` (GFC) and `save` (SFC) with dedicated CBS protocol verbs,
- * while inheriting standard record lifecycle operations.
+ * `get` and `save` are the base payloads under the form verbs GFC and SFC, so the record ID,
+ * record function and service are handled exactly as for every other control.
  */
 export const formConfigPayloads = {
   ...baseFormConfigPayloads,
 
   /**
-   * Get Form Configuration and layout presentation ('GFC').
-   * Dedicated CBS form verb replacing generic 'GET'.
+   * Get Form Configuration ('GFC'): the model plus its stored layout. The record function picks
+   * the copy (`S` the live one; `A`, `I`... the pending one that function acts on).
    */
-  get: (recordId: string, options?: ModelOptions): CbsWirePayload => {
-    return {
-      servicePath: options?.servicePath?.trim(),
-      requestType: CbsRequestType.GFC,
-      controlName: CbsControlTable.FORM_CONFIG,
-      recordFunction: CbsRecordFunction.SEE,
-      recordId: recordId.trim().toUpperCase(),
-    };
-  },
+  get: (recordId: string, options?: ModelOptions): CbsWirePayload => ({
+    ...baseFormConfigPayloads.get(recordId, options),
+    requestType: CbsRequestType.GFC,
+  }),
 
-  /**
-   * Save Form Configuration layout presentation ('SFC').
-   * Dedicated CBS form verb replacing generic 'PUT'.
-   */
+  /** Save Form Configuration ('SFC'). */
   save: (
     data: Record<string, unknown>,
     options: ModelOptions & { recordId: string },
-  ): CbsWirePayload => {
-    return {
-      servicePath: options.servicePath?.trim(),
-      requestType: CbsRequestType.SFC,
-      controlName: CbsControlTable.FORM_CONFIG,
-      recordFunction: options.recordFunction || CbsRecordFunction.INPUT,
-      recordId: options.recordId.trim().toUpperCase(),
-      idempotencyKey: options.idempotencyKey,
-      data,
-    };
-  },
+  ): CbsWirePayload => ({
+    ...baseFormConfigPayloads.save(data, options),
+    requestType: CbsRequestType.SFC,
+  }),
 };

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
+import { tabFieldErrors } from "@/lib/cbs-screen";
 import type { MenuDesignerValidationError, MenuTreeRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { MENU_DESIGNER_SECTIONS, setMenuDesignerFieldValue } from "../fields/md-general-fields";
@@ -27,16 +28,11 @@ export function MdGeneralTab({
     };
   }, [formData]);
 
-  // 2. Map validation errors
-  const errorMap = React.useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const err of validationErrors) {
-      if (err.tab === "general" && err.fieldKey) {
-        map[err.fieldKey] = err.message;
-      }
-    }
-    return map;
-  }, [validationErrors]);
+  // 2. Validation errors for this tab
+  const errorMap = React.useMemo(
+    () => tabFieldErrors(validationErrors, "general"),
+    [validationErrors],
+  );
 
   // 3. Centralized field change dispatcher
   const handleFieldChange = React.useCallback(

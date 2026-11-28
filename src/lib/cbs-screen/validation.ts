@@ -77,3 +77,18 @@ export function focusFormField(fieldKey?: string, nodeId?: string): boolean {
 
   return false;
 }
+
+/**
+ * One tab's errors as `fieldKey → message`, the `errors` map a `FormRenderer` takes.
+ * When a field has several errors, the first one is shown.
+ */
+export function tabFieldErrors<TTab extends string>(
+  errors: readonly CbsScreenValidationError<TTab>[],
+  tab: TTab,
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const err of errors) {
+    if (err.tab === tab && err.fieldKey && !(err.fieldKey in map)) map[err.fieldKey] = err.message;
+  }
+  return map;
+}

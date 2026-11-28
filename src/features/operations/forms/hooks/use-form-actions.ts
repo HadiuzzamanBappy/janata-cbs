@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
+import { recordFunctionOfMode } from "@/lib/cbs-access";
 import { cbs } from "@/lib/cbs-client";
 import { normalizeRecordDates } from "@/lib/cbs-form-spec";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
@@ -47,11 +48,7 @@ export function useFormActions({
       if (!schema || !cleanId || !modelCode) return;
 
       try {
-        const recordFunction = Object.values(CbsRecordFunction).includes(
-          modeToSet as CbsRecordFunction,
-        )
-          ? (modeToSet as CbsRecordFunction)
-          : CbsRecordFunction.SEE;
+        const recordFunction = recordFunctionOfMode(modeToSet);
 
         const res = await cbs.send<Record<string, unknown>>(
           cbs.model(modelCode).get(cleanId, { recordFunction }),

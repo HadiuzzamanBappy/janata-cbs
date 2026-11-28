@@ -4,7 +4,6 @@ import { Code, Columns, Eye, FileText, Filter, MousePointerClick } from "lucide-
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
-import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CBS_IDLE_MODE, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { IcActionsTab } from "./components/ic-actions-tab";
@@ -17,13 +16,7 @@ import { useInquiryConfig } from "./hooks/use-inquiry-config";
 
 type InquiryConfigTabKey = "general" | "filters" | "columns" | "actions" | "preview" | "json";
 
-export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
-  const initialId = React.useMemo(() => {
-    if (!command) return undefined;
-    const parsed = cbsCommand.parse(command);
-    return parsed.recordId || undefined;
-  }, [command]);
-
+export function SysInquiryConfig({ tabId }: CbsScreenProps) {
   const {
     recordId,
     setRecordId,
@@ -44,7 +37,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     filterOps,
     columnOps,
     actionOps,
-  } = useInquiryConfig(initialId, tabId);
+  } = useInquiryConfig(tabId);
 
   const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("general");
   const isReadOnly = !isRecordEditable(mode);

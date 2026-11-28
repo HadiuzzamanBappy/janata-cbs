@@ -1,6 +1,6 @@
 /**
  * @fileoverview Form Configuration General Metadata Tab.
- * Configures top-level form title, description, authorization level, and routine hooks.
+ * Configures the top-level form title, description and authorization level.
  *
  * @module features/system/form-config/components/fc-general-tab
  */
@@ -10,6 +10,7 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
+import { tabFieldErrors } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { FORM_CONFIG_SECTIONS } from "../fields/fc-general-fields";
@@ -28,25 +29,15 @@ export function FcGeneralTab({
   isReadOnly = false,
   validationErrors = [],
 }: FcGeneralTabProps) {
-  // Map validation errors for general tab
-  const errorMap = React.useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const err of validationErrors) {
-      if (err.tab === "general" && err.fieldKey) {
-        map[err.fieldKey] = err.message;
-      }
-    }
-    return map;
-  }, [validationErrors]);
+  const errorMap = React.useMemo(
+    () => tabFieldErrors(validationErrors, "general"),
+    [validationErrors],
+  );
 
-  // Centralized field change dispatcher via standard setFieldValue
+  // Values are stored as typed; the save schema reads a cleared Authorization Level as 1
   const handleFieldChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
-      let finalVal = value;
-      if (fieldKey === "authNumber") {
-        finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : 1;
-      }
-      setFormData((prev) => setFieldValue(prev, fieldKey, finalVal));
+      setFormData((prev) => setFieldValue(prev, fieldKey, value));
     },
     [setFormData],
   );

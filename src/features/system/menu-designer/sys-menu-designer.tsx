@@ -4,7 +4,6 @@ import { FileCode, FileText, Network } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
-import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
 import { CBS_IDLE_MODE, CbsControlTable, CbsRecordFunction } from "@/types";
 import { MdCanvasTab } from "./components/md-canvas-tab";
@@ -14,13 +13,7 @@ import { useMenuDesigner } from "./hooks/use-menu-designer";
 
 type MenuDesignerTabKey = "general" | "canvas" | "json";
 
-export function SysMenuDesigner({ command, tabId }: ScreenProps) {
-  const initialId = React.useMemo(() => {
-    if (!command) return undefined;
-    const parsed = cbsCommand.parse(command);
-    return parsed.recordId || undefined;
-  }, [command]);
-
+export function SysMenuDesigner({ tabId }: ScreenProps) {
   const {
     recordId,
     setRecordId,
@@ -42,7 +35,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     validationErrors,
     resetToIdle,
     isDirty,
-  } = useMenuDesigner(initialId, tabId);
+  } = useMenuDesigner(tabId);
 
   const [activeTab, setActiveTab] = React.useState<MenuDesignerTabKey>("general");
   const isReadOnly = !isRecordEditable(mode);

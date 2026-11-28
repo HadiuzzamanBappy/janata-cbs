@@ -25,9 +25,8 @@ export const INITIAL_INQUIRY_CONFIG: InquiryConfigRecord = {
   INQCmds: [],
 };
 
-export function useIcPersistence(initialId?: string, tabId?: string) {
+export function useIcPersistence(tabId?: string) {
   return useCbsPersistence<InquiryConfigRecord>({
-    initialId,
     tabId,
     initialData: INITIAL_INQUIRY_CONFIG,
     schema: inquiryConfigRecordSchema,

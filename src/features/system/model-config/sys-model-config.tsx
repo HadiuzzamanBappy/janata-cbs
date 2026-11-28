@@ -12,7 +12,6 @@ import { Database, Eye, FileCode, FileText } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { isRecordEditable } from "@/lib/cbs-access";
-import { cbsCommand } from "@/lib/cbs-command";
 import { type CbsScreenProps, type CbsScreenTab, createCopyPasteActions } from "@/lib/cbs-screen";
 import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { McGeneralTab } from "./components/mc-general-tab";
@@ -23,11 +22,7 @@ import { useModelConfig } from "./hooks/use-model-config";
 
 type ModelConfigTabKey = "general" | "properties" | "preview" | "json";
 
-export function SysModelConfig({ command, tabId }: CbsScreenProps) {
-  const initialId = React.useMemo(() => {
-    return cbsCommand.parse(command || "").recordId;
-  }, [command]);
-
+export function SysModelConfig({ tabId }: CbsScreenProps) {
   const {
     recordId,
     setRecordId,
@@ -54,7 +49,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
     removeField,
     handleCreateNew,
     resetToIdle,
-  } = useModelConfig(initialId, tabId);
+  } = useModelConfig(tabId);
 
   const [activeTab, setActiveTab] = React.useState<ModelConfigTabKey>("general");
   const [selectedPropertySN, setSelectedPropertySN] = React.useState<string | null>(null);

@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toastValidationIssues } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { isRecordEditable } from "@/lib/cbs-access";
+import { isRecordEditable, recordFunctionOfMode } from "@/lib/cbs-access";
 import { cbsQueries, ModelConfigNotFoundError } from "@/lib/cbs-client";
 import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -20,7 +20,7 @@ import { useMcActions } from "./use-mc-actions";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
 import { useMcPropertyOps } from "./use-mc-property-ops";
 
-export function useModelConfig(initialId?: string, tabId?: string) {
+export function useModelConfig(tabId?: string) {
   const {
     recordId,
     setRecordId,
@@ -34,7 +34,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     isDirty,
     resolvedInitialId,
     resolvedInitialMode,
-  } = useModelConfigPersistence(initialId, tabId);
+  } = useModelConfigPersistence(tabId);
 
   const queryClient = useQueryClient();
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -93,11 +93,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           type: "error",
         });
       };
-      const recordFunction = Object.values(CbsRecordFunction).includes(
-        targetMode as CbsRecordFunction,
-      )
-        ? (targetMode as CbsRecordFunction)
-        : CbsRecordFunction.SEE;
+      const recordFunction = recordFunctionOfMode(targetMode);
 
       try {
         // The screen always reads fresh: another user may have saved or authorized the model.

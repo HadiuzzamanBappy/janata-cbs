@@ -10,29 +10,33 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
+import { tabFieldErrors } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { FORM_ROUTINE_SECTIONS } from "../fields/fc-routine-fields";
+import type { FormConfigValidationError } from "../hooks/fc-validation";
 
 export interface FcRoutineTabProps {
   formData: FormConfigRecord;
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>;
   isReadOnly?: boolean;
-  errors?: Record<string, string>;
+  validationErrors?: FormConfigValidationError[];
 }
 
 export function FcRoutineTab({
   formData,
   setFormData,
   isReadOnly = false,
-  errors = {},
+  validationErrors = [],
 }: FcRoutineTabProps) {
+  const errorMap = React.useMemo(
+    () => tabFieldErrors(validationErrors, "routines"),
+    [validationErrors],
+  );
+
   const handleChange = React.useCallback(
     (key: string, value: unknown) => {
-      setFormData((prev) => {
-        const next = setFieldValue(prev as Record<string, unknown>, key, value);
-        return next as unknown as FormConfigRecord;
-      });
+      setFormData((prev) => setFieldValue(prev, key, value));
     },
     [setFormData],
   );
@@ -42,9 +46,9 @@ export function FcRoutineTab({
       <div className="max-w-4xl space-y-3 pb-8">
         <FormRenderer
           frmElements={{ sections: FORM_ROUTINE_SECTIONS }}
-          values={formData as unknown as Record<string, unknown>}
+          values={formData}
           onChange={handleChange}
-          errors={errors}
+          errors={errorMap}
           disabled={isReadOnly}
           mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
         />

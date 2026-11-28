@@ -33,9 +33,8 @@ export const INITIAL_MODEL: ModelConfigRecord = {
   PROPERTIES: [],
 };
 
-export function useModelConfigPersistence(initialId?: string, tabId?: string) {
+export function useModelConfigPersistence(tabId?: string) {
   return useCbsPersistence<ModelConfigRecord>({
-    initialId,
     tabId,
     initialData: INITIAL_MODEL,
     schema: modelConfigRecordSchema,

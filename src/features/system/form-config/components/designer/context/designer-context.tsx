@@ -13,9 +13,6 @@ const DesignerContext = React.createContext<DesignerContextValue | null>(null);
 
 export function DesignerProvider({
   children,
-  formTitle,
-  formDescription,
-  authNumber,
   rootLayout,
   rootDensity,
   onUpdateFormConfig,
@@ -177,9 +174,6 @@ export function DesignerProvider({
 
   const value = React.useMemo<DesignerContextValue>(
     () => ({
-      formTitle,
-      formDescription,
-      authNumber,
       rootLayout,
       rootDensity,
       onUpdateFormConfig,
@@ -271,9 +265,6 @@ export function DesignerProvider({
       onMergeTabGroup,
       handlePaletteAddField,
       handleDropPaletteItem,
-      formTitle,
-      formDescription,
-      authNumber,
       rootLayout,
       rootDensity,
       onUpdateFormConfig,

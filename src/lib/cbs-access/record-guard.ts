@@ -9,6 +9,16 @@ export function isRecordEditable(mode: CbsScreenMode): boolean {
   return mode === CbsRecordFunction.INPUT;
 }
 
+/**
+ * The record function a screen mode reads with: the mode itself when it is a function (so
+ * Authorize, Hold, Reverse... get the copy they act on), otherwise See (Idle).
+ */
+export function recordFunctionOfMode(mode: CbsScreenMode): CbsRecordFunction {
+  return (Object.values(CbsRecordFunction) as string[]).includes(mode)
+    ? (mode as CbsRecordFunction)
+    : CbsRecordFunction.SEE;
+}
+
 /** Why the maker can't authorize: the Authorize tooltip and the proxy's 403 message. */
 export const FOUR_EYES_REASON =
   "Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction.";

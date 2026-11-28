@@ -43,7 +43,10 @@ const formRoutineSchema = z.object({
 export const formConfigRecordSchema = z.object({
   title: z.string().default(""),
   description: z.string().default("").optional(),
-  authNumber: z.coerce.number().default(1).optional(),
+  // A cleared input ("") or null means the default level, never 0
+  authNumber: z
+    .preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().default(1))
+    .optional(),
   frmRoutine: formRoutineSchema
     .default({
       rtnValidate: [],

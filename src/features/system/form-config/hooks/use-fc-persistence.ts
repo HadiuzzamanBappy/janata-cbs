@@ -33,9 +33,8 @@ export function createInitialDraft(): FormConfigRecord {
 /** Stable idle value, so the persistence layer sees the same reference on every render. */
 const EMPTY_FORM_CONFIG = createInitialDraft();
 
-export function useFormConfigPersistence(initialId?: string, tabId?: string) {
+export function useFormConfigPersistence(tabId?: string) {
   return useCbsPersistence<FormConfigRecord>({
-    initialId,
     tabId,
     initialData: EMPTY_FORM_CONFIG,
     schema: formConfigRecordSchema,

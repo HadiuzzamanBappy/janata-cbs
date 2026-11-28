@@ -18,7 +18,7 @@ import { useMdCatalog } from "./use-md-catalog";
 import { INITIAL_MENU_TREE, useMdPersistence } from "./use-md-persistence";
 import { useMdTreeOps } from "./use-md-tree-ops";
 
-export function useMenuDesigner(initialId?: string, tabId?: string) {
+export function useMenuDesigner(tabId?: string) {
   const {
     recordId,
     setRecordId,
@@ -34,7 +34,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     reset,
     isDirty,
     dirtyKeys,
-  } = useMdPersistence(initialId, tabId);
+  } = useMdPersistence(tabId);
 
   const [loading, setLoading] = React.useState(false);
   const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);

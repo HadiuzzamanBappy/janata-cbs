@@ -106,8 +106,6 @@ export interface CbsScreenProps {
   command: string;
   tabId?: string;
   className?: string;
-  initialId?: string;
-  initialMode?: CbsScreenMode;
 }
 
 export type CbsScreenComponent = React.ComponentType<CbsScreenProps>;

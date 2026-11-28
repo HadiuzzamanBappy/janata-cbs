@@ -302,6 +302,102 @@ async function runSuite() {
       advField?.RATE_CONFIG?.suffix === "%",
   );
 
+  // 3.3 The model decides what runs: a layout field (or an object group's inner field) the model
+  // lacks is left out, so it never runs on the layout's own TYPE/REQUIRED or sends an unknown column
+  const groupModel: ModelConfigRecord = {
+    ...testModel,
+    PROPERTIES: [
+      ...testModel.PROPERTIES,
+      {
+        SN: "6",
+        NAME: "nominees",
+        TYPE: "Array",
+        STRUCTURE: "M",
+        LENGTH: 0,
+        REQUIRED: false,
+        MODELNAME: "",
+        PROP: [
+          {
+            SN: "6_1",
+            NAME: "nomineeName",
+            TYPE: "String",
+            STRUCTURE: "S",
+            LENGTH: 40,
+            REQUIRED: true,
+            MODELNAME: "",
+          },
+        ],
+      },
+    ],
+  };
+  const orphanLayout: FormConfigRecord = {
+    title: "Orphans",
+    frmElements: {
+      sections: [
+        {
+          id: "sec_orphans",
+          containerType: "card",
+          fields: [
+            {
+              SN: "1",
+              NAME: "accountNumber",
+              LABEL: "A/C",
+              TYPE: "String",
+              STRUCTURE: "S",
+              LENGTH: 12,
+            },
+            {
+              SN: "9",
+              NAME: "legacyCode",
+              LABEL: "Legacy",
+              TYPE: "Number",
+              STRUCTURE: "S",
+              LENGTH: 4,
+              REQUIRED: true,
+            },
+            {
+              SN: "6",
+              NAME: "nominees",
+              LABEL: "Nominees",
+              TYPE: "Array",
+              STRUCTURE: "M",
+              LENGTH: 0,
+              PROP: [
+                {
+                  SN: "6_1",
+                  NAME: "nomineeName",
+                  LABEL: "Name",
+                  TYPE: "String",
+                  STRUCTURE: "S",
+                  LENGTH: 40,
+                },
+                {
+                  SN: "6_9",
+                  NAME: "nomineeLegacy",
+                  LABEL: "Old",
+                  TYPE: "String",
+                  STRUCTURE: "S",
+                  LENGTH: 9,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const orphanFields = compileFormSpec(groupModel, orphanLayout).frmElements.sections[0]?.fields;
+  const shape = (orphanFields ?? []).map((f) =>
+    f.PROP ? `${f.NAME}[${f.PROP.map((p) => p.NAME).join(",")}]` : f.NAME,
+  );
+  recordTest(
+    "3.3 Leaves out a layout field and an inner field the model lacks; known fields still merge",
+    { layout: ["accountNumber", "legacyCode", "nominees[nomineeName, nomineeLegacy]"] },
+    { runs: shape, nomineeNameRequired: orphanFields?.[1]?.PROP?.[0]?.REQUIRED },
+    JSON.stringify(shape) === JSON.stringify(["accountNumber", "nominees[nomineeName]"]) &&
+      orphanFields?.[1]?.PROP?.[0]?.REQUIRED === true,
+  );
+
   // ── 4. Headless Value Validation ──
   console.log("\n── 4. Headless Runtime Value Validation (validateValues) ──");
   const requiredErrors = validateValues(fallback, {});

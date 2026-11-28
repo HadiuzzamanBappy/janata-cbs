@@ -8,8 +8,10 @@
  * - Fallback: When no custom layout exists, produces one single-column card section.
  */
 
+import { logger } from "@/lib/core-logger";
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
+  CBS_PROPERTY_TYPE,
   DEFAULT_PROPERTY_LENGTH,
   type FormConfigRecord,
   type FormElement,
@@ -72,37 +74,54 @@ export function modelPropertyMatcher(
 }
 
 /**
+ * Keeps only the layout fields the model has, merged with their model property. A field the
+ * model lacks (renamed or removed column, a column never authorized, a layout saved outside the
+ * designer) is dropped and its dotted path added to `dropped`: it would otherwise run on the
+ * layout's own TYPE and REQUIRED and send a value under a column the core doesn't know.
+ */
+function mergeKnownFields(
+  fields: readonly FormElement[],
+  properties: ModelProperty[] | undefined,
+  dropped: string[],
+  prefix = "",
+): FormElement[] {
+  const findProp = modelPropertyMatcher(properties);
+  return fields.flatMap((field) => {
+    const path = prefix ? `${prefix}.${field.NAME}` : field.NAME;
+    const modelProp = findProp(field.NAME);
+    if (!modelProp) {
+      dropped.push(path);
+      return [];
+    }
+    return [mergeFieldWithModelProp(field, modelProp, dropped, path)];
+  });
+}
+
+/**
  * Merges a visual presentation FormElement with its underlying physical ModelProperty:
  * - DB Constraints (Authority: ModelConfig): TYPE, LENGTH, STRUCTURE, REQUIRED.
  * - Presentation (Authority: FormConfig): WIDGET, LABEL, WIDTH, VALIDATION, CASCADE, ON_CHANGE.
- * - Sub-Properties: Recursively merges nested object field hierarchies in `PROP`.
+ * - Sub-Properties: inner fields of an object group are merged against the group's `PROP`, and
+ *   an inner field the model lacks is dropped (see `mergeKnownFields`).
  *
  * @param field Presentation form element from visual designer.
  * @param modelProp Matching physical database property definition.
+ * @param dropped Collects the paths of inner fields the model lacks.
  * @returns Merged canonical FormElement with physical integrity preserved.
  */
 export function mergeFieldWithModelProp(
   field: FormElement,
-  modelProp?: ModelProperty,
+  modelProp: ModelProperty,
+  dropped: string[] = [],
+  path: string = field.NAME,
 ): FormElement {
-  if (!modelProp) {
-    return field;
-  }
+  // Inner fields placed in the designer are kept if the model has them; with none placed, an
+  // object group shows every inner field of the model
+  const mergedSubProps = field.PROP?.length
+    ? mergeKnownFields(field.PROP, modelProp.PROP, dropped, path)
+    : (modelProp.PROP ?? []).map((sp, idx) => modelPropToFormElement(sp, idx));
 
-  // Recursively merge nested sub-properties for object fields
-  let mergedSubProps = field.PROP;
-  if (Array.isArray(modelProp.PROP) && modelProp.PROP.length > 0) {
-    const findSubProp = modelPropertyMatcher(modelProp.PROP);
-    if (Array.isArray(field.PROP) && field.PROP.length > 0) {
-      mergedSubProps = field.PROP.map((subF) =>
-        mergeFieldWithModelProp(subF, findSubProp(subF.NAME)),
-      );
-    } else {
-      mergedSubProps = modelProp.PROP.map((sp, idx) => modelPropToFormElement(sp, idx));
-    }
-  }
-
-  const physicalType = (modelProp.TYPE || field.TYPE || "String") as PropertyType;
+  const physicalType = (modelProp.TYPE || field.TYPE || CBS_PROPERTY_TYPE.STRING) as PropertyType;
   const effectiveLength = resolvePhysicalLength(
     physicalType,
     modelProp.LENGTH ?? field.LENGTH,
@@ -135,7 +154,7 @@ export function mergeFieldWithModelProp(
     PARAMETER: effectiveParam,
     ...(modelName ? { MODELNAME: modelName } : {}),
 
-    ...(mergedSubProps && mergedSubProps.length > 0 ? { PROP: mergedSubProps } : {}),
+    ...(mergedSubProps.length > 0 ? { PROP: mergedSubProps } : {}),
   };
 }
 
@@ -177,16 +196,18 @@ export function compileFormSpec(
     };
   }
 
-  // Case B: Custom Layout Composition
-  const findProp = modelPropertyMatcher(model.PROPERTIES);
-
+  // Case B: Custom Layout Composition. The model decides which fields run.
+  const dropped: string[] = [];
   const cleanSections: FormSection[] = layout.frmElements.sections.map((section) => ({
     ...section,
     columns: section.columns ?? 1,
-    fields: (section.fields || []).map((field) =>
-      mergeFieldWithModelProp(field, findProp(field.NAME)),
-    ),
+    fields: mergeKnownFields(section.fields || [], model.PROPERTIES, dropped),
   }));
+  if (dropped.length > 0) {
+    logger.warn(`Form for ${modelCode} has fields its model lacks; they were left out`, {
+      dropped,
+    });
+  }
 
   return {
     ...layout,

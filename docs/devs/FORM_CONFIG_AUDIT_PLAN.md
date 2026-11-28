@@ -122,7 +122,9 @@ Tabs: tabs with the same `groupId` are drawn as one tab group and saved together
 **What happens.** Save first runs `validateFormConfig` (`hooks/fc-validation.ts`):
 
 1. `formConfigSaveSchema` checks the rules of a savable form: a title, routine names, at least one section, unique section IDs, a title on every tab, a label on every field, unique field names, condition and `ON_CHANGE` targets that exist, options for choice widgets (unless a lookup feeds them), `min` ≤ `max`, and valid regex patterns.
-2. With the model loaded, every field, including inner fields of object groups, must exist in the model. Fields match by name, ignoring case and spaces (`modelPropertyMatcher` in `src/lib/cbs-form-spec/compile.ts`), the same rule the compiler uses.
+2. With the model loaded, every field, including inner fields of object groups, must exist in the model. Fields match by name, ignoring case and spaces (`modelPropertyMatcher` in `src/lib/cbs-form-spec/compile.ts`), the same rule the compiler uses. A field may narrow a multi-value (`M`) column to one value, but a field stored as `M` on a single-value (`S`) column is an error.
+
+The server can't run the model checks (the proxy has no model on SFC), so the compiler enforces them when the form runs: the model decides `TYPE`, `LENGTH` and `REQUIRED`, `STRUCTURE` can only narrow, and a field the model lacks is left out (Step 8). Hold (`HLD`) skips validation and the save schema on purpose: it parks work in progress, as in model and inquiry config.
 
 **Verify:**
 
@@ -197,7 +199,7 @@ Tabs: tabs with the same `groupId` are drawn as one tab group and saved together
 1. Sends GFC for the form ID and parses it with the same `parseGfcResponse` as the designer.
 2. Fails with a clear message if the form is missing or unreadable ("Create it in Form Design (FC)").
 3. Calls `compileFormSpec(model, form)` (`src/lib/cbs-form-spec/compile.ts`), which for each layout field:
-   - finds its model column (`modelPropertyMatcher`, by name);
+   - finds its model column (`modelPropertyMatcher`, by name). A field the model lacks, or an inner field its group's column lacks, is left out with one logged warning, so it never runs on the layout's own TYPE and REQUIRED or sends a value the core doesn't know;
    - merges them: the model gives `TYPE`, `LENGTH` and `STRUCTURE`, the form gives label, widget, width and rules (`mergeFieldWithModelProp`);
    - resolves the widget (`resolveWidgetType`) and width (`deriveSemanticWidth`: an explicit `WIDTH`, else from `LENGTH`).
 4. The result is cached for 5 minutes and cleared when FC saves.

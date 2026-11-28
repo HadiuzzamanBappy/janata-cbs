@@ -10,11 +10,13 @@ import type { ZodError } from "zod";
 import { modelPropertyMatcher } from "@/lib/cbs-form-spec";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import {
+  CBS_PROPERTY_STRUCTURE,
   type FormConfigRecord,
   type FormElement,
   formConfigSaveSchema,
   type ModelConfigRecord,
   type ModelProperty,
+  resolvePhysicalStructure,
 } from "@/lib/data-schemas";
 
 export type FormConfigTabKey = "general" | "formDesigner" | "routines" | "preview" | "json";
@@ -113,6 +115,21 @@ export function validateFormConfig(
             message: `${secDisplay}: Field "${path}" is not in model ${model.TABLENAME}`,
           });
           return;
+        }
+        // A form may narrow a multi-value column to one value, never widen a single-value one
+        // (the inspector blocks it; a pasted or hand-written layout could still carry it)
+        if (
+          field.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI &&
+          resolvePhysicalStructure(prop.TYPE, prop.STRUCTURE) !== CBS_PROPERTY_STRUCTURE.MULTI
+        ) {
+          issues.push({
+            id: `formDesigner-structure-${section.id}-${path}`,
+            tab: "formDesigner",
+            fieldKey: "STRUCTURE",
+            sectionId: section.id,
+            fieldId: fieldIdOf(field, fIdx),
+            message: `${secDisplay}: Field "${path}" can't be Multi-Value: column is Single (S) in model ${model.TABLENAME}`,
+          });
         }
         if (field.PROP?.length) flagMissing(field.PROP, prop.PROP ?? [], path);
       });

@@ -3,7 +3,7 @@
  * Displays maker-checker authorization trails, branch codes, revision numbers,
  * and operation timestamps using standard FieldRow components.
  *
- * @module features/form-engine/components/containers/audit-container
+ * @module form-engine/containers/audit-container
  */
 
 "use client";

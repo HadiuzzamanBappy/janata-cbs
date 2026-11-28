@@ -6,7 +6,7 @@
  * - Resolves dynamic CBS model lookup options when parameter.type === 'M' or 'A'.
  * - Backed by centralized cbsQueries so multiple fields referencing the same lookup table
  *   share one cached React Query request.
- * - Evaluates custom in-memory condition filtering (e.g. "STATUS == 'ACTIVE'").
+ * - Rows become options in `resolveLookupOptions` (`@/lib/cbs-form-spec`), condition included.
  */
 
 "use client";
@@ -14,24 +14,20 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
-import {
-  type FormFieldParameter,
-  isArrayLookup,
-  isLookupParameter,
-  lookupModelOf,
-} from "@/lib/data-schemas";
+import { resolveLookupOptions } from "@/lib/cbs-form-spec";
+import { type FormFieldParameter, isLookupParameter, lookupModelOf } from "@/lib/data-schemas";
 import type { WidgetOption } from "../types";
 
 /**
- * Executes a cached inquiry query for model lookup parameters and maps rows to WidgetOption[].
+ * Executes a cached query for a model lookup parameter and maps its rows to WidgetOption[].
+ * `refetch` is meant for a lookup the field can refresh (`useFieldOptions`'s `isDynamic`).
  *
  * @param param Lookup parameter configuration from field specification.
- * @returns Array of resolved lookup options and query loading state.
+ * @returns Array of resolved lookup options, the query loading state and its refetch.
  */
 export function useModelLookup(param: FormFieldParameter | undefined, enabled: boolean = true) {
   const cleanModel = lookupModelOf(param).toUpperCase();
   const isModelLookup = isLookupParameter(param) && Boolean(cleanModel);
-  const isArrayMode = isArrayLookup(param);
 
   const query = useQuery({
     ...cbsQueries.model(cleanModel).lookup(),
@@ -39,115 +35,14 @@ export function useModelLookup(param: FormFieldParameter | undefined, enabled: b
   });
 
   const rows = isModelLookup ? query.data : undefined;
-  const loading = isModelLookup ? query.isLoading : false;
-  const refetch = isModelLookup
-    ? query.refetch
-    : () =>
-        Promise.resolve({ data: undefined, error: null } as unknown as ReturnType<
-          typeof query.refetch
-        >);
+  const modelOptions = React.useMemo<WidgetOption[]>(
+    () => resolveLookupOptions(rows, param),
+    [rows, param],
+  );
 
-  const modelOptions = React.useMemo<WidgetOption[]>(() => {
-    if (!isModelLookup || !rows) return [];
-
-    let filtered = rows;
-
-    // 1. Array lookup (A): keep only record recordId
-    const targetId = isArrayMode ? param?.recordId?.trim() : undefined;
-    if (targetId) {
-      filtered = rows.filter((item) => {
-        const rec = item as Record<string, unknown>;
-        const recId = String(rec.id ?? rec.recordId ?? rec.category ?? "")
-          .trim()
-          .toLowerCase();
-        return recId === targetId.toLowerCase();
-      });
-    }
-
-    // 2. Extract items based strictly on configured type:
-    // - Mode A (Array Mode): unwrap from specified arrayField (or default itemArray) within target record
-    // - Mode M (Flat Mode): use records directly as options without magic auto-detect
-    let itemsToMap: unknown[] = filtered;
-
-    if (isArrayMode) {
-      const arrayKey = param?.arrayField?.trim() || "itemArray";
-      if (filtered.length > 0) {
-        const targetRecord = filtered[0] as Record<string, unknown>;
-        const nested = targetRecord[arrayKey] ?? targetRecord[arrayKey.toLowerCase()];
-        if (Array.isArray(nested)) {
-          itemsToMap = nested;
-        } else {
-          // If array mode was requested but arrayField not found on record, return empty
-          itemsToMap = [];
-        }
-      } else {
-        itemsToMap = [];
-      }
-    }
-
-    // 3. Filter items by condition expression if specified (works for flat records AND array items)
-    if (param?.condition) {
-      const match = param.condition.trim().match(/^(\w+)\s*(===|==)\s*['"]([^'"]+)['"]$/i);
-      if (match) {
-        const [, fieldKey, , expectedVal] = match;
-        itemsToMap = itemsToMap.filter((item) => {
-          if (typeof item !== "object" || item === null) return true;
-          const rec = item as Record<string, unknown>;
-          const actual =
-            rec[fieldKey] ?? rec[fieldKey.toLowerCase()] ?? rec[fieldKey.toUpperCase()];
-          return String(actual ?? "").toLowerCase() === expectedVal.toLowerCase();
-        });
-      }
-    }
-
-    // Default code & display keys
-    const rawCode = param?.codeField !== undefined ? String(param.codeField).trim() : "";
-    const rawDisplay = param?.displayField?.trim() || "";
-    const codeKey = rawCode || (isArrayMode ? "itemCode" : "id");
-    const displayKey = rawDisplay || (isArrayMode ? "itemLabel" : "name");
-
-    return itemsToMap
-      .map((item) => {
-        if (typeof item !== "object" || item === null) {
-          return { code: String(item), label: String(item) };
-        }
-        const rec = item as Record<string, unknown>;
-        const codeVal =
-          rec[codeKey] ??
-          rec[codeKey.toLowerCase()] ??
-          rec[codeKey.toUpperCase()] ??
-          (rawCode
-            ? ""
-            : (rec.id ?? rec.recordId ?? rec.code ?? rec.branchCode ?? rec.itemCode ?? ""));
-        const labelVal =
-          rec[displayKey] ??
-          rec[displayKey.toLowerCase()] ??
-          rec[displayKey.toUpperCase()] ??
-          ((rawDisplay
-            ? ""
-            : (rec.name ??
-              rec.title ??
-              rec.branchTitle ??
-              rec.description ??
-              rec.itemLabel ??
-              "")) ||
-            codeVal);
-        return {
-          code: String(codeVal),
-          label: String(labelVal || codeVal),
-        };
-      })
-      .filter((o): o is WidgetOption => Boolean(o?.code));
-  }, [
-    isModelLookup,
-    isArrayMode,
-    rows,
-    param?.recordId,
-    param?.arrayField,
-    param?.condition,
-    param?.codeField,
-    param?.displayField,
-  ]);
-
-  return { modelOptions, loading, refetch };
+  return {
+    modelOptions,
+    loading: isModelLookup ? query.isLoading : false,
+    refetch: query.refetch,
+  };
 }

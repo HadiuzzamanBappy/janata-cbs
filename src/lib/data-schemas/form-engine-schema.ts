@@ -72,6 +72,28 @@ export const hasFieldOptions = (
 ): boolean =>
   isLookupParameter(param) || staticOptionsOf(param).length > 0 || Boolean(modelName?.trim());
 
+/** A lookup's `condition`: one `field == 'value'` (or `===`) test on each option row. */
+const LOOKUP_CONDITION_PATTERN = /^(\w+)\s*(?:===|==)\s*['"]([^'"]+)['"]$/;
+
+export interface LookupCondition {
+  readonly field: string;
+  readonly value: string;
+}
+
+/**
+ * Reads a lookup's `condition`. Undefined when it is blank (no filter); null when the text is not
+ * a supported condition. The save rules refuse null, and the engine shows no options for it rather
+ * than every option.
+ */
+export function parseLookupCondition(
+  condition: string | undefined | null,
+): LookupCondition | null | undefined {
+  const text = condition?.trim();
+  if (!text) return undefined;
+  const match = text.match(LOOKUP_CONDITION_PATTERN);
+  return match ? { field: match[1], value: match[2] } : null;
+}
+
 /* ========================================================================== */
 /* 2. REACTIVE ACTIONS & VALIDATION RULES                                     */
 /* ========================================================================== */

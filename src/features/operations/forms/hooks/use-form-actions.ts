@@ -6,7 +6,7 @@ import { recordFunctionOfMode } from "@/lib/cbs-access";
 import { cbs } from "@/lib/cbs-client";
 import { normalizeRecordDates } from "@/lib/cbs-form-spec";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
-import { type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
+import { CBS_API_STATUS, type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 
 export interface UseFormActionsProps {
@@ -16,12 +16,9 @@ export interface UseFormActionsProps {
   setSearchRecordId: (id: string) => void;
   screenMode: CbsScreenMode;
   setScreenMode: (mode: CbsScreenMode) => void;
-  setValues: (values: Record<string, unknown>) => void;
-  hydrate?: (record: Record<string, unknown>) => void;
-  resetForm: (values?: Record<string, unknown>) => void;
+  hydrate: (record: Record<string, unknown>) => void;
+  clearForm: () => void;
   validate: () => boolean;
-  initialValues: Record<string, unknown>;
-  onReturn?: () => void;
 }
 
 /**
@@ -34,35 +31,25 @@ export function useFormActions({
   setSearchRecordId,
   screenMode,
   setScreenMode,
-  setValues,
   hydrate,
-  resetForm,
+  clearForm,
   validate,
-  initialValues,
-  onReturn,
 }: UseFormActionsProps) {
-  // Query record by ID
+  // Query record by ID. Only a loaded record changes the screen: a failure keeps it as it is.
   const loadRecordData = React.useCallback(
     async (recordIdToLoad: string, modeToSet: CbsScreenMode) => {
       const cleanId = recordIdToLoad?.trim();
       if (!schema || !cleanId || !modelCode) return;
 
       try {
-        const recordFunction = recordFunctionOfMode(modeToSet);
-
         const res = await cbs.send<Record<string, unknown>>(
-          cbs.model(modelCode).get(cleanId, { recordFunction }),
+          cbs.model(modelCode).get(cleanId, { recordFunction: recordFunctionOfMode(modeToSet) }),
           { silent: true },
         );
 
         if (isApiSuccess(res) && res.data) {
           // Inbound dates become ISO once, here, so the baseline and every later save are ISO
-          const record = normalizeRecordDates(schema, res.data);
-          if (hydrate) {
-            hydrate(record);
-          } else {
-            setValues(record);
-          }
+          hydrate(normalizeRecordDates(schema, res.data));
           setScreenMode(modeToSet);
           if (cleanId !== searchRecordId) {
             setSearchRecordId(cleanId);
@@ -79,18 +66,32 @@ export function useFormActions({
             description: `Loaded record #${cleanId} for ${schema.title}`,
             type: "success",
           });
-        } else {
-          toast.add({
-            title: "Record Not Found",
-            description: `Record #${cleanId} does not exist in ${schema.title}.`,
-            type: "warning",
-          });
+          return;
         }
+
+        // A missing record and a failed read are told apart, so an outage never reads as "not found"
+        const notFound =
+          isApiSuccess(res) ||
+          res.status === CBS_API_STATUS.RECORD_NOT_FOUND ||
+          res.statusCode === 404;
+        toast.add(
+          notFound
+            ? {
+                title: "Record Not Found",
+                description: `Record #${cleanId} does not exist in ${schema.title}.`,
+                type: "warning",
+              }
+            : {
+                title: "Record Could Not Be Loaded",
+                description: res.message || `Failed to load record #${cleanId}.`,
+                type: "error",
+              },
+        );
       } catch {
-        setScreenMode(modeToSet);
+        // cbs.send already reported it (session expiry) or it was aborted; keep the screen as it is
       }
     },
-    [schema, modelCode, setScreenMode, setValues, hydrate, searchRecordId, setSearchRecordId],
+    [schema, modelCode, setScreenMode, hydrate, searchRecordId, setSearchRecordId],
   );
 
   // Auto-fetch record data when opened with initial query/mode
@@ -130,12 +131,13 @@ export function useFormActions({
     [searchRecordId],
   );
 
+  /** A new entry: an empty record and an empty baseline, so its save sends every field. */
   const handleCreateNew = React.useCallback(
     (allocatedId?: string) => {
       if (!schema || !modelCode) return;
       const targetId = (allocatedId || searchRecordId || "").trim();
-      if (allocatedId) setSearchRecordId(allocatedId.trim());
-      resetForm(initialValues);
+      clearForm();
+      if (targetId) setSearchRecordId(targetId);
       setScreenMode(CbsRecordFunction.INPUT);
       toast.add({
         title: "New Record Entry",
@@ -145,7 +147,7 @@ export function useFormActions({
         type: "info",
       });
     },
-    [schema, resetForm, initialValues, setScreenMode, searchRecordId, modelCode, setSearchRecordId],
+    [schema, clearForm, setScreenMode, searchRecordId, modelCode, setSearchRecordId],
   );
 
   const handleAmend = React.useCallback(
@@ -169,27 +171,10 @@ export function useFormActions({
     if (id) loadRecordData(id, CbsRecordFunction.AUTHORIZE);
   }, [resolveTargetId, loadRecordData]);
 
-  const handleReturnToSearch = React.useCallback(() => {
-    if (onReturn) {
-      onReturn();
-      return;
-    }
-    resetForm(initialValues);
-    setScreenMode(CBS_IDLE_MODE);
-  }, [onReturn, resetForm, initialValues, setScreenMode]);
-
   const handleValidate = React.useMemo(() => {
     if (screenMode === CBS_IDLE_MODE || !schema) return undefined;
     return () => {
-      const isValid = validate();
-      if (!isValid) {
-        toast.add({
-          title: "Validation Issues",
-          description: "Required fields require attention before saving.",
-          type: "warning",
-        });
-        return;
-      }
+      if (!validate()) return;
       toast.add({
         title: "Validation Check Passed",
         description: `All rules validated for ${schema.title}`,
@@ -203,8 +188,6 @@ export function useFormActions({
     handleAmend,
     handleView,
     handlePerformAction,
-    handleReturnToSearch,
     handleValidate,
-    loadRecordData,
   };
 }

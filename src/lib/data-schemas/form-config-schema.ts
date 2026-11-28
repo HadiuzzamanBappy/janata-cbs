@@ -16,6 +16,8 @@ import {
   formElementSchema,
   formElementsContainerSchema,
   hasFieldOptions,
+  isLookupParameter,
+  parseLookupCondition,
 } from "./form-engine-schema";
 import { CHOICE_WIDGETS } from "./form-widget-schema";
 import { CBS_PROPERTY_TYPE } from "./model-config-schema";
@@ -258,6 +260,16 @@ function checkFieldRules(
     issue(
       [...fieldPath, "PARAMETER"],
       `Field "${display}" uses ${field.WIDGET} but has no options`,
+    );
+  }
+
+  if (
+    isLookupParameter(field.PARAMETER) &&
+    parseLookupCondition(field.PARAMETER.condition) === null
+  ) {
+    issue(
+      [...fieldPath, "PARAMETER", "condition"],
+      `Field "${display}" lookup condition must look like category == 'VALUE'`,
     );
   }
 

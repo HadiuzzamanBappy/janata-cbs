@@ -3,7 +3,7 @@
  * Used by MODEL.CONFIG, FORM.CONFIG, and custom screens to provide a live interactive
  * preview of dynamic form element schemas with zero duplicate preview code.
  *
- * @module features/form-engine/components/form-preview
+ * @module form-engine/form-preview
  */
 
 "use client";

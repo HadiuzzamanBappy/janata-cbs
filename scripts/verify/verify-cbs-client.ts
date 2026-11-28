@@ -443,11 +443,11 @@ async function runSuite() {
       };
       // The query ignores its context, so it runs without a QueryClient
       const query = cbsQueries.formConfig.schema(command).queryFn as unknown as () => Promise<{
-        schema: { title?: string } | null;
+        title?: string;
       }>;
       try {
         const data = await query();
-        return { sent, title: data.schema?.title, error: "" };
+        return { sent, title: data.title, error: "" };
       } catch (err: unknown) {
         return { sent, title: undefined, error: err instanceof Error ? err.message : String(err) };
       }

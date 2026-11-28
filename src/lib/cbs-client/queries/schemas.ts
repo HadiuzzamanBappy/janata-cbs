@@ -20,11 +20,6 @@ import { formConfigPayloads } from "../payloads/form-config";
 import { menuTreePayloads } from "../payloads/menu-tree";
 import { sendCbsRequest } from "../transport/proxy-client";
 
-export interface ResolvedFormSchemaData {
-  schema: FormConfigRecord | null;
-  modelRecord: ModelConfigRecord | null;
-}
-
 export const SCHEMA_ROOT_KEYS = {
   formConfig: ["cbs", "form-schema"] as const,
   inquiryConfig: ["cbs", "inquiry-schema"] as const,
@@ -116,7 +111,7 @@ export const schemaQueries = {
       .split(",")
       .map((part) => part.trim());
     const formId = version ? `${app},${version}` : app;
-    return queryOptions<ResolvedFormSchemaData>({
+    return queryOptions<FormConfigRecord>({
       queryKey: [...SCHEMA_ROOT_KEYS.formConfig, formId] as const,
       enabled: Boolean(formId),
       staleTime: 5 * 60 * 1000,
@@ -142,7 +137,7 @@ export const schemaQueries = {
         if (!form?.frmElements.sections.length) {
           throw new Error(`No form "${formId}" in CONFIG.FORM. Create it in Form Design (FC).`);
         }
-        return { schema: compileFormSpec(model, form), modelRecord: model };
+        return compileFormSpec(model, form);
       },
     });
   },

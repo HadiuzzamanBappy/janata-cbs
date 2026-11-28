@@ -3,39 +3,25 @@
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { createCopyPasteActions, getDefaultMoreActions } from "@/lib/cbs-screen";
+import {
+  type CbsScreenProps,
+  createCopyPasteActions,
+  getDefaultMoreActions,
+} from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
-import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction } from "@/types";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
 import { useFormMutations } from "./hooks/use-form-mutations";
 import { useFormSchema } from "./hooks/use-form-schema";
 import { useFormState } from "./hooks/use-form-state";
-import type { DynamicFormProps } from "./types";
-
-const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
-
-export type OpsFormProps = DynamicFormProps & {
-  initialValues?: Record<string, unknown>;
-  initialScreenMode?: CbsScreenMode;
-  initialRecordId?: string;
-  onReturn?: () => void;
-};
 
 /**
  * Operational Form Shell (OpsForm).
  * Coordinates CbsScreenScaffold with FormRenderer.
  * 100% Lean, Zero dead/legacy code, Zero magic strings.
  */
-export function OpsForm({
-  command,
-  tabId,
-  initialValues = EMPTY_INITIAL_VALUES,
-  initialScreenMode,
-  initialRecordId: initialRecordIdProp,
-  onSuccess,
-  onReturn,
-}: OpsFormProps) {
+export function OpsForm({ command, tabId }: CbsScreenProps) {
   const modelCode = (command || "").split(",")[0].trim().toUpperCase();
 
   // 1. Authoritative CBS Form & Model Schema Resolver
@@ -52,17 +38,13 @@ export function OpsForm({
     setValues,
     hydrate,
     baseline,
+    rebaseline,
     errors,
     isDirty,
     validate,
-    resetForm,
-  } = useFormState({
-    schema,
-    tabId,
-    initialScreenMode,
-    initialRecordId: initialRecordIdProp,
-    initialValues,
-  });
+    clearForm,
+    revertForm,
+  } = useFormState({ schema, tabId });
 
   // 3. CBS Transactional Mutations (Commit, Hold, Delete, Authorize/Reverse)
   const mutations = useFormMutations({
@@ -70,13 +52,11 @@ export function OpsForm({
     schema,
     searchRecordId,
     screenMode,
-    setScreenMode,
     values,
-    initialValues,
     baseline,
     validate,
-    resetForm,
-    onSuccess,
+    rebaseline,
+    clearForm,
   });
 
   // 4. CBS Navigation & Operator Actions
@@ -87,12 +67,9 @@ export function OpsForm({
     setSearchRecordId,
     screenMode,
     setScreenMode,
-    setValues,
     hydrate,
-    resetForm,
+    clearForm,
     validate,
-    initialValues,
-    onReturn,
   });
 
   const validationErrors = React.useMemo(() => {
@@ -135,8 +112,8 @@ export function OpsForm({
       onHold={mutations.handleHold}
       onDelete={mutations.handleDelete}
       onAuthorizeReverse={mutations.handleAuthorizeReverse}
-      onReturnToSearch={actions.handleReturnToSearch}
-      onReset={screenMode !== CBS_IDLE_MODE ? () => resetForm(initialValues) : undefined}
+      onReturnToSearch={clearForm}
+      onReset={screenMode !== CBS_IDLE_MODE ? revertForm : undefined}
       onSubmit={mutations.handleSubmit}
       onValidate={actions.handleValidate}
       submitting={mutations.submitting}

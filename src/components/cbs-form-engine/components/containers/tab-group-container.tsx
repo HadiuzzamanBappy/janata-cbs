@@ -3,7 +3,7 @@
  * Renders tab-grouped sections into a high-density banking workbench TabBar
  * with active badge indicators, error counts, and embedded CardContainer content.
  *
- * @module features/form-engine/components/containers/tab-group-container
+ * @module form-engine/containers/tab-group-container
  */
 
 "use client";

@@ -210,6 +210,8 @@ Hold (`HLD`) sends the cleaned draft without validating it and keeps the screen 
 
 Model columns carry only database facts. The compiler never reads widgets, options or rules from a model column; those come from the form layout alone.
 
+On screen, `OpsForm` keeps a **baseline**: the record as loaded, or empty for a new entry (`useFormState`). An amendment sends only the fields that differ from it; a new entry sends every field. So every step that changes which record is shown resets it: loading a record (`hydrate`), New, a successful save and Return (`clearForm`, back to idle with an empty baseline). Reset (`revertForm`) drops the edits and goes back to the baseline. Hold sends the whole draft and makes it the baseline. A load that fails says so ("Record Could Not Be Loaded"); only a missing record reads "Record Not Found", and neither changes the screen.
+
 **Verify:**
 
 - [ ] `pnpm verify:form-spec` passes (compiler, widths, widgets, rules, validation).

@@ -19,13 +19,12 @@ export interface UseFormMutationsProps {
   schema: FormConfigRecord | null;
   searchRecordId: string;
   screenMode: CbsScreenMode;
-  setScreenMode: (mode: CbsScreenMode) => void;
   values: Record<string, unknown>;
-  initialValues: Record<string, unknown>;
-  baseline?: Record<string, unknown>;
+  /** The record as loaded (empty for a new entry); a save sends what differs from it. */
+  baseline: Record<string, unknown>;
   validate: () => boolean;
-  resetForm: (values?: Record<string, unknown>) => void;
-  onSuccess?: (result: unknown) => void;
+  rebaseline: () => void;
+  clearForm: () => void;
 }
 
 /**
@@ -36,58 +35,50 @@ export function useFormMutations({
   schema,
   searchRecordId,
   screenMode,
-  setScreenMode,
   values,
-  initialValues,
   baseline,
   validate,
-  resetForm,
-  onSuccess,
+  rebaseline,
+  clearForm,
 }: UseFormMutationsProps) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const { sendMutation } = useIdempotentSend();
 
+  /**
+   * Sends one mutation. On success other windows are told, then the screen returns to idle, or
+   * (`stayOnRecord`, for Hold) keeps the record with the sent values as its new baseline.
+   */
   const executeTransaction = React.useCallback(
     async (
       targetId: string,
       operation: () => Promise<ApiResponse>,
-      options: { resetOnSuccess?: boolean } = { resetOnSuccess: true },
+      options: { stayOnRecord?: boolean } = {},
     ) => {
       setSubmitting(true);
       try {
         const json = await operation();
-        if (isApiSuccess(json)) {
-          broadcastRecordMutation(modelCode, targetId);
-          if (options.resetOnSuccess) {
-            resetForm(initialValues);
-            setScreenMode(CBS_IDLE_MODE);
-          }
-          if (onSuccess) onSuccess(json);
-        }
+        if (!isApiSuccess(json)) return;
+        broadcastRecordMutation(modelCode, targetId);
+        if (options.stayOnRecord) rebaseline();
+        else clearForm();
       } finally {
         setSubmitting(false);
       }
     },
-    [modelCode, initialValues, resetForm, setScreenMode, onSuccess],
+    [modelCode, rebaseline, clearForm],
   );
 
   const handleSubmit = React.useCallback(
     async (e?: React.SyntheticEvent) => {
       if (e) e.preventDefault();
-      if (!validate()) {
-        toast.add({
-          title: "Validation Error",
-          description: "Please correct the highlighted field errors.",
-          type: "warning",
-        });
-        return;
-      }
+      if (!validate()) return;
       if (!schema || !modelCode) return;
 
-      const baseSnapshot = baseline || initialValues;
+      // An amendment sends only what changed from the loaded record; a new entry (empty
+      // baseline) sends every field
       const delta =
-        screenMode === CbsRecordFunction.INPUT && Object.keys(baseSnapshot).length > 0
-          ? computeDelta(baseSnapshot, values).modifiedFields
+        screenMode === CbsRecordFunction.INPUT && Object.keys(baseline).length > 0
+          ? computeDelta(baseline, values).modifiedFields
           : values;
 
       const commitData = Object.keys(delta).length > 0 ? delta : values;
@@ -110,7 +101,6 @@ export function useFormMutations({
       schema,
       modelCode,
       screenMode,
-      initialValues,
       baseline,
       values,
       searchRecordId,
@@ -130,7 +120,7 @@ export function useFormMutations({
             successTitle: "Transaction Held",
             successMessage: `Record draft for ${schema.title} placed on Hold.`,
           }),
-        { resetOnSuccess: false },
+        { stayOnRecord: true },
       );
     };
   }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction, sendMutation]);

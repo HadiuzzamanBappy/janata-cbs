@@ -3,7 +3,7 @@
  * Renders individual form sections with configurable variants (default, subtle, bordered,
  * elevated, ghost), density settings, section badges, and collapsible state.
  *
- * @module features/form-engine/components/containers/card-container
+ * @module form-engine/containers/card-container
  */
 
 "use client";

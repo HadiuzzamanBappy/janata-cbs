@@ -3,7 +3,7 @@
  * Coordinates section render blocks (cards and tab groups), automatic schema validation,
  * field value transforms, cascades, and reactive on-change rules.
  *
- * @module features/form-engine/components/form-renderer
+ * @module form-engine/form-renderer
  */
 
 "use client";

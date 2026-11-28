@@ -114,3 +114,32 @@ export async function verifySavedModel(
     details: issues.map((i) => i.message),
   };
 }
+
+/** Audit keys a record carries; the core reads its own names as well as the client's. */
+const AUDIT_BLOCK_KEYS = ["auditData", "auditFields"] as const;
+
+/** The only audit field a client may send: the version it edited, for the core's concurrency check. */
+const CLIENT_AUDIT_FIELDS: ReadonlySet<string> = new Set(["recCurrNumber"]);
+
+/**
+ * The record a mutation forwards, without the audit fields the core stamps itself: maker,
+ * authorizer, their times, status and branch come from the session and the core, never from the
+ * browser. Otherwise a maker could name someone else as inputter and pass Four-Eyes on their own
+ * record. Only `recCurrNumber` is kept; an audit block left empty is removed.
+ */
+export function withoutClientAudit(
+  data: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!data || !AUDIT_BLOCK_KEYS.some((key) => key in data)) return data;
+  const clean: Record<string, unknown> = { ...data };
+  for (const key of AUDIT_BLOCK_KEYS) {
+    const block = clean[key];
+    delete clean[key];
+    if (!block || typeof block !== "object" || Array.isArray(block)) continue;
+    const kept = Object.fromEntries(
+      Object.entries(block).filter(([field]) => CLIENT_AUDIT_FIELDS.has(field)),
+    );
+    if (Object.keys(kept).length > 0) clean[key] = kept;
+  }
+  return clean;
+}

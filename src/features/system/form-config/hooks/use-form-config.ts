@@ -221,7 +221,6 @@ export function useFormConfig(tabId?: string) {
     recordId,
     validateBeforeSave: runValidation,
     rebaseline,
-    reset,
     resetToIdle,
     setSubmitting,
   });

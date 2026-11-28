@@ -103,14 +103,15 @@ export function useMcActions({
     });
   }, [executeMutation, recordId, resetToIdle]);
 
+  // Hold parks the work in progress: the draft is sent (unvalidated), then the held copy reloads
   const handleHold = React.useCallback(async () => {
     if (!recordId) return;
-    await executeMutation(cbs.modelConfig.hold(recordId), {
+    await executeMutation(cbs.modelConfig.hold(recordId, sanitizeModelConfigRecord(formData)), {
       successTitle: "Model Placed on Hold",
       successMessage: `Record #${recordId} set to HLD status`,
       onSuccess: () => fetchRecord(recordId, CbsRecordFunction.HOLD),
     });
-  }, [executeMutation, fetchRecord, recordId]);
+  }, [executeMutation, fetchRecord, formData, recordId]);
 
   const handleDelete = React.useCallback(async () => {
     if (!recordId) return;

@@ -23,8 +23,7 @@ export interface UseFcActionsParams {
   /** Shows validation issues; returns true when the draft may be saved. */
   validateBeforeSave: () => boolean;
   rebaseline: () => void;
-  reset: () => void;
-  resetToIdle?: () => void;
+  resetToIdle: () => void;
   setSubmitting: (val: boolean) => void;
 }
 
@@ -33,28 +32,21 @@ export function useFcActions({
   recordId,
   validateBeforeSave,
   rebaseline,
-  reset,
   resetToIdle,
   setSubmitting,
 }: UseFcActionsParams) {
   const { sendMutation } = useIdempotentSend();
   const queryClient = useQueryClient();
 
-  const invalidateFormCaches = React.useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: cbsQueries.formConfig.schemaRootKey });
-  }, [queryClient]);
-
+  /**
+   * Sends one mutation. On success other windows and the form caches are told, then the screen
+   * either returns to idle or (`stayOnRecord`, for Hold) keeps the record, its sent draft now the
+   * baseline.
+   */
   const executeMutation = React.useCallback(
     async (
       payload: CbsWirePayload,
-      options: {
-        successTitle: string;
-        successMessage: string;
-        targetId?: string;
-        rebaselineOnSuccess?: boolean;
-        resetOnSuccess?: boolean;
-        onSuccess?: () => void | Promise<void>;
-      },
+      options: { successTitle: string; successMessage: string; stayOnRecord?: boolean },
     ) => {
       setSubmitting(true);
       try {
@@ -62,41 +54,29 @@ export function useFcActions({
           successTitle: options.successTitle,
           successMessage: options.successMessage,
         });
-        if (isApiSuccess(res)) {
-          const syncId = (options.targetId || recordId).trim().toUpperCase();
-          if (syncId) {
-            broadcastRecordMutation(CbsControlTable.FORM_CONFIG, syncId);
-          }
-          await invalidateFormCaches();
-          if (options.rebaselineOnSuccess !== false) {
-            rebaseline();
-          }
-          if (options.resetOnSuccess !== false) {
-            if (resetToIdle) {
-              resetToIdle();
-            } else {
-              reset();
-            }
-          }
-          await options.onSuccess?.();
-        }
+        if (!isApiSuccess(res)) return;
+        const syncId = recordId.trim().toUpperCase();
+        if (syncId) broadcastRecordMutation(CbsControlTable.FORM_CONFIG, syncId);
+        await queryClient.invalidateQueries({ queryKey: cbsQueries.formConfig.schemaRootKey });
+        if (options.stayOnRecord) rebaseline();
+        else resetToIdle();
       } finally {
         setSubmitting(false);
       }
     },
-    [invalidateFormCaches, rebaseline, recordId, reset, resetToIdle, sendMutation, setSubmitting],
+    [queryClient, rebaseline, recordId, resetToIdle, sendMutation, setSubmitting],
   );
 
   const handleSubmit = React.useCallback(async () => {
     if (!validateBeforeSave()) return;
-    const targetId = (recordId || "").trim().toUpperCase();
-    const cleanFormData = sanitizeFormConfigRecord(formData);
-
-    await executeMutation(cbs.formConfig.save(cleanFormData, { recordId: targetId }), {
-      successTitle: "Form Saved",
-      successMessage: `Form ${targetId || "configuration"} successfully saved`,
-      targetId,
-    });
+    const targetId = recordId.trim().toUpperCase();
+    await executeMutation(
+      cbs.formConfig.save(sanitizeFormConfigRecord(formData), { recordId: targetId }),
+      {
+        successTitle: "Form Saved",
+        successMessage: `Form ${targetId || "configuration"} successfully saved`,
+      },
+    );
   }, [executeMutation, formData, recordId, validateBeforeSave]);
 
   const handleAuthorize = React.useCallback(async () => {
@@ -107,21 +87,21 @@ export function useFcActions({
     });
   }, [executeMutation, recordId]);
 
+  // Hold parks the work in progress: the draft is sent (unvalidated) and the screen stays on it
   const handleHold = React.useCallback(async () => {
     if (!recordId) return;
-    await executeMutation(cbs.formConfig.hold(recordId), {
+    await executeMutation(cbs.formConfig.hold(recordId, sanitizeFormConfigRecord(formData)), {
       successTitle: "Record Held",
       successMessage: `${recordId} placed on hold`,
-      resetOnSuccess: false,
+      stayOnRecord: true,
     });
-  }, [executeMutation, recordId]);
+  }, [executeMutation, formData, recordId]);
 
   const handleDelete = React.useCallback(async () => {
     if (!recordId) return;
     await executeMutation(cbs.formConfig.delete(recordId), {
       successTitle: "Form Deleted",
       successMessage: `${recordId} deleted`,
-      rebaselineOnSuccess: false,
     });
   }, [executeMutation, recordId]);
 

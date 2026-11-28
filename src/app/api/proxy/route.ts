@@ -8,12 +8,15 @@ import {
   type ApiResponse,
   type CbsWirePayload,
   cbsWirePayloadSchema,
+  formConfigRecordSchema,
   formConfigSaveSchema,
   type GrpcEnvelope,
   INQUIRY_MAX_ROWS,
   type InquiryResult,
+  inquiryConfigRecordSchema,
   inquiryConfigSaveSchema,
   isApiSuccess,
+  modelConfigRecordSchema,
   modelConfigSaveSchema,
 } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
@@ -23,7 +26,7 @@ import {
   getSession,
   resolveCacheDescriptor,
 } from "@/lib/infra-redis";
-import { CbsControlTable, CbsRequestType } from "@/types";
+import { CbsControlTable, CbsRequestType, isCbsMutationRequest } from "@/types";
 import { buildGrpcEnvelope } from "../_lib/envelope";
 import { resolveInquiryEnvelope } from "../_lib/inquiry";
 import {
@@ -31,6 +34,7 @@ import {
   type StoredRecordLoader,
   verifyFourEyes,
   verifySavedModel,
+  withoutClientAudit,
 } from "../_lib/record-guards";
 import { apiError, apiFail } from "../_lib/response";
 
@@ -41,12 +45,17 @@ const proxyLogger = logger.withContext("PROXY_API");
 
 /**
  * Config saves whose `data` is checked here too, so a direct API call can't skip the screen's rules.
- * A dedicated verb (SFC) is keyed by request type; a generic PUT by `PUT:<CONTROL>`.
+ * A dedicated verb (SFC) is keyed by request type; a generic PUT or HLD by `<VERB>:<CONTROL>`.
+ * Hold parks work in progress, so it gets the lenient read schema: no save rules, but the draft
+ * must be readable and keys the schema doesn't know are stripped.
  */
 const SAVE_DATA_SCHEMAS: Readonly<Partial<Record<string, ZodType>>> = {
   [CbsRequestType.SFC]: formConfigSaveSchema,
   [`${CbsRequestType.PUT}:${CbsControlTable.MODEL_CONFIG}`]: modelConfigSaveSchema,
   [`${CbsRequestType.PUT}:${CbsControlTable.INQUIRY_CONFIG}`]: inquiryConfigSaveSchema,
+  [`${CbsRequestType.HLD}:${CbsControlTable.FORM_CONFIG}`]: formConfigRecordSchema,
+  [`${CbsRequestType.HLD}:${CbsControlTable.MODEL_CONFIG}`]: modelConfigRecordSchema,
+  [`${CbsRequestType.HLD}:${CbsControlTable.INQUIRY_CONFIG}`]: inquiryConfigRecordSchema,
 };
 
 /** Authorize, Delete and Reverse carry no definition to check (`actsOnStoredRecord`). */
@@ -119,7 +128,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       ]);
     }
 
-    // 2. Config save rules (the same schema the designer screen checks before sending)
+    // 2. Config save rules (the same schema the designer screen checks before sending; a hold
+    // gets the lenient read schema)
     const dataCheck = saveDataSchemaFor(body)?.safeParse(body.data);
     if (dataCheck && !dataCheck.success) {
       return apiFail(
@@ -132,15 +142,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session). A checked
     // config save forwards the parsed record, so keys the schema strips never reach the core;
     // Authorize, Delete and Reverse forward no data at all, so a crafted call can't slip an
-    // unchecked record through them.
-    const requested = buildGrpcEnvelope(
-      session,
-      actsOnStoredRecord(body.recordFunction)
-        ? { ...body, data: undefined }
-        : dataCheck
-          ? { ...body, data: dataCheck.data as Record<string, unknown> }
-          : body,
-    );
+    // unchecked record through them. A mutation never forwards the audit fields the core
+    // stamps (maker, authorizer, status), only the version it edited.
+    const checkedData = dataCheck ? (dataCheck.data as Record<string, unknown>) : body.data;
+    const requested = buildGrpcEnvelope(session, {
+      ...body,
+      data: actsOnStoredRecord(body.recordFunction)
+        ? undefined
+        : isCbsMutationRequest(body.requestType)
+          ? withoutClientAudit(checkedData)
+          : checkedData,
+    });
 
     // 4. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {

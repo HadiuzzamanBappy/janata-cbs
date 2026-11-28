@@ -140,7 +140,9 @@ The server can't run the model checks (the proxy has no model on SFC), so the co
 1. `sanitizeFormConfigRecord(formData)` writes sparse JSON: unset defaults are left out, `WIDTH` is kept whenever it is set (`md` included), and `LABEL` is kept as typed.
 2. `cbs.formConfig.save(cleanData, { recordId })` builds the `SFC` payload. `recordId` is required.
 3. `sendMutation()` adds the UUIDv4 idempotency key (AGENTS §3.5). A failure shows exactly one toast, raised by `cbs.send()`.
-4. On success, the React Query form-schema cache is invalidated, so open screens reload the new layout.
+4. On success, the React Query form-schema cache is invalidated, so open screens reload the new layout, and the screen returns to idle.
+
+Hold (`HLD`) sends the cleaned draft without validating it and keeps the screen on the record, the sent draft becoming the new baseline (model config does the same, then reloads the held copy).
 
 **Read:** `hooks/use-fc-actions.ts`, `src/lib/data-parsers/form-config-serializer.ts`, `src/lib/cbs-client/payloads/form-config.ts`.
 
@@ -160,7 +162,7 @@ The server can't run the model checks (the proxy has no model on SFC), so the co
 3. **Rights.** `verifyUserRecordAccess` (RIDASHL). The proxy checks rights, and Four-Eyes before every authorize (AGENTS §3.3).
 4. **Save rules.** `SAVE_DATA_SCHEMAS` runs the **same** `formConfigSaveSchema` as the screen on `body.data` (also PUT for MODEL.CONFIG and INQUIRY.CONFIG). A direct API call can't skip the screen's rules.
 5. **Forward the checked record.** The proxy sends `dataCheck.data` (the parsed result), not the raw body. Form fields are a plain `z.object` built from the column shape, so a key the designer doesn't author is removed at any depth. Model properties stay loose.
-6. `buildGrpcEnvelope` takes user and branch from the session, never from the browser. Then come cache, `dispatch()` and `autoInvalidateOnMutation` (`src/lib/infra-redis/cache.ts`).
+6. `buildGrpcEnvelope` takes user and branch from the session, never from the browser. A mutation never forwards the browser's audit fields (maker, authorizer, their times, status, branch): `withoutClientAudit` keeps only `recCurrNumber`, the version the user edited, so a maker can't name someone else as inputter. A Hold of a config record is parsed with that control's read schema (no save rules, unknown keys stripped). Then come cache, `dispatch()` and `autoInvalidateOnMutation` (`src/lib/infra-redis/cache.ts`).
 
 **Verify:**
 

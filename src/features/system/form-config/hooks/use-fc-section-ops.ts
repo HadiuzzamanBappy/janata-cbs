@@ -12,16 +12,26 @@ import { buildRenderBlocks } from "@/lib/cbs-form-spec";
 import { generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, FormContainerType, FormSection } from "@/lib/data-schemas";
 import type { NewSectionOptions } from "../components/designer/canvas/canvas-types";
-import { takenContainerIds } from "./fc-field-tree";
+import { dissolveLoneTabGroup, takenContainerIds } from "./fc-field-tree";
 import { useFcSectionReorder } from "./use-fc-section-reorder";
 import { useFcSectionZones } from "./use-fc-section-zones";
 
+/**
+ * @param readSections the latest sections, read when a new id must be made before an update
+ *   (updaters stay pure: React may run them twice)
+ */
 export function useFcSectionOps(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
   setSelectedSectionId: (id: string | null) => void,
   setSelectedFieldId: (id: string | null) => void,
+  readSections: () => FormSection[],
 ) {
-  const zones = useFcSectionZones(setFormData, setSelectedSectionId, setSelectedFieldId);
+  const zones = useFcSectionZones(
+    setFormData,
+    setSelectedSectionId,
+    setSelectedFieldId,
+    readSections,
+  );
   const reorder = useFcSectionReorder(setFormData);
 
   const addSection = React.useCallback(
@@ -35,11 +45,17 @@ export function useFcSectionOps(
         columns,
         containerConfig,
       } = options;
+      // Ids are made before the update, so the updater stays pure (React may call it twice)
+      const taken = takenContainerIds(readSections());
+      const newId = generateClientToken("sec", taken);
+      const targetGroupId =
+        containerType === "tab"
+          ? groupId || generateClientToken("tabgrp", new Set([...taken, newId]))
+          : groupId;
+
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const nextIndex = sections.length + 1;
-        const taken = takenContainerIds(sections);
-        const newId = generateClientToken("sec", taken);
         const defaultTitle =
           customTitle !== undefined
             ? customTitle
@@ -47,8 +63,6 @@ export function useFcSectionOps(
               ? groupTitle || `Tab ${nextIndex}`
               : "";
 
-        const targetGroupId =
-          containerType === "tab" ? groupId || generateClientToken("tabgrp", taken) : groupId;
         const existingTabInGroup =
           containerType === "tab" && targetGroupId
             ? sections.find((s) => s.containerType === "tab" && s.groupId === targetGroupId)
@@ -70,18 +84,16 @@ export function useFcSectionOps(
           fields: initialFields,
         };
 
+        // A field placed in the new section leaves wherever it was; only an untitled card this
+        // emptied goes with it (an empty card the user made stays)
         const newFieldKeys = new Set(initialFields.map((f) => f.NAME || f.SN));
-        const cleanedExistingSections = sections
-          .map((sec) => ({
-            ...sec,
-            fields: (sec.fields || []).filter(
-              (f) => !newFieldKeys.has(f.NAME) && !newFieldKeys.has(f.SN),
-            ),
-          }))
-          .filter((sec) => {
-            const isEmptySection = !sec.title && (!sec.fields || sec.fields.length === 0);
-            return !isEmptySection;
-          });
+        const cleanedExistingSections = sections.flatMap((sec) => {
+          const fields = (sec.fields || []).filter(
+            (f) => !newFieldKeys.has(f.NAME) && !newFieldKeys.has(f.SN),
+          );
+          const emptiedByMove = fields.length === 0 && (sec.fields || []).length > 0;
+          return emptiedByMove && !sec.title ? [] : [{ ...sec, fields }];
+        });
 
         // Without an index, a new tab in an existing group goes after the group's last tab
         const count = cleanedExistingSections.length;
@@ -99,11 +111,6 @@ export function useFcSectionOps(
         const updatedSections = [...cleanedExistingSections];
         updatedSections.splice(at, 0, newSection);
 
-        setSelectedSectionId(newId);
-        if (initialFields.length > 0) {
-          setSelectedFieldId(initialFields[0].NAME || initialFields[0].SN);
-        }
-
         return {
           ...prev,
           frmElements: {
@@ -112,8 +119,13 @@ export function useFcSectionOps(
           },
         };
       });
+
+      setSelectedSectionId(newId);
+      // Fields are found by SN first (fc-field-tree)
+      if (initialFields.length > 0)
+        setSelectedFieldId(initialFields[0].SN || initialFields[0].NAME);
     },
-    [setFormData, setSelectedSectionId, setSelectedFieldId],
+    [readSections, setFormData, setSelectedSectionId, setSelectedFieldId],
   );
 
   const updateSection = React.useCallback(
@@ -195,28 +207,10 @@ export function useFcSectionOps(
         const secToRemove = sections.find((s) => s.id === id);
         if (!secToRemove) return prev;
 
-        const isTabSection = secToRemove.containerType === "tab";
-        const groupId = secToRemove.groupId;
-
-        const updatedSections = sections.filter((sec) => sec.id !== id);
-
-        if (isTabSection && groupId) {
-          const remainingTabsInGroup = updatedSections.filter(
-            (s) => s.containerType === "tab" && s.groupId === groupId,
-          );
-          if (remainingTabsInGroup.length === 1) {
-            const singleTab = remainingTabsInGroup[0];
-            const idx = updatedSections.findIndex((s) => s.id === singleTab.id);
-            if (idx !== -1) {
-              updatedSections[idx] = {
-                ...singleTab,
-                containerType: "card",
-                groupId: undefined,
-                groupTitle: undefined,
-              };
-            }
-          }
-        }
+        const updatedSections = dissolveLoneTabGroup(
+          sections.filter((sec) => sec.id !== id),
+          secToRemove.containerType === "tab" ? secToRemove.groupId : undefined,
+        );
 
         return {
           ...prev,

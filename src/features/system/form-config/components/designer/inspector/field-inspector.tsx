@@ -49,7 +49,9 @@ export function FieldInspector({
 }: FieldInspectorProps) {
   const [activeTab, setActiveTab] = React.useState<FieldInspectorTab>("basics");
 
-  const physicalType = (matchedModelProp?.TYPE || field.TYPE || "String") as PropertyType;
+  const physicalType = (matchedModelProp?.TYPE ||
+    field.TYPE ||
+    CBS_PROPERTY_TYPE.STRING) as PropertyType;
   const isArrayField = physicalType === CBS_PROPERTY_TYPE.ARRAY;
 
   const isPhysicalMulti = matchedModelProp?.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI;
@@ -195,7 +197,7 @@ export function FieldInspector({
           {fieldLength ? `(${fieldLength})` : ""}
         </span>
         <span className="px-1 rounded bg-muted text-muted-foreground">
-          {fieldStructure === "M" ? "Multi (M)" : "Single (S)"}
+          {fieldStructure === CBS_PROPERTY_STRUCTURE.MULTI ? "Multi (M)" : "Single (S)"}
         </span>
         {isDbRequired ? (
           <span className="px-1 rounded bg-destructive/10 text-destructive font-semibold">

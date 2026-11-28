@@ -8,58 +8,30 @@
 "use client";
 
 import * as React from "react";
-import {
-  CBS_PROPERTY_STRUCTURE,
-  type FormConfigRecord,
-  type FormElement,
-} from "@/lib/data-schemas";
-import { updateFieldDeep } from "./fc-field-tree";
+import type { FormConfigRecord, FormElement, FormSection } from "@/lib/data-schemas";
+import { createDesignerField, updateFieldDeep } from "./fc-field-tree";
 import { useFcFieldMovement } from "./use-fc-field-movement";
 
+/** @param readSections the latest sections, for fields made before an update (see useFcSectionOps) */
 export function useFcFieldOps(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
   setSelectedFieldId: (id: string | null) => void,
-  setSelectedSectionId?: (id: string | null) => void,
+  setSelectedSectionId: (id: string | null) => void,
+  readSections: () => FormSection[],
 ) {
-  const movement = useFcFieldMovement(setFormData, setSelectedFieldId, setSelectedSectionId);
+  const movement = useFcFieldMovement(
+    setFormData,
+    setSelectedFieldId,
+    setSelectedSectionId,
+    readSections,
+  );
 
   const addFieldToSection = React.useCallback(
     (sectionId: string, fieldTemplate?: Partial<FormElement>, insertIndex?: number) => {
+      // Built before the update so the updater stays pure, and so it can be selected after
+      const newField = createDesignerField(fieldTemplate ?? {}, readSections());
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
-        const targetSection = sections.find((s) => s.id === sectionId);
-        const existingFields = targetSection?.fields || [];
-        const existingCount = existingFields.length + 1;
-        const usedSns = new Set(existingFields.map((f) => String(f.SN)));
-
-        let fieldSn = fieldTemplate?.SN || String(existingCount);
-        if (usedSns.has(fieldSn)) {
-          let candidate = existingCount;
-          while (usedSns.has(String(candidate))) {
-            candidate++;
-          }
-          fieldSn = String(candidate);
-        }
-        const fieldName = fieldTemplate?.NAME || `field_${existingCount}`;
-        const fieldLabel = fieldTemplate?.LABEL || `Field ${existingCount}`;
-
-        const newField: FormElement = {
-          ...fieldTemplate,
-          SN: fieldSn,
-          NAME: fieldName,
-          LABEL: fieldLabel,
-          TYPE: fieldTemplate?.TYPE || "String",
-          LENGTH: fieldTemplate?.LENGTH ?? 35,
-          STRUCTURE: fieldTemplate?.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
-          REQUIRED: fieldTemplate?.REQUIRED ?? false,
-          DISABLED: fieldTemplate?.DISABLED ?? false,
-          PARAMETER: fieldTemplate?.PARAMETER || {
-            type: "O",
-            data: [],
-          },
-          ENRICHTEXT: fieldTemplate?.ENRICHTEXT || "",
-          DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",
-        };
 
         const updatedSections = sections.map((sec) => {
           if (sec.id !== sectionId) return sec;
@@ -76,8 +48,6 @@ export function useFcFieldOps(
           return { ...sec, fields: currentFields };
         });
 
-        setSelectedFieldId(fieldName);
-
         return {
           ...prev,
           frmElements: {
@@ -86,8 +56,10 @@ export function useFcFieldOps(
           },
         };
       });
+      // Fields are found by SN first (fc-field-tree)
+      setSelectedFieldId(newField.SN);
     },
-    [setFormData, setSelectedFieldId],
+    [readSections, setFormData, setSelectedFieldId],
   );
 
   const updateField = React.useCallback(

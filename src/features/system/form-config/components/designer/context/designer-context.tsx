@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import type { FormElement } from "@/lib/data-schemas";
-import { findFieldDeep } from "../../../hooks/fc-field-tree";
-import { createNewFieldFromTemplate, dispatchPaletteDrop } from "../canvas/canvas-drop-dispatcher";
+import { createDesignerField, findFieldDeep } from "../../../hooks/fc-field-tree";
+import { dispatchPaletteDrop } from "../canvas/canvas-drop-dispatcher";
 import type { PaletteDragPayload, PaletteDropTarget } from "../canvas/drag-payload";
 import type { DesignerContextValue, DesignerProviderProps } from "./designer-context-types";
 
@@ -110,7 +110,7 @@ export function DesignerProvider({
           return;
         }
       }
-      const newField = createNewFieldFromTemplate(sections, template);
+      const newField = createDesignerField(template, sections);
       onAddSection("card", { fields: [newField], title: "" });
     },
     [isCompact, selectedSectionId, sections, onAddFieldToSection, onAddSection],

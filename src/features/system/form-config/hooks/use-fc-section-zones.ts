@@ -11,15 +11,21 @@ import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, FormContainerType, FormSection } from "@/lib/data-schemas";
 import type { SectionPlacement } from "../components/designer/canvas/canvas-types";
-import { takenContainerIds } from "./fc-field-tree";
+import { dissolveLoneTabGroup, takenContainerIds } from "./fc-field-tree";
 
+/** @param readSections the latest sections, for ids made before an update (see useFcSectionOps) */
 export function useFcSectionZones(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
   setSelectedSectionId: (id: string | null) => void,
   setSelectedFieldId: (id: string | null) => void,
+  readSections: () => FormSection[],
 ) {
   const convertSectionZone = React.useCallback(
     (sectionId: string, targetType: FormContainerType, opts?: SectionPlacement) => {
+      const newGroupId =
+        targetType === "tab" && !opts?.groupId
+          ? generateClientToken("tabgrp", takenContainerIds(readSections()))
+          : undefined;
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const targetSec = sections.find((s) => s.id === sectionId);
@@ -29,7 +35,7 @@ export function useFcSectionZones(
 
         let updatedSec: FormSection;
         if (targetType === "tab") {
-          const grpId = opts?.groupId || generateClientToken("tabgrp", takenContainerIds(sections));
+          const grpId = opts?.groupId || (newGroupId as string);
           const title = opts?.groupTitle || targetSec.title || "Tab";
           updatedSec = {
             ...targetSec,
@@ -73,38 +79,22 @@ export function useFcSectionZones(
           finalSections.splice(safeIdx, 0, updatedSec);
         }
 
-        // Auto-dissolve old tab group if only 1 tab remains in it
-        if (
-          originalGroupId &&
-          (targetType === "card" || (targetType === "tab" && opts?.groupId !== originalGroupId))
-        ) {
-          const remainingTabsInOldGroup = finalSections.filter(
-            (s) => s.containerType === "tab" && s.groupId === originalGroupId,
-          );
-          if (remainingTabsInOldGroup.length === 1) {
-            const singleTab = remainingTabsInOldGroup[0];
-            const idx = finalSections.findIndex((s) => s.id === singleTab.id);
-            if (idx !== -1) {
-              finalSections[idx] = {
-                ...singleTab,
-                containerType: "card",
-                groupId: undefined,
-                groupTitle: undefined,
-              };
-            }
-          }
-        }
+        // The tab left its old group: a group left with one tab becomes a card
+        const leftGroup =
+          originalGroupId && (targetType === "card" || opts?.groupId !== originalGroupId);
 
         return {
           ...prev,
           frmElements: {
             ...prev.frmElements,
-            sections: finalSections,
+            sections: leftGroup
+              ? dissolveLoneTabGroup(finalSections, originalGroupId)
+              : finalSections,
           },
         };
       });
     },
-    [setFormData],
+    [readSections, setFormData],
   );
 
   const mergeTabGroups = React.useCallback(
@@ -132,18 +122,29 @@ export function useFcSectionZones(
     [setFormData],
   );
 
-  /** Unpacks a card's fields, each into its own untitled standalone card. */
+  /** Unpacks a card's fields, each into its own untitled standalone card (an empty card stays). */
   const ungroupSection = React.useCallback(
     (id: string) => {
+      const current = readSections();
+      const fieldCount = current.find((s) => s.id === id)?.fields?.length ?? 0;
+      if (fieldCount === 0) return;
+      // One id per field, made before the update so the updater stays pure
+      const taken = takenContainerIds(current);
+      const newIds = Array.from({ length: fieldCount }, () => {
+        const newId = generateClientToken("sec_field", taken);
+        taken.add(newId);
+        return newId;
+      });
+
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const secIndex = sections.findIndex((s) => s.id === id);
         if (secIndex === -1) return prev;
 
-        const taken = takenContainerIds(sections);
-        const standaloneSections: FormSection[] = (sections[secIndex].fields || []).map((f) => {
-          const newId = generateClientToken("sec_field", taken);
-          taken.add(newId);
+        const fields = sections[secIndex].fields || [];
+        if (fields.length !== newIds.length) return prev;
+        const standaloneSections: FormSection[] = fields.map((f, idx) => {
+          const newId = newIds[idx];
           return {
             id: newId,
             title: "",
@@ -163,7 +164,7 @@ export function useFcSectionZones(
       setSelectedSectionId(null);
       setSelectedFieldId(null);
     },
-    [setFormData, setSelectedSectionId, setSelectedFieldId],
+    [readSections, setFormData, setSelectedSectionId, setSelectedFieldId],
   );
 
   return { convertSectionZone, mergeTabGroups, ungroupSection };

@@ -1,5 +1,6 @@
 import {
   CBS_PROPERTY_STRUCTURE,
+  CBS_PROPERTY_TYPE,
   type FormElement,
   getDefaultWidgetForType,
   type ModelProperty,
@@ -21,7 +22,9 @@ export function fieldOverrideBadges(
   const list: FieldOverrideBadge[] = [];
 
   // 1. Widget override
-  const physicalType = (matchedProp?.TYPE || field.TYPE || "String") as PropertyType;
+  const physicalType = (matchedProp?.TYPE ||
+    field.TYPE ||
+    CBS_PROPERTY_TYPE.STRING) as PropertyType;
   const defaultWidget = getDefaultWidgetForType(physicalType);
   if (field.WIDGET && field.WIDGET !== defaultWidget) {
     list.push({ key: "widget", label: field.WIDGET.toUpperCase(), variant: "outline" });
@@ -51,7 +54,7 @@ export function fieldOverrideBadges(
       key: "rule-vis",
       label: "VIS",
       variant: "secondary",
-      className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 font-semibold",
+      className: "bg-info/15 text-info border-info/30 font-semibold",
     });
   }
 
@@ -60,8 +63,7 @@ export function fieldOverrideBadges(
       key: "rule-dis",
       label: "DIS",
       variant: "secondary",
-      className:
-        "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 font-semibold",
+      className: "bg-warning/15 text-warning border-warning/30 font-semibold",
     });
   }
 
@@ -70,8 +72,7 @@ export function fieldOverrideBadges(
       key: "rule-cas",
       label: "CAS",
       variant: "secondary",
-      className:
-        "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 font-semibold",
+      className: "bg-primary/15 text-primary border-primary/30 font-semibold",
     });
   }
 
@@ -80,8 +81,7 @@ export function fieldOverrideBadges(
       key: "rule-chg",
       label: "CHG",
       variant: "secondary",
-      className:
-        "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 font-semibold",
+      className: "bg-success/15 text-success border-success/30 font-semibold",
     });
   }
 
@@ -95,8 +95,7 @@ export function fieldOverrideBadges(
       key: "rule-val",
       label: "VAL",
       variant: "secondary",
-      className:
-        "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30 font-semibold",
+      className: "bg-secondary text-secondary-foreground border-border font-semibold",
     });
   }
 

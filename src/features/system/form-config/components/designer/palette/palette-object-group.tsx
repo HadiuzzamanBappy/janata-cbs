@@ -4,7 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import { CBS_PROPERTY_STRUCTURE, type FormElement, type ModelProperty } from "@/lib/data-schemas";
+import {
+  CBS_PROPERTY_STRUCTURE,
+  CBS_PROPERTY_TYPE,
+  type FormElement,
+  type ModelProperty,
+} from "@/lib/data-schemas";
 import { writeDragPayload } from "../canvas/drag-payload";
 
 export interface PaletteObjectGroupProps {
@@ -43,7 +48,7 @@ export function PaletteObjectGroup({
 
   const objectFieldElement: FormElement = {
     ...modelPropToFormElement(parent),
-    TYPE: "Array",
+    TYPE: CBS_PROPERTY_TYPE.ARRAY,
     STRUCTURE:
       parent.STRUCTURE === CBS_PROPERTY_STRUCTURE.MULTI
         ? CBS_PROPERTY_STRUCTURE.MULTI

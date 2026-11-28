@@ -8,7 +8,14 @@
  */
 
 import { modelPropertyMatcher } from "@/lib/cbs-form-spec";
-import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
+import {
+  CBS_PROPERTY_STRUCTURE,
+  CBS_PROPERTY_TYPE,
+  DEFAULT_PROPERTY_LENGTH,
+  type FormElement,
+  type FormSection,
+  type ModelProperty,
+} from "@/lib/data-schemas";
 
 /** Every section and tab-group id on the form, so a generated id never repeats one. */
 export const takenContainerIds = (sections: FormSection[]): Set<string> =>
@@ -108,4 +115,47 @@ export function findModelPropDeep(
     return null;
   };
   return bySn(properties) ?? modelPropertyMatcher(properties)(field.NAME) ?? null;
+}
+
+/**
+ * The one way a new field joins the layout (palette click or drop, onto the canvas or into a
+ * section). It keeps the template and fills only identity and column basics: no default values,
+ * so the inspector shows the engine's defaults and nothing extra is stored. The template's `SN`
+ * is kept unless another field on the form has it; otherwise, and for a blank field, the first
+ * free number is used.
+ */
+export function createDesignerField(
+  template: Partial<FormElement>,
+  sections: FormSection[],
+): FormElement {
+  const usedSns = new Set(sections.flatMap((s) => (s.fields ?? []).map((f) => String(f.SN))));
+  let next = usedSns.size + 1;
+  while (usedSns.has(String(next))) next++;
+  const sn = template.SN && !usedSns.has(String(template.SN)) ? String(template.SN) : String(next);
+  return {
+    ...template,
+    SN: sn,
+    NAME: template.NAME || `field_${next}`,
+    LABEL: template.LABEL || `Field ${next}`,
+    TYPE: template.TYPE || CBS_PROPERTY_TYPE.STRING,
+    LENGTH: template.LENGTH ?? DEFAULT_PROPERTY_LENGTH,
+    STRUCTURE: template.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
+    REQUIRED: Boolean(template.REQUIRED),
+    MODELNAME: template.MODELNAME ?? "",
+  };
+}
+
+/**
+ * A tab group needs two tabs: when only one tab of `groupId` is left, it becomes a plain card.
+ * Run after a tab leaves its group (removed, or converted or moved away).
+ */
+export function dissolveLoneTabGroup(sections: FormSection[], groupId?: string): FormSection[] {
+  if (!groupId) return sections;
+  const peers = sections.filter((s) => s.containerType === "tab" && s.groupId === groupId);
+  if (peers.length !== 1) return sections;
+  return sections.map((s) =>
+    s.id === peers[0].id
+      ? { ...s, containerType: "card", groupId: undefined, groupTitle: undefined }
+      : s,
+  );
 }

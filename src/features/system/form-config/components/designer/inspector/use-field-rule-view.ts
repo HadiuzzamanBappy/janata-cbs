@@ -11,7 +11,7 @@
 
 import * as React from "react";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormElement, FormSection } from "@/lib/data-schemas";
+import { CBS_PARAMETER_TYPE, type FormElement, type FormSection } from "@/lib/data-schemas";
 import {
   type CascadeRow,
   type ConditionRow,
@@ -80,7 +80,9 @@ type FieldOption = { code: string; label: string };
 function withFieldOptions(field: FormElement, options: FieldOption[]): FormElement {
   return {
     ...field,
-    ...(FIELD_PICKER_KEYS.has(field.NAME) ? { PARAMETER: { type: "O", data: options } } : {}),
+    ...(FIELD_PICKER_KEYS.has(field.NAME)
+      ? { PARAMETER: { type: CBS_PARAMETER_TYPE.OPTIONS, data: options } }
+      : {}),
     ...(field.PROP ? { PROP: field.PROP.map((sub) => withFieldOptions(sub, options)) } : {}),
   };
 }

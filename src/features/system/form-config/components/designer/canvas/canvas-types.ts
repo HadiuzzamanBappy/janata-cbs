@@ -71,3 +71,12 @@ export interface DesignerCanvasProps {
   onTogglePalette?: () => void;
   onToggleInspector?: () => void;
 }
+
+/** A drop between canvas blocks targets a gap (by index), not a section. */
+const CANVAS_GAP_PREFIX = "gap-";
+
+/** The drop-target id of the gap before block `gapIndex` (0 is the top of the canvas). */
+export const canvasGapId = (gapIndex: number): string =>
+  `${CANVAS_GAP_PREFIX}${Math.max(0, gapIndex)}`;
+
+export const isCanvasGapId = (id: string): boolean => id.startsWith(CANVAS_GAP_PREFIX);

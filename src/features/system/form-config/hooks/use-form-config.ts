@@ -17,6 +17,7 @@ import { parseGfcResponse } from "@/lib/data-parsers";
 import {
   type FormDensity,
   type FormLayout,
+  type FormSection,
   isApiSuccess,
   type ModelConfigRecord,
 } from "@/lib/data-schemas";
@@ -60,8 +61,25 @@ export function useFormConfig(tabId?: string) {
   const [validationErrors, setValidationErrors] = React.useState<FormConfigValidationError[]>([]);
   const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
 
-  const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
-  const fieldOps = useFcFieldOps(setFormData, setSelectedFieldId, setSelectedSectionId);
+  // The latest sections, for operations that make an id or a field before updating
+  const sectionsRef = React.useRef<FormSection[]>([]);
+  React.useLayoutEffect(() => {
+    sectionsRef.current = formData.frmElements?.sections ?? [];
+  }, [formData.frmElements?.sections]);
+  const readSections = React.useCallback(() => sectionsRef.current, []);
+
+  const sectionOps = useFcSectionOps(
+    setFormData,
+    setSelectedSectionId,
+    setSelectedFieldId,
+    readSections,
+  );
+  const fieldOps = useFcFieldOps(
+    setFormData,
+    setSelectedFieldId,
+    setSelectedSectionId,
+    readSections,
+  );
 
   // A form ID is `<MODEL>,<VERSION>`: its model key is the part before the comma (never the
   // model's TABLENAME, which can differ, e.g. USER.MGT vs USER_MGT)

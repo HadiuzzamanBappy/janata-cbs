@@ -93,6 +93,9 @@ interface WidgetEligibilityContext {
   modelName?: string;
 }
 
+/** Shortest column a `textarea` may edit: shorter text belongs in a single-line input. */
+export const TEXTAREA_MIN_LENGTH = 80;
+
 /**
  * Resolves compatible presentation widgets based on physical TYPE, STRUCTURE, LENGTH, and MODELNAME.
  *
@@ -120,11 +123,40 @@ export function getCompatibleWidgets({
     if (w === "checkbox-group") return structure === CBS_PROPERTY_STRUCTURE.MULTI;
     if (SINGLE_VALUE_WIDGETS.has(w)) return structure === CBS_PROPERTY_STRUCTURE.SINGLE;
     if (w === "textarea") {
-      return length === undefined || length >= 80;
+      return length === undefined || length >= TEXTAREA_MIN_LENGTH;
     }
 
     return true;
   });
+}
+
+/**
+ * Why `widget` can't present this column, in the order `getCompatibleWidgets` applies its rules, or
+ * null when it can. `label` names the widget in the message (default: the widget code).
+ */
+export function widgetIneligibleReason(
+  context: WidgetEligibilityContext,
+  widget: FormWidgetType,
+  label: string = widget,
+): string | null {
+  if (getCompatibleWidgets(context).includes(widget)) return null;
+  const model = context.modelName?.trim();
+  if (model) return `Locked to Select (Dropdown) for model ${model}`;
+  const structure = context.structure ?? CBS_PROPERTY_STRUCTURE.SINGLE;
+  if (widget === "checkbox-group" && structure !== CBS_PROPERTY_STRUCTURE.MULTI) {
+    return `${label} requires Multi-Value (M) structure`;
+  }
+  if (SINGLE_VALUE_WIDGETS.has(widget) && structure !== CBS_PROPERTY_STRUCTURE.SINGLE) {
+    return `${label} requires Single (S) structure`;
+  }
+  if (
+    widget === "textarea" &&
+    context.length !== undefined &&
+    context.length < TEXTAREA_MIN_LENGTH
+  ) {
+    return `${label} requires column length >= ${TEXTAREA_MIN_LENGTH} characters`;
+  }
+  return `Incompatible with ${context.type} data type`;
 }
 
 export function isWidgetCompatibleWithType(

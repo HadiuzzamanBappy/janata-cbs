@@ -5,10 +5,10 @@ import * as React from "react";
 import { cn } from "@/lib/core-utils";
 import type { DesignerDragPayload } from "@/lib/data-schemas";
 import { useGlobalDragReset } from "./canvas-chrome";
+import { canvasGapId } from "./canvas-types";
 import { readDragPayload } from "./drag-payload";
 
 export interface CanvasGapIndicatorProps {
-  id: string;
   gapIndex: number;
   isActive?: boolean;
   onDropItem?: (payload: DesignerDragPayload, insertIndex: number) => void;
@@ -22,12 +22,12 @@ export interface CanvasGapIndicatorProps {
  * the pointer position in the canvas targets this slot.
  */
 export function CanvasGapIndicator({
-  id,
   gapIndex,
   isActive,
   onDropItem,
   disabled,
 }: CanvasGapIndicatorProps) {
+  const id = canvasGapId(gapIndex);
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: "between-block-gap", gapId: id, gapIndex },

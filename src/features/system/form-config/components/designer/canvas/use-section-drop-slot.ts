@@ -6,6 +6,7 @@ import { getFieldColSpanClass } from "@/lib/cbs-form-spec";
 import type { FormSection } from "@/lib/data-schemas";
 import { useGlobalDragReset } from "./canvas-chrome";
 import { type PaletteDragPayload, type PaletteDropTarget, readDragPayload } from "./drag-payload";
+import { dropsAfterLastField } from "./use-canvas-drag";
 
 export interface SectionDropSlotOptions {
   section: FormSection;
@@ -76,29 +77,20 @@ export function useSectionDropSlot({
           setDndInsertIndex(section.fields.length);
           return;
         }
-        // When hovering the bottom half of the last card, place indicator at the bottom of the list
-        const translated = event.active.rect.current.translated;
-        const overRect = event.over?.rect;
-        if (
-          idx === section.fields.length - 1 &&
-          translated &&
-          overRect &&
-          translated.top + translated.height / 2 > overRect.top + overRect.height / 2
-        ) {
-          setDndInsertIndex(section.fields.length);
-        } else {
-          setDndInsertIndex(idx);
-        }
+        // The same rule the drop applies (use-canvas-drag): past the last card's middle means the end
+        setDndInsertIndex(
+          dropsAfterLastField(
+            section.fields,
+            overId,
+            event.active.rect.current.translated,
+            event.over?.rect,
+          )
+            ? section.fields.length
+            : idx,
+        );
       } else if (overData?.type === "section-dropzone") {
-        const translated = event.active.rect.current.translated;
-        const cards = gridContainerRef.current?.querySelectorAll<HTMLElement>("[data-field-card]");
-        const lastRect =
-          cards && cards.length > 0 ? cards[cards.length - 1].getBoundingClientRect() : null;
-        const isBelowLast =
-          translated && lastRect ? translated.top + translated.height / 2 > lastRect.bottom : false;
-        if (dndInsertIndex === null || isBelowLast) {
-          setDndInsertIndex(section.fields.length);
-        }
+        // A drop on the section itself (not on a card) appends, so the indicator shows the end
+        setDndInsertIndex(section.fields.length);
       } else {
         setDndInsertIndex(null);
       }

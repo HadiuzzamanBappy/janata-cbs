@@ -68,7 +68,6 @@ export function CanvasFlow(props: CanvasFlowProps) {
     <div className="flex flex-col min-h-full pt-0 pb-2">
       {/* 1. Top insertion placement slot */}
       <CanvasGapIndicator
-        id="gap-top"
         gapIndex={0}
         isActive={activeGapIndex === 0}
         onDropItem={handleDropAtGap}
@@ -91,7 +90,6 @@ export function CanvasFlow(props: CanvasFlowProps) {
                 />
               </div>
               <CanvasGapIndicator
-                id={`gap-${nextGapIndex}`}
                 gapIndex={nextGapIndex}
                 isActive={activeGapIndex === nextGapIndex}
                 onDropItem={handleDropAtGap}
@@ -112,7 +110,6 @@ export function CanvasFlow(props: CanvasFlowProps) {
                 <StandaloneFieldBlock section={sec} />
               </div>
               <CanvasGapIndicator
-                id={`gap-${nextGapIndex}`}
                 gapIndex={nextGapIndex}
                 isActive={activeGapIndex === nextGapIndex}
                 onDropItem={handleDropAtGap}
@@ -128,7 +125,6 @@ export function CanvasFlow(props: CanvasFlowProps) {
               <CardContainerBlock section={sec} />
             </div>
             <CanvasGapIndicator
-              id={`gap-${nextGapIndex}`}
               gapIndex={nextGapIndex}
               isActive={activeGapIndex === nextGapIndex}
               onDropItem={handleDropAtGap}

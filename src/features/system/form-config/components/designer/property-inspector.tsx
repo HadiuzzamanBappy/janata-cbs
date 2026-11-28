@@ -9,6 +9,7 @@
 
 import { ArrowLeft, Layers, LayoutList, Settings, Type } from "lucide-react";
 import * as React from "react";
+import { fieldErrorMap } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
 import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
 import { findFieldDeep, findModelPropDeep } from "../../hooks/fc-field-tree";
@@ -94,26 +95,18 @@ export function PropertyInspector(props: PropertyInspectorProps) {
     return findModelPropDeep(modelProperties, selectedField);
   }, [modelProperties, selectedField]);
 
-  const fieldErrorMap = React.useMemo(() => {
-    if (!selectedField || !ctx) return {};
-    const fieldId = selectedField.SN || selectedField.NAME;
-    const errors = ctx.getFieldErrors(fieldId);
-    const map: Record<string, string> = {};
-    for (const err of errors) {
-      map[err.fieldKey] = err.message;
-    }
-    return map;
-  }, [selectedField, ctx]);
+  const selectedFieldErrors = React.useMemo(
+    () =>
+      selectedField && ctx
+        ? fieldErrorMap(ctx.getFieldErrors(selectedField.SN || selectedField.NAME))
+        : {},
+    [selectedField, ctx],
+  );
 
-  const sectionErrorMap = React.useMemo(() => {
-    if (!selectedSection || !ctx) return {};
-    const errors = ctx.getSectionErrors(selectedSection.id);
-    const map: Record<string, string> = {};
-    for (const err of errors) {
-      map[err.fieldKey] = err.message;
-    }
-    return map;
-  }, [selectedSection, ctx]);
+  const selectedSectionErrors = React.useMemo(
+    () => (selectedSection && ctx ? fieldErrorMap(ctx.getSectionErrors(selectedSection.id)) : {}),
+    [selectedSection, ctx],
+  );
 
   const header = selectedField
     ? {
@@ -175,14 +168,14 @@ export function PropertyInspector(props: PropertyInspectorProps) {
             matchedModelProp={matchedModelProp}
             onUpdateField={onUpdateField}
             disabled={disabled}
-            errors={fieldErrorMap}
+            errors={selectedFieldErrors}
           />
         ) : selectedSection ? (
           <ContainerInspector
             section={selectedSection}
             onUpdateSection={onUpdateSection}
             disabled={disabled}
-            errors={sectionErrorMap}
+            errors={selectedSectionErrors}
           />
         ) : (
           <RootCanvasInspector

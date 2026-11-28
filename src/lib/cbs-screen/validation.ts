@@ -79,16 +79,23 @@ export function focusFormField(fieldKey?: string, nodeId?: string): boolean {
 }
 
 /**
- * One tab's errors as `fieldKey → message`, the `errors` map a `FormRenderer` takes.
- * When a field has several errors, the first one is shown.
+ * Errors as `fieldKey → message`, the `errors` map a `FormRenderer` takes. When a field has
+ * several errors, the first one is shown.
  */
+export function fieldErrorMap(
+  errors: readonly Pick<CbsScreenValidationError, "fieldKey" | "message">[],
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const err of errors) {
+    if (err.fieldKey && !(err.fieldKey in map)) map[err.fieldKey] = err.message;
+  }
+  return map;
+}
+
+/** One tab's errors as a `FormRenderer` errors map (see `fieldErrorMap`). */
 export function tabFieldErrors<TTab extends string>(
   errors: readonly CbsScreenValidationError<TTab>[],
   tab: TTab,
 ): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const err of errors) {
-    if (err.tab === tab && err.fieldKey && !(err.fieldKey in map)) map[err.fieldKey] = err.message;
-  }
-  return map;
+  return fieldErrorMap(errors.filter((err) => err.tab === tab));
 }

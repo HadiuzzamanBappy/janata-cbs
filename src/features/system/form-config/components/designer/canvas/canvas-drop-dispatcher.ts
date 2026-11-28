@@ -5,41 +5,10 @@
  * @module features/system/form-config/components/designer/canvas/canvas-drop-dispatcher
  */
 
-import {
-  CBS_PARAMETER_TYPE,
-  CBS_PROPERTY_STRUCTURE,
-  type FormElement,
-  type FormSection,
-} from "@/lib/data-schemas";
+import type { FormElement, FormSection } from "@/lib/data-schemas";
+import { createDesignerField } from "../../../hooks/fc-field-tree";
 import type { AddSectionFn } from "./canvas-types";
 import type { PaletteDragPayload, PaletteDropTarget } from "./drag-payload";
-
-/**
- * Creates a normalized FormElement from a partial template.
- */
-export function createNewFieldFromTemplate(
-  sections: FormSection[],
-  template: Partial<FormElement>,
-): FormElement {
-  const fieldName = template.NAME || `field_${(sections.length + 1).toString()}`;
-  return {
-    ...template,
-    SN: template.SN || String(sections.length + 1),
-    NAME: fieldName,
-    LABEL: template.LABEL || "New Field",
-    TYPE: template.TYPE || "String",
-    LENGTH: template.LENGTH ?? 35,
-    STRUCTURE: template.STRUCTURE || CBS_PROPERTY_STRUCTURE.SINGLE,
-    REQUIRED: Boolean(template.REQUIRED),
-    DISABLED: template.DISABLED ?? false,
-    PARAMETER: template.PARAMETER || {
-      type: CBS_PARAMETER_TYPE.OPTIONS,
-      data: [],
-    },
-    ENRICHTEXT: template.ENRICHTEXT || "",
-    DEFAULTVALUE: template.DEFAULTVALUE || "",
-  };
-}
 
 export interface DispatchPaletteDropOptions {
   payload: PaletteDragPayload;
@@ -70,7 +39,7 @@ export function dispatchPaletteDrop({
       onAddFieldToSection(target.sectionId, payload.element, target.insertIndex);
     } else if (target.kind === "canvas") {
       onAddSection("card", {
-        fields: [payload.element],
+        fields: [createDesignerField(payload.element, sections)],
         title: "",
         insertIndex: target.insertIndex,
       });

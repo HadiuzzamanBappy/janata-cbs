@@ -10,16 +10,19 @@
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, FormElement, FormSection } from "@/lib/data-schemas";
+import { isCanvasGapId } from "../components/designer/canvas/canvas-types";
 import { takenContainerIds } from "./fc-field-tree";
 
 export function isMatchingField(field: FormElement, identifier: string): boolean {
   return field.SN === identifier || field.NAME === identifier;
 }
 
+/** @param readSections the latest sections, for ids made before an update (see useFcSectionOps) */
 export function useFcFieldMovement(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
   setSelectedFieldId: (id: string | null) => void,
-  setSelectedSectionId?: (id: string | null) => void,
+  setSelectedSectionId: (id: string | null) => void,
+  readSections: () => FormSection[],
 ) {
   const reorderFields = React.useCallback(
     (sectionId: string, activeId: string, overId: string) => {
@@ -63,6 +66,13 @@ export function useFcFieldMovement(
       targetFieldId?: string,
       insertAtIndex?: number,
     ) => {
+      // Within one section this would drop the field (the source copy wins): that is reorderFields
+      if (sourceSecId === targetSecId) return;
+      // A drop on a gap makes the field its own card there; its id is made before the update
+      const toGap = isCanvasGapId(targetSecId);
+      const newCardId = toGap
+        ? generateClientToken("sec_field", takenContainerIds(readSections()))
+        : undefined;
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const sourceSec = sections.find((s) => s.id === sourceSecId);
@@ -73,10 +83,9 @@ export function useFcFieldMovement(
 
         const fieldToMove = sourceSec.fields[fieldIndex];
 
-        if (targetSecId.startsWith("gap-")) {
-          // Move field out of its current section directly to root canvas as an independent item
+        if (newCardId) {
           const newCardSec: FormSection = {
-            id: generateClientToken("sec_field", takenContainerIds(sections)),
+            id: newCardId,
             title: "",
             containerType: "card",
             columns: 1,
@@ -101,14 +110,11 @@ export function useFcFieldMovement(
                 (s.fields && s.fields.length > 0),
             );
 
-          let insertAt = insertAtIndex !== undefined ? insertAtIndex : newSections.length;
-          if (targetSecId === "gap-top" || targetSecId === "gap-0") {
-            insertAt = 0;
-          } else if (targetSecId.startsWith("gap-") && insertAtIndex === undefined) {
-            const rawIdx = Number.parseInt(targetSecId.replace("gap-", ""), 10);
-            if (!Number.isNaN(rawIdx)) insertAt = Math.min(rawIdx, newSections.length);
-          }
-          insertAt = Math.max(0, Math.min(insertAt, newSections.length));
+          // The drag handler gives the gap's section index; without one the card goes last
+          const insertAt = Math.max(
+            0,
+            Math.min(insertAtIndex ?? newSections.length, newSections.length),
+          );
 
           newSections.splice(insertAt, 0, newCardSec);
 
@@ -154,11 +160,9 @@ export function useFcFieldMovement(
       });
 
       setSelectedFieldId(fieldId);
-      if (setSelectedSectionId) {
-        setSelectedSectionId(targetSecId);
-      }
+      setSelectedSectionId(newCardId ?? targetSecId);
     },
-    [setFormData, setSelectedFieldId, setSelectedSectionId],
+    [readSections, setFormData, setSelectedFieldId, setSelectedSectionId],
   );
 
   return {

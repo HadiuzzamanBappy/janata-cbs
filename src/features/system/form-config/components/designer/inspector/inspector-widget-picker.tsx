@@ -11,12 +11,12 @@ import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/core-utils";
 import {
-  CBS_PROPERTY_STRUCTURE,
   FORM_WIDGET_TYPES,
   type FormWidgetType,
   getCompatibleWidgets,
   type PropertyStructure,
   type PropertyType,
+  widgetIneligibleReason,
 } from "@/lib/data-schemas";
 import { WIDGET_DISPLAY_LABELS } from "../../../fields/fc-widget-fields";
 
@@ -40,8 +40,6 @@ export function InspectorWidgetPicker({
   disabled,
   onSelect,
 }: InspectorWidgetPickerProps) {
-  const hasModel = Boolean(modelName);
-
   const eligibleWidgetsSet = React.useMemo(
     () => new Set(getCompatibleWidgets({ type: physicalType, structure, length, modelName })),
     [physicalType, structure, length, modelName],
@@ -56,22 +54,13 @@ export function InspectorWidgetPicker({
     [eligibleWidgetsSet],
   );
 
-  const getIneligibleReason = (w: FormWidgetType): string => {
-    if (hasModel && w !== "select") return `Locked to Select (Dropdown) for model ${modelName}`;
-    if (w === "checkbox-group" && structure !== CBS_PROPERTY_STRUCTURE.MULTI) {
-      return "Checkbox Group requires Multi-Value (M) structure";
-    }
-    if (
-      ["radio-group", "segmented", "checkbox", "switch"].includes(w) &&
-      structure === CBS_PROPERTY_STRUCTURE.MULTI
-    ) {
-      return `${WIDGET_DISPLAY_LABELS[w] || w} requires Single (S) structure`;
-    }
-    if (w === "textarea" && (length ?? 0) < 80) {
-      return "Textarea requires column length >= 80 characters";
-    }
-    return `Incompatible with ${physicalType} data type`;
-  };
+  // The same rules that decide eligibility explain it (form-widget-schema)
+  const reasonFor = (w: FormWidgetType): string =>
+    widgetIneligibleReason(
+      { type: physicalType, structure, length, modelName },
+      w,
+      WIDGET_DISPLAY_LABELS[w] || w,
+    ) ?? "";
 
   return (
     <div className="space-y-1.5">
@@ -83,25 +72,27 @@ export function InspectorWidgetPicker({
         {sortedWidgets.map((w) => {
           const isSelected = currentWidget === w;
           const isEligible = eligibleWidgetsSet.has(w);
-          const isWidgetLocked = hasModel && w !== "select";
-          const isDisabled = disabled || !isEligible || isWidgetLocked;
+          const isDisabled = disabled || !isEligible;
 
           return (
             <button
               key={w}
               type="button"
               disabled={isDisabled}
-              onClick={() => isEligible && !isWidgetLocked && onSelect(w)}
-              title={isDisabled ? getIneligibleReason(w) : WIDGET_DISPLAY_LABELS[w] || w}
+              onClick={() => isEligible && onSelect(w)}
+              title={
+                isDisabled
+                  ? reasonFor(w) || WIDGET_DISPLAY_LABELS[w] || w
+                  : WIDGET_DISPLAY_LABELS[w] || w
+              }
               className={cn(
                 "h-6 px-2 text-3xs rounded transition-all duration-150 capitalize",
                 isSelected &&
                   "bg-primary text-primary-foreground font-semibold shadow-2xs cursor-pointer",
                 isEligible &&
                   !isSelected &&
-                  !isWidgetLocked &&
                   "border border-border/70 bg-background/60 text-muted-foreground hover:text-foreground hover:bg-muted/40 cursor-pointer",
-                (!isEligible || isWidgetLocked) &&
+                !isEligible &&
                   "border border-border/30 bg-muted/20 text-muted-foreground/40 cursor-not-allowed opacity-45 select-none",
               )}
             >

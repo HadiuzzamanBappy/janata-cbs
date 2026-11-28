@@ -2,7 +2,28 @@ import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core"
 import * as React from "react";
 import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
 import type { FormElement, FormSection } from "@/lib/data-schemas";
-import type { DesignerCanvasProps } from "./canvas-types";
+import { canvasGapId, type DesignerCanvasProps } from "./canvas-types";
+
+/** Pointer and target geometry dnd-kit reports for a drag over a field card. */
+interface DragRect {
+  top: number;
+  height: number;
+}
+
+/**
+ * Whether a field dragged over `overId` lands after the section's last field: it is over the last
+ * card, past its vertical middle. The drop indicator and the drop itself both use this.
+ */
+export function dropsAfterLastField(
+  fields: readonly FormElement[],
+  overId: string,
+  dragged: DragRect | null,
+  over: DragRect | undefined,
+): boolean {
+  const last = fields[fields.length - 1];
+  if (!last || !dragged || !over || (last.SN !== overId && last.NAME !== overId)) return false;
+  return dragged.top + dragged.height / 2 > over.top + over.height / 2;
+}
 
 export interface UseCanvasDragProps {
   sections: FormSection[];
@@ -65,16 +86,8 @@ export function useCanvasDrag({
         targetSecId = overData.sectionId as string;
         targetFieldId = overId;
         if (sourceSecId !== targetSecId) {
-          const targetSec = sections.find((s) => s.id === targetSecId);
-          const fields = targetSec?.fields || [];
-          const lastField = fields[fields.length - 1];
-          const isLastField = lastField && (lastField.SN === overId || lastField.NAME === overId);
-          const translated = active.rect.current.translated;
-          if (
-            isLastField &&
-            translated &&
-            translated.top + translated.height / 2 > over.rect.top + over.rect.height / 2
-          ) {
+          const fields = sections.find((s) => s.id === targetSecId)?.fields || [];
+          if (dropsAfterLastField(fields, overId, active.rect.current.translated, over.rect)) {
             targetFieldId = undefined;
             insertAtIndex = fields.length;
           }
@@ -89,7 +102,7 @@ export function useCanvasDrag({
         targetSecId = overId;
       } else if (overData?.type === "between-block-gap") {
         const gapIdx = overData.gapIndex as number;
-        targetSecId = gapIdx <= 0 ? "gap-top" : `gap-${gapIdx}`;
+        targetSecId = canvasGapId(gapIdx);
         insertAtIndex = getBlockGapSectionIndex(blocks, sections, gapIdx);
       } else {
         // Dragged outside any known drop target: DO NOTHING, return safely

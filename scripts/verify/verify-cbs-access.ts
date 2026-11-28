@@ -13,6 +13,8 @@
  * 7. Four-Eyes Maker-Checker Anti-Fraud Guard (userId === recordInputter)
  * 8. Diagnostic Tooltip Explanations (getDisableReason)
  * 9. hasAccessibilityRight Predicate Helper
+ * 10-11. Designer field lock and the proxy's rights gate
+ * 12. Server-side Four-Eyes (verifyFourEyes, the proxy's check before every authorize)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-access.ts
@@ -21,10 +23,13 @@
 import {
   evaluateCbsAccess,
   hasAccessibilityRight,
+  isAuthorizeRequest,
   isRecordEditable,
   verifyUserRecordAccess,
 } from "@/lib/cbs-access";
+import type { ApiResponse, GrpcEnvelope } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction } from "@/types";
+import type { StoredRecordLoader } from "../../src/app/api/_lib/record-guards";
 
 interface TestCase {
   title: string;
@@ -349,16 +354,99 @@ recordTest(
   viewerPut?.funcCode === CbsRecordFunction.INPUT,
 );
 
-const passedTests = testCases.filter((t) => t.passed).length;
-const failedTests = testCases.filter((t) => !t.passed).length;
+// --- 12. Four-Eyes on the server: /api/proxy reads the pending record before every authorize ---
+console.log("\n── 12. Server-side Four-Eyes (verifyFourEyes) ──");
 
-console.log("\n================================================================================");
-if (failedTests === 0) {
-  console.log(
-    `>>> SUCCESS: ALL ${passedTests} CBS-ACCESS SECURITY CAPABILITIES VALIDATED 100% CLEAN! <<<`,
+recordTest(
+  "12.1 isAuthorizeRequest: AUT and any mutation sent with 'A' authorize; a read with 'A' and a save don't",
+  "AUT A · PUT A · GET A · PUT I",
+  {
+    "AUT A": isAuthorizeRequest("AUT", "A"),
+    "PUT A": isAuthorizeRequest("PUT", "A"),
+    "GET A": isAuthorizeRequest("GET", "A"),
+    "PUT I": isAuthorizeRequest("PUT", "I"),
+  },
+  isAuthorizeRequest("AUT", "A") &&
+    isAuthorizeRequest("PUT", "A") &&
+    !isAuthorizeRequest("GET", "A") &&
+    !isAuthorizeRequest("PUT", "I"),
+);
+
+async function verifyServerFourEyes() {
+  const { verifyFourEyes } = await import("../../src/app/api/_lib/record-guards");
+  const authorize = (userId: string, overrides: Partial<GrpcEnvelope> = {}): GrpcEnvelope => ({
+    servicePath: "default",
+    requestType: "AUT",
+    controlName: "ACCOUNT",
+    branchCode: "001",
+    recordFunction: "A",
+    recordId: "AC1004",
+    authLevel: 1,
+    userId,
+    clientId: "verify",
+    data: {},
+    ...overrides,
+  });
+  const reads: string[] = [];
+  const pending =
+    (data: unknown, statusCode = 200): StoredRecordLoader =>
+    async (envelope) => {
+      reads.push(`${envelope.requestType} ${envelope.recordFunction}`);
+      return (
+        statusCode === 200
+          ? { status: "SUCCESS", statusCode, message: "", data }
+          : { status: "RECORD_NOT_FOUND", statusCode, message: "not found", data: null }
+      ) as ApiResponse;
+    };
+  const madeByTeller = pending({ auditData: { recInputter: " teller01 " } });
+
+  const results = {
+    maker: (await verifyFourEyes(authorize("TELLER01"), madeByTeller))?.status ?? "allowed",
+    checker: (await verifyFourEyes(authorize("TELLER02"), madeByTeller))?.status ?? "allowed",
+    noMaker: (await verifyFourEyes(authorize("TELLER02"), pending({ id: "AC1004" })))?.status,
+    notFound: (await verifyFourEyes(authorize("TELLER02"), pending(null, 404)))?.status,
+    save:
+      (
+        await verifyFourEyes(
+          authorize("TELLER01", { requestType: "PUT", recordFunction: "I" }),
+          madeByTeller,
+        )
+      )?.status ?? "allowed",
+  };
+  recordTest(
+    "12.2 The maker's own authorize gets 403; another user passes; a record that can't be read or names no maker is refused; a save isn't checked",
+    { inputter: "teller01", users: ["TELLER01", "TELLER02"] },
+    { ...results, reads },
+    results.maker === 403 &&
+      results.checker === "allowed" &&
+      results.noMaker === 409 &&
+      results.notFound === 404 &&
+      results.save === "allowed" &&
+      reads.length === 4 &&
+      reads.every((r) => r === "GET A"),
   );
-} else {
-  console.error(`>>> FAILURE: ${failedTests} TESTS FAILED! <<<`);
-  process.exit(1);
 }
-console.log("================================================================================\n");
+
+verifyServerFourEyes()
+  .catch((err: unknown) => {
+    recordTest("12.x Server-side Four-Eyes suite crashed", {}, String(err), false);
+  })
+  .finally(() => {
+    const passedTests = testCases.filter((t) => t.passed).length;
+    const failedTests = testCases.filter((t) => !t.passed).length;
+
+    console.log(
+      "\n================================================================================",
+    );
+    if (failedTests === 0) {
+      console.log(
+        `>>> SUCCESS: ALL ${passedTests} CBS-ACCESS SECURITY CAPABILITIES VALIDATED 100% CLEAN! <<<`,
+      );
+    } else {
+      console.error(`>>> FAILURE: ${failedTests} TESTS FAILED! <<<`);
+      process.exit(1);
+    }
+    console.log(
+      "================================================================================\n",
+    );
+  });

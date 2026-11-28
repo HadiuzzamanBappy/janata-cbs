@@ -34,26 +34,30 @@ function maxSnSuffix(props: readonly ModelProperty[]): number {
   }, 0);
 }
 
+/**
+ * @param savedProperties the columns of the record the screen loaded (none for a new draft): the
+ *   one source of what is committed, so it can't fall out of step with the loaded record.
+ */
 export function useMcPropertyOps(
   properties: readonly ModelProperty[],
   setFormData: React.Dispatch<React.SetStateAction<ModelConfigRecord>>,
+  savedProperties: readonly ModelProperty[] | undefined,
 ) {
-  const [committed, setCommitted] = React.useState<ReadonlyMap<string, ModelProperty>>(new Map());
+  // Committed columns and sub-columns by SN
+  const committed = React.useMemo(() => {
+    const map = new Map<string, ModelProperty>();
+    for (const p of savedProperties ?? []) {
+      map.set(p.SN, p);
+      for (const sub of p.PROP ?? []) map.set(sub.SN, sub);
+    }
+    return map;
+  }, [savedProperties]);
 
   // The latest columns, plus any added since the last render, so two quick adds get distinct SNs
   const propertiesRef = React.useRef(properties);
   React.useLayoutEffect(() => {
     propertiesRef.current = properties;
   }, [properties]);
-
-  const markAsCommitted = React.useCallback((props: ModelProperty[]) => {
-    const map = new Map<string, ModelProperty>();
-    for (const p of props) {
-      map.set(p.SN, p);
-      for (const sub of p.PROP ?? []) map.set(sub.SN, sub);
-    }
-    setCommitted(map);
-  }, []);
 
   const addField = React.useCallback((): string => {
     const newField = createModelProperty(String(maxSnSuffix(propertiesRef.current) + 1));
@@ -145,17 +149,11 @@ export function useMcPropertyOps(
     [committed, setFormData],
   );
 
-  const clearCommitted = React.useCallback(() => {
-    setCommitted(new Map());
-  }, []);
-
   return {
     addField,
     addSubField,
     updateField,
     removeField: removeDraftField,
     committedProperty,
-    markAsCommitted,
-    clearCommitted,
   };
 }

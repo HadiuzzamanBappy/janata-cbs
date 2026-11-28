@@ -51,7 +51,7 @@ await sendMutation(cbs.model("CUSTOMER").save(changedFields, { recordId }), {
 
 ## 4. Server side
 
-- The proxy's steps are in `AGENTS.md` §4. The parts that matter on the client: the schema is strict (unknown keys are rejected), user and branch always come from the session, the proxy checks rights but **not** Four-Eyes, and failed responses are never cached.
+- The proxy's steps are in `AGENTS.md` §4. The parts that matter on the client: the schema is strict (unknown keys are rejected), user and branch always come from the session, the proxy checks rights and, before every authorize, Four-Eyes against the pending record, and failed responses are never cached.
 - A new route or Server Action validates its input with a `data-schemas` schema, checks the session itself, and replies with `apiSuccess` / `apiFail` / `apiError` (`src/app/api/_lib/response.ts`).
 - The wire contract (`proto/service.proto`, request types, control and field names) is a production compatibility boundary (`.agents/rules/00-core-pillars.md` §1). Regenerate stubs with `pnpm proto:gen`.
 

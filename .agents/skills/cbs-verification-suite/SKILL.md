@@ -30,7 +30,7 @@ Always finish with `pnpm lint:fix`, `pnpm typecheck` and `pnpm verify:all`.
 
 ## 3. Green is not production proof
 
-The offline suites run against the mock, which simplifies the lifecycle (every mutation goes to `LIVE`) and doesn't enforce Four-Eyes. Before shipping wire, session or proxy changes, also:
+The offline suites run against the mock, which simplifies the lifecycle (every mutation goes to `LIVE`). Four-Eyes is checked by the proxy, so it holds offline too. Before shipping wire, session or proxy changes, also:
 
 - run `pnpm verify:api` against a live core (`DATA_SOURCE=grpc` + a running dev server);
 - test by hand: pop out → dock, and sign on as the inputter → Authorize is disabled with the Four-Eyes tooltip.

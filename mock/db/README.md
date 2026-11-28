@@ -69,7 +69,7 @@ A `$` suffix on the name is ignored. `@mock/core` reads tables through `resolveT
 | `DEL`, `DTR`               | `DEL`                          |
 | `REV`, `TRV`               | `REV`                          |
 
-The updated record is always written to `LIVE` under its ID. On `AU`, any `INAU` copy is removed. `HIS` and `DEL` are never written. So offline, a saved draft shows up in normal reads straight away. History screens show only the seeded history, and the mock doesn't enforce Four-Eyes.
+The updated record is always written to `LIVE` under its ID. On `AU`, any `INAU` copy is removed. `HIS` and `DEL` are never written. So offline, a saved draft shows up in normal reads straight away. History screens show only the seeded history. Four-Eyes is checked by the proxy before a request reaches the mock.
 
 ---
 

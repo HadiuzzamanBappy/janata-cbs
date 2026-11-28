@@ -33,11 +33,11 @@ export function usePaletteVariables({
   const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({});
 
   const hasProps = Boolean(propsModelProperties && propsModelProperties.length > 0);
-  const cleanTarget = (targetModel || "").split("$")[0].split(",")[0].trim().toUpperCase();
-
+  // The query strips version suffixes itself and stays off for an empty ID
+  const modelQuery = cbsQueries.modelConfig.record(targetModel || "");
   const { data: fetchedRecord, isLoading: loadingModel } = useQuery({
-    ...cbsQueries.modelConfig.record(cleanTarget),
-    enabled: !hasProps && Boolean(cleanTarget),
+    ...modelQuery,
+    enabled: !hasProps && modelQuery.enabled,
   });
 
   const modelProperties = React.useMemo(

@@ -40,7 +40,7 @@ Checked in this order by `requestType` (upper-cased):
 Login doesn't go through this table: `loginProcess()` calls `handleLogin()` directly.
 
 > [!IMPORTANT]
-> The mock does **not** enforce Four-Eyes. `AUT` authorizes any record, and the stored `recInputter` comes from the request data. To test maker-checker blocking offline, use the UI (sign on as the inputter), not direct requests.
+> Like the core, the mock stamps `recInputter` and `recAuthorizer` from the session user on the envelope, never from the request data. The mock itself doesn't check Four-Eyes: `/api/proxy` does, before the request reaches it, so offline a maker's own `AUT` is refused with 403 as it is against the core.
 
 ---
 

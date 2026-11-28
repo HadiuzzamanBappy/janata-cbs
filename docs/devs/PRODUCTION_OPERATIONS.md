@@ -126,4 +126,4 @@ Login always goes to the core. Spec reads (forms, models, inquiries) from a micr
 - Against a staging core, with the app running on that machine and dev dependencies installed: `pnpm verify:api`. It signs on with `TEST_USERNAME` / `TEST_PASSWORD`, calls the core directly, and probes `http://localhost:3000/api/proxy`.
 - By hand: sign on, open a form and an inquiry, pop a screen out and dock it back, and sign on as a record's inputter to confirm Authorize is disabled with the Four-Eyes tooltip.
 
-Known limits (server-side Four-Eyes, core menu items this app can't open yet) are listed in the [Architecture & Security Audit Checklist](ARCHITECTURE_AUDIT_CHECKLIST.md) and the `cbs-command-and-navigation` skill.
+Known limits (record-status rules on the server, core menu items this app can't open yet) are listed in the [Architecture & Security Audit Checklist](ARCHITECTURE_AUDIT_CHECKLIST.md) and the `cbs-command-and-navigation` skill.

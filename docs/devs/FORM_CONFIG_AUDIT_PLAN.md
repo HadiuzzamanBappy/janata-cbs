@@ -154,7 +154,7 @@ Tabs: tabs with the same `groupId` are drawn as one tab group and saved together
 
 1. **Session.** No session gives 401; a pending password change gives 403.
 2. **Wire shape.** `cbsWirePayloadSchema.safeParse`.
-3. **Rights.** `verifyUserRecordAccess` (RIDASHL). The proxy checks rights, not Four-Eyes; Four-Eyes lives in the UI (AGENTS §3.3).
+3. **Rights.** `verifyUserRecordAccess` (RIDASHL). The proxy checks rights, and Four-Eyes before every authorize (AGENTS §3.3).
 4. **Save rules.** `SAVE_DATA_SCHEMAS` runs the **same** `formConfigSaveSchema` as the screen on `body.data` (also PUT for MODEL.CONFIG and INQUIRY.CONFIG). A direct API call can't skip the screen's rules.
 5. **Forward the checked record.** The proxy sends `dataCheck.data` (the parsed result), not the raw body. Form fields are a plain `z.object` built from the column shape, so a key the designer doesn't author is removed at any depth. Model properties stay loose.
 6. `buildGrpcEnvelope` takes user and branch from the session, never from the browser. Then come cache, `dispatch()` and `autoInvalidateOnMutation` (`src/lib/infra-redis/cache.ts`).

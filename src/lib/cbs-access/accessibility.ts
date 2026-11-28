@@ -41,6 +41,14 @@ function requiredRights(requestType: string, recordFunction?: string | null): Cb
   return [...rights];
 }
 
+/** A mutation that authorizes a record (`AUT`, or any mutation verb sent with function `A`). */
+export function isAuthorizeRequest(requestType: string, recordFunction?: string | null): boolean {
+  return (
+    isCbsMutationRequest(requestType) &&
+    requiredRights(requestType, recordFunction).includes(CbsRecordFunction.AUTHORIZE)
+  );
+}
+
 /**
  * Server-side gate for API route handlers (e.g. /api/proxy): the user must hold every right the
  * request needs (`requiredRights`). Returns null if allowed, or the first missing right.

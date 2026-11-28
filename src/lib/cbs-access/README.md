@@ -52,8 +52,10 @@ Reads (`GET`, `INQ` with `S`) need no controlled right.
 
 It then calls `verifyZeroAuthAccess(currUser, body.requestType, body.authLevel)`. A mutation sent at `authLevel: 0` (a zero-auth, trailing-comma screen) authorizes the record in the same step, so the user must also hold `A`, or the request gets **403**. The command gateway applies the same rule before a comma screen opens (`validateSecurityPermissions`), so the operator is told at once rather than at save.
 
+**Four-Eyes on the server.** For every authorize (`isAuthorizeRequest`: `AUT`, or any mutation sent with `A`), the proxy reads the pending record first and refuses with **403** when `isRecordMaker(session user, recInputter)`. It fails closed: a pending record it can't read is refused, and so is one that names no maker. The check lives in `src/app/api/_lib/record-guards.ts` (`verifyFourEyes`) and uses this unit's `isRecordMaker` and `FOUR_EYES_REASON`, so the screen and the server can't drift apart.
+
 > [!IMPORTANT]
-> The server gate checks **rights only**. Four-Eyes and record-status rules are enforced in the UI by `evaluateCbsAccess()`. The proxy does not load the record, so it can't compare the user with the inputter. Server-side maker-checker enforcement depends on the Java core.
+> Record-status rules (Delete only on `UA`, Reverse only on `AU`, and so on) are still enforced only in the UI by `evaluateCbsAccess()`. On the server they depend on the Java core.
 
 ---
 

@@ -11,7 +11,7 @@ New to the project? Start with the [Project Roadmap](PROJECT_ROADMAP.md).
 | It does                                                                                              | It doesn't                                                                     |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Render forms and inquiries from the core's configuration (Model Config, Form Config, Inquiry Config) | Hold any banking logic: ledgers, interest and settlement stay in the Java core |
-| Enforce RIDASHL rights in the UI **and again on the server**, and Four-Eyes in the UI                | Connect to a database, or let the browser reach gRPC or Redis                  |
+| Enforce RIDASHL rights and Four-Eyes in the UI **and again on the server**                           | Connect to a database, or let the browser reach gRPC or Redis                  |
 | Keep a multi-tab workbench, with screens that can pop out into their own windows                     | Trust user or branch values sent by the browser                                |
 | Run fully offline against an in-memory simulator of the core                                         |                                                                                |
 

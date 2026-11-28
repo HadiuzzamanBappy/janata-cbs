@@ -23,9 +23,15 @@ import {
   getSession,
   resolveCacheDescriptor,
 } from "@/lib/infra-redis";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
+import { CbsControlTable, CbsRequestType } from "@/types";
 import { buildGrpcEnvelope } from "../_lib/envelope";
 import { resolveInquiryEnvelope } from "../_lib/inquiry";
+import {
+  actsOnStoredRecord,
+  type StoredRecordLoader,
+  verifyFourEyes,
+  verifySavedModel,
+} from "../_lib/record-guards";
 import { apiError, apiFail } from "../_lib/response";
 
 export const runtime = "nodejs";
@@ -43,22 +49,9 @@ const SAVE_DATA_SCHEMAS: Readonly<Partial<Record<string, ZodType>>> = {
   [`${CbsRequestType.PUT}:${CbsControlTable.INQUIRY_CONFIG}`]: inquiryConfigSaveSchema,
 };
 
-/**
- * Authorize, Delete and Reverse act on the stored record: they carry no definition to check, and
- * any `data` sent with them is dropped, so a crafted call can't slip an unchecked record through.
- */
-const NO_DEFINITION_FUNCTIONS: ReadonlySet<string> = new Set([
-  CbsRecordFunction.AUTHORIZE,
-  CbsRecordFunction.DELETE,
-  CbsRecordFunction.REVERSE,
-]);
-
-function actsOnStoredRecord(body: CbsWirePayload): boolean {
-  return NO_DEFINITION_FUNCTIONS.has((body.recordFunction ?? "").trim().toUpperCase());
-}
-
+/** Authorize, Delete and Reverse carry no definition to check (`actsOnStoredRecord`). */
 function saveDataSchemaFor(body: CbsWirePayload): ZodType | undefined {
-  if (actsOnStoredRecord(body)) return;
+  if (actsOnStoredRecord(body.recordFunction)) return;
   const control = (body.controlName ?? "").trim().toUpperCase();
   return SAVE_DATA_SCHEMAS[body.requestType] ?? SAVE_DATA_SCHEMAS[`${body.requestType}:${control}`];
 }
@@ -138,10 +131,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session). A checked
     // config save forwards the parsed record, so keys the schema strips never reach the core;
-    // Authorize, Delete and Reverse forward no data at all.
+    // Authorize, Delete and Reverse forward no data at all, so a crafted call can't slip an
+    // unchecked record through them.
     const requested = buildGrpcEnvelope(
       session,
-      actsOnStoredRecord(body)
+      actsOnStoredRecord(body.recordFunction)
         ? { ...body, data: undefined }
         : dataCheck
           ? { ...body, data: dataCheck.data as Record<string, unknown> }
@@ -150,15 +144,30 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     // 4. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {
+      const dispatchFresh: StoredRecordLoader = async (target) =>
+        decodeResponse(target.requestType, await dispatch(target, token));
       // One dispatch per miss: concurrent callers share its result, and failures are never cached.
       const dispatchCached = (target: GrpcEnvelope): Promise<ApiResponse> => {
         const cacheDesc = resolveCacheDescriptor(target);
-        const dispatchDecoded = async () =>
-          decodeResponse(target.requestType, await dispatch(target, token));
         return cacheDesc
-          ? getOrSet(cacheDesc.key, dispatchDecoded, cacheDesc.ttl, isApiSuccess)
-          : dispatchDecoded();
+          ? getOrSet(cacheDesc.key, () => dispatchFresh(target), cacheDesc.ttl, isApiSuccess)
+          : dispatchFresh(target);
       };
+
+      // Rules checked against the stored record, read fresh: Four-Eyes on every authorize, and
+      // the saved table and columns on a MODEL.CONFIG save
+      const refusal =
+        (await verifyFourEyes(requested, dispatchFresh)) ??
+        (await verifySavedModel(requested, dispatchFresh));
+      if (refusal) {
+        proxyLogger.warn(`Request refused: ${refusal.message}`, {
+          requestType: requested.requestType,
+          controlName: requested.controlName,
+          recordId: requested.recordId,
+          userId: currUser.userId,
+        });
+        return apiFail(refusal.message, refusal.status, refusal.details);
+      }
 
       // An inquiry runs only as its saved definition says (controller, fixed selection, branch)
       let envelope = requested;

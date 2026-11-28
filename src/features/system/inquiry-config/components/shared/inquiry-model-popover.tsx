@@ -30,13 +30,12 @@ export function InquiryModelPopover({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
 
-  // Strip version suffixes (e.g. "USER.MGT$NAU" or "USER.MGT,NEW" -> "USER.MGT")
-  const lookupId = (targetModel || "").split("$")[0].split(",")[0].trim().toUpperCase();
-
-  // Fetch lazily on popover open and share the cached MODEL.CONFIG record across tabs
+  // Fetch lazily on popover open and share the cached MODEL.CONFIG record across tabs. The query
+  // strips version suffixes itself ("USER.MGT$NAU" -> "USER.MGT") and stays off for an empty ID.
+  const modelQuery = cbsQueries.modelConfig.record(targetModel || "");
   const { data: modelRecord, isLoading } = useQuery({
-    ...cbsQueries.modelConfig.record(lookupId),
-    enabled: open && Boolean(lookupId),
+    ...modelQuery,
+    enabled: open && modelQuery.enabled,
   });
 
   const availableProps = React.useMemo(() => {

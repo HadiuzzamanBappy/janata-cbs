@@ -11,32 +11,27 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
-import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import { type CbsWirePayload, isApiSuccess, type ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { type ModelValidationErrorItem, validateModelConfig } from "./mc-validation";
-import type { CommittedPropertyLookup } from "./use-mc-property-ops";
 
 export interface UseMcActionsParams {
   formData: ModelConfigRecord;
-  /** Saved columns, for the rules only a saved column has (see `validateModelConfig`). */
-  committedProperty: CommittedPropertyLookup;
+  /** The screen's validation (`useModelConfig`): shows any issues and returns whether it passed. */
+  checkModel: () => boolean;
   recordId: string;
   setSubmitting: (val: boolean) => void;
-  setValidationErrors: (errors: ModelValidationErrorItem[]) => void;
   resetToIdle: () => void;
   fetchRecord: (id: string, mode?: CbsScreenMode) => Promise<void>;
 }
 
 export function useMcActions({
   formData,
-  committedProperty,
+  checkModel,
   recordId,
   setSubmitting,
-  setValidationErrors,
   resetToIdle,
   fetchRecord,
 }: UseMcActionsParams) {
@@ -82,18 +77,8 @@ export function useMcActions({
   );
 
   const handleSubmit = React.useCallback(async () => {
-    const errors = validateModelConfig(formData, committedProperty);
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      toast.add({
-        title: "Validation Issues Found",
-        description: `${errors.length} issue${errors.length > 1 ? "s" : ""} require your attention before saving.`,
-        type: "warning",
-      });
-      return;
-    }
+    if (!checkModel()) return;
 
-    setValidationErrors([]);
     const targetId = recordId || formData.TABLENAME || "";
     const cleanData = sanitizeModelConfigRecord(formData);
     await executeMutation(
@@ -107,7 +92,7 @@ export function useMcActions({
         onSuccess: () => resetToIdle(),
       },
     );
-  }, [committedProperty, executeMutation, formData, recordId, resetToIdle, setValidationErrors]);
+  }, [checkModel, executeMutation, formData, recordId, resetToIdle]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;

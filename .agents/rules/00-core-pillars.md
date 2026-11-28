@@ -12,7 +12,7 @@ Zero legacy applies **inside the code**: no shims, deprecated aliases, fallback 
 
 ## 2. Domain rules
 
-- **Four-Eyes**: the record's inputter never authorizes it. Enforced only in the UI (`evaluateCbsAccess`); `/api/proxy` checks rights only (`verifyUserRecordAccess`). Never claim or assume server-side Four-Eyes.
+- **Four-Eyes**: the record's inputter never authorizes it. Enforced in the UI (`evaluateCbsAccess`) and again in `/api/proxy` (`verifyFourEyes` loads the pending record before every authorize, and fails closed). Never weaken either check.
 - **Mutation Idempotency**: every state-changing mutation must use `useIdempotentSend().sendMutation()` with a UUIDv4 key to eliminate double-posting and double-debit risks.
 - **Append-only schema**: a committed Model Config property is never deleted; only properties added in the current draft may be removed (`removeDraftField`).
 - **RIDASHL**: every action button's state comes from `useCbsAccess()` / `resolveCbsActionBar()`.

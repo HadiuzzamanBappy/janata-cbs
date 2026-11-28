@@ -59,9 +59,9 @@ const access = useCbsAccess({
 
 > **The record's inputter can NEVER authorize that same record.**
 
-- `isFourEyesViolation` is `userId === recordInputter` (trimmed, case-insensitive), and it forces `canAuthorize = false`.
-- Keep the Authorize button **visible but disabled**, with `getDisableReason(CbsRecordFunction.AUTHORIZE)` as its tooltip. The text is: _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_ Hide the button only when the user lacks `A`.
-- **Enforced only in the UI.** `/api/proxy` calls `verifyUserRecordAccess(currUser, recordFunction)`, which returns 403 if the user lacks the **right** for `I`, `A`, `D`, `R` or `H`. It does not load the record, so it can't detect a Four-Eyes violation, and the offline mock doesn't either. Never remove or weaken the UI check, and never claim server-side Four-Eyes in docs or code comments.
+- `isRecordMaker(userId, recordInputter)` compares the two trimmed and case-insensitive, and a match forces `canAuthorize = false`.
+- Keep the Authorize button **visible but disabled**, with `getDisableReason(CbsRecordFunction.AUTHORIZE)` as its tooltip. The text is `FOUR_EYES_REASON`: _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_ Hide the button only when the user lacks `A`.
+- **Enforced in the UI and on the server.** Before every authorize (`isAuthorizeRequest`: `AUT`, or a mutation sent with `A`), `/api/proxy` reads the pending record (`GET` with `A`) and `verifyFourEyes` refuses with 403 when the session user is its maker. It fails closed: a record it can't read is refused (404/503), and so is one that names no maker (409). Never remove or weaken either check.
 
 ---
 

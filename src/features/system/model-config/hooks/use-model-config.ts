@@ -9,6 +9,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
+import { toastValidationIssues } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsQueries, ModelConfigNotFoundError } from "@/lib/cbs-client";
@@ -36,27 +37,23 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   } = useModelConfigPersistence(initialId, tabId);
 
   const queryClient = useQueryClient();
-  const {
-    addField,
-    addSubField,
-    updateField,
-    removeField,
-    committedProperty,
-    markAsCommitted,
-    clearCommitted,
-  } = useMcPropertyOps(formData.PROPERTIES || [], setFormData);
-
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  // The record as loaded: the saved copy the committed-column rules compare against
   const [rawRecord, setRawRecord] = React.useState<ModelConfigRecord | undefined>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<ModelValidationErrorItem[]>([]);
 
+  const { addField, addSubField, updateField, removeField, committedProperty } = useMcPropertyOps(
+    formData.PROPERTIES || [],
+    setFormData,
+    rawRecord?.PROPERTIES,
+  );
+
   const resetToIdle = React.useCallback(() => {
     reset();
-    clearCommitted();
     setRawRecord(undefined);
     setValidationErrors([]);
-  }, [clearCommitted, reset]);
+  }, [reset]);
 
   const initDraft = React.useCallback(
     (cleanId: string) => {
@@ -66,7 +63,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       };
       setRawRecord(undefined);
       hydrate(draft);
-      clearCommitted();
       setValidationErrors([]);
       setMode(CbsRecordFunction.INPUT);
       toast.add({
@@ -75,7 +71,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         type: "info",
       });
     },
-    [clearCommitted, hydrate, setMode],
+    [hydrate, setMode],
   );
 
   const fetchRecord = React.useCallback(
@@ -114,7 +110,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         if (record?.TABLENAME) {
           setRawRecord(record);
           hydrate(record);
-          markAsCommitted(record.PROPERTIES || []);
           setMode(targetMode);
           toast.add({
             title: "Model Loaded",
@@ -140,35 +135,32 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         setLoading(false);
       }
     },
-    [hydrate, initDraft, markAsCommitted, queryClient, setMode, setRecordId],
+    [hydrate, initDraft, queryClient, setMode, setRecordId],
   );
 
+  // One check for Validate and Save: the errors go to the checklist, a warning says how many
+  const checkModel = React.useCallback((): boolean => {
+    const errors = validateModelConfig(formData, rawRecord);
+    setValidationErrors(errors);
+    if (errors.length > 0) toastValidationIssues(errors.length);
+    return errors.length === 0;
+  }, [formData, rawRecord]);
+
   const handleValidate = React.useCallback((): boolean => {
-    const errors = validateModelConfig(formData, committedProperty);
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      toast.add({
-        title: "Validation Issues Found",
-        description: `${errors.length} issue${errors.length > 1 ? "s" : ""} require your attention.`,
-        type: "warning",
-      });
-      return false;
-    }
-    setValidationErrors([]);
+    if (!checkModel()) return false;
     toast.add({
       title: "Validation Successful",
       description: "All dictionary constraints and required properties verified (✓).",
       type: "success",
     });
     return true;
-  }, [committedProperty, formData]);
+  }, [checkModel]);
 
   const { handleSubmit, handleAuthorize, handleHold, handleDelete, handleReverse } = useMcActions({
     formData,
-    committedProperty,
+    checkModel,
     recordId,
     setSubmitting,
-    setValidationErrors,
     resetToIdle,
     fetchRecord,
   });

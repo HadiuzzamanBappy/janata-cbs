@@ -13,6 +13,7 @@
  */
 
 import {
+  type ApiResponse,
   apiResponseSchema,
   cbsWirePayloadSchema,
   changePasswordSchema,
@@ -26,10 +27,12 @@ import {
   inquiryRunDataSchema,
   isWidgetCompatibleWithType,
   loginSchema,
+  type ModelConfigRecord,
   menuTreeRecordSchema,
   modelConfigRecordSchema,
   modelConfigSaveSchema,
   popupSearchParamsSchema,
+  savedModelIssues,
 } from "@/lib/data-schemas";
 
 interface TestCase {
@@ -234,6 +237,107 @@ async function runSuite() {
     { properties: ["branchCode (Number → BRANCH)", "branchCode", "items[code, code(Array)]"] },
     { propertyReadOk, propertySaveIssues },
     propertyReadOk && JSON.stringify(propertySaveIssues) === JSON.stringify(expectedPropertyIssues),
+  );
+
+  // 4d. Saved-model rules: a save can't break the stored table (the screen and /api/proxy both run them)
+  const savedModel = {
+    ...sampleModel,
+    TABLENAME: "BRANCH",
+    PREFIX: "SC",
+    PROPERTIES: [
+      { SN: "1", NAME: "code", TYPE: "String", STRUCTURE: "S", LENGTH: 10, REQUIRED: false },
+      {
+        SN: "2",
+        NAME: "lines",
+        TYPE: "Array",
+        LENGTH: 0,
+        PROP: [{ SN: "2_1", NAME: "txt", TYPE: "String", LENGTH: 20, REQUIRED: false }],
+      },
+      { SN: "3", NAME: "flag", TYPE: "Boolean", LENGTH: 1, REQUIRED: false },
+    ],
+  } as unknown as ModelConfigRecord;
+  const withChanges = (change: (m: ModelConfigRecord) => void) => {
+    const next = structuredClone(savedModel);
+    change(next);
+    return savedModelIssues(next, savedModel).map((i) => i.path.join("."));
+  };
+  const savedCases = {
+    unchanged: withChanges(() => {}),
+    grownAndAdded: withChanges((m) => {
+      m.PROPERTIES[0].LENGTH = 40;
+      m.PROPERTIES.push({
+        SN: "4",
+        NAME: "extra",
+        TYPE: "Number",
+        LENGTH: 5,
+        REQUIRED: true,
+      } as never);
+    }),
+    broken: withChanges((m) => {
+      m.TABLENAME = "OTHER";
+      m.PROPERTIES[0].LENGTH = 5;
+      m.PROPERTIES[0].REQUIRED = true;
+      const [txt] = m.PROPERTIES[1].PROP ?? [];
+      m.PROPERTIES[1].PROP = [{ ...txt, TYPE: "Number" }];
+      m.PROPERTIES.splice(2, 1);
+    }),
+  };
+  const expectedBroken = [
+    "TABLENAME",
+    "PROPERTIES.0.LENGTH",
+    "PROPERTIES.0.REQUIRED",
+    "PROPERTIES.1.PROP.0.TYPE",
+    "PROPERTIES",
+  ];
+  const { verifySavedModel } = await import("../../src/app/api/_lib/record-guards");
+  const modelSave = (data: unknown, live: ApiResponse) =>
+    verifySavedModel(
+      {
+        servicePath: "default",
+        requestType: "PUT",
+        controlName: "MODEL.CONFIG",
+        branchCode: "001",
+        recordFunction: "I",
+        recordId: "BRANCH",
+        authLevel: 1,
+        userId: "DESIGNER",
+        clientId: "verify",
+        data: data as Record<string, unknown>,
+      },
+      async () => live,
+    );
+  const liveOk = {
+    status: "SUCCESS",
+    statusCode: 200,
+    message: "",
+    data: savedModel,
+  } as ApiResponse;
+  const liveMissing = {
+    status: "RECORD_NOT_FOUND",
+    statusCode: 404,
+    message: "",
+    data: null,
+  } as ApiResponse;
+  const liveDown = { status: "ERROR", statusCode: 500, message: "down", data: null } as ApiResponse;
+  const shrunk = structuredClone(savedModel);
+  shrunk.PROPERTIES[0].LENGTH = 5;
+  const proxyCases = {
+    unchanged: (await modelSave(savedModel, liveOk))?.status ?? "allowed",
+    shrunk: (await modelSave(shrunk, liveOk))?.status,
+    newModel: (await modelSave(shrunk, liveMissing))?.status ?? "allowed",
+    coreDown: (await modelSave(savedModel, liveDown))?.status,
+  };
+  recordTest(
+    "4d. Saved-model rules: table, prefix and saved columns stay (type, length only grows, no new required, no removal); the proxy refuses a breaking save, and any save it can't check",
+    { saved: "BRANCH: code(String 10), lines[txt], flag" },
+    { ...savedCases, proxyCases },
+    savedCases.unchanged.length === 0 &&
+      savedCases.grownAndAdded.length === 0 &&
+      JSON.stringify(savedCases.broken) === JSON.stringify(expectedBroken) &&
+      proxyCases.unchanged === "allowed" &&
+      proxyCases.shrunk === 409 &&
+      proxyCases.newModel === "allowed" &&
+      proxyCases.coreDown === 503,
   );
 
   // 5. Versioned Form Presentation Specification Contract

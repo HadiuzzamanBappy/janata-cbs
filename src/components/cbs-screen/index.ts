@@ -1,7 +1,6 @@
 // Root barrel export for all CBS Screen scaffolding, headers, tabs, states, and hooks
 export * from "./cbs-auth-level";
 export * from "./cbs-screen-scaffold";
-
 // Header sub-components
 export * from "./header/action-btn";
 export * from "./header/action-more-menu";
@@ -12,17 +11,15 @@ export * from "./header/cbs-validation-checklist";
 export * from "./header/idle-actions";
 export * from "./header/inquiry-actions";
 export * from "./header/record-lookup-bar";
-
 // Hooks
 export * from "./hooks/use-cbs-persistence";
 export * from "./hooks/use-guarded-action";
 export * from "./hooks/use-idempotent-send";
 export * from "./hooks/use-record-lookup";
-
 // States
 export * from "./states/cbs-error-state";
 export * from "./states/cbs-idle-state";
 export * from "./states/cbs-system-skeleton";
-
 // Tabs
 export * from "./tabs/cbs-json-viewer-tab";
+export * from "./validation-toast";

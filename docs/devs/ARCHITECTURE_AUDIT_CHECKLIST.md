@@ -38,7 +38,7 @@ In an enterprise banking system, data corruption and security breaches originate
 - [ ] **UI Explanations**: When authorization is locked due to Four-Eyes, surface an explicit `<Tooltip>`: _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_
 - [ ] **Dual-Gate Verification**: Even if a compromised client toggles a disabled button in DevTools, the authorization must be rejected on the server.
   > [!IMPORTANT]
-  > **Not met by this app today.** `/api/proxy` rejects a missing **right** with 403 (`verifyUserRecordAccess`), but it never loads the record, so it can't compare the user with the inputter. The offline mock doesn't check either. Until a proxy-side check exists (for `AUT`: load the record's inputter and compare it with the session user before dispatch), server-side Four-Eyes depends on the Java core.
+  > **Met.** Before every authorize, `/api/proxy` reads the pending record and refuses with 403 when the session user is its maker (`verifyFourEyes` in `src/app/api/_lib/record-guards.ts`). It fails closed: a record it can't read, or one that names no maker, is refused too.
 ### 1.3 Strict Server-Side Boundary (`"server-only"`)
 
 - [ ] **Driver Isolation**: Packages dealing with transport and databases (`@grpc/grpc-js`, `ioredis`, internal network endpoints, secrets) must remain strictly server-side and import `"server-only"`.

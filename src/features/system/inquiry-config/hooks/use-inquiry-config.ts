@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toastValidationIssues } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { isRecordEditable } from "@/lib/cbs-access";
 import { cbs } from "@/lib/cbs-client";
@@ -130,11 +131,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     const issues = validateInquiryConfig(formData);
     if (issues.length > 0) {
       setValidationErrors(issues);
-      toast.add({
-        title: "Validation Issues Found",
-        description: `${issues.length} issue${issues.length > 1 ? "s" : ""} require your attention.`,
-        type: "warning",
-      });
+      toastValidationIssues(issues.length);
       return false;
     }
     setValidationErrors([]);

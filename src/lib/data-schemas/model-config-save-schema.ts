@@ -3,8 +3,13 @@ import { SERVICE_NAME_PATTERN } from "./common-schema";
 import {
   CBS_PROPERTY_TYPE,
   FIXED_PROPERTY_LENGTHS,
+  type ModelConfigRecord,
   type ModelProperty,
   modelConfigRecordSchema,
+  PROPERTY_TYPES,
+  type PropertyType,
+  resolvePhysicalLength,
+  resolvePhysicalStructure,
 } from "./model-config-schema";
 
 /* ========================================================================== */
@@ -138,3 +143,129 @@ export const modelConfigSaveSchema = modelConfigRecordSchema.superRefine((data, 
   }
   checkProperties(data.PROPERTIES, ["PROPERTIES"], ctx);
 });
+
+/* ========================================================================== */
+/* SAVED-MODEL RULES: what a save may not change once the table exists        */
+/* ========================================================================== */
+
+/** One way a save would break the stored table; `path` is the form path, as a Zod issue's. */
+export interface SavedModelIssue {
+  readonly path: (string | number)[];
+  readonly message: string;
+}
+
+const sameText = (a: unknown, b: unknown): boolean =>
+  String(a ?? "")
+    .trim()
+    .toUpperCase() ===
+  String(b ?? "")
+    .trim()
+    .toUpperCase();
+
+/** A column as the database sees it, normalized the way `sanitizeModelConfigRecord` writes it. */
+function physicalColumn(prop: ModelProperty) {
+  const type: PropertyType = PROPERTY_TYPES.includes(prop.TYPE)
+    ? prop.TYPE
+    : CBS_PROPERTY_TYPE.STRING;
+  const canLinkModel = type === CBS_PROPERTY_TYPE.STRING || type === CBS_PROPERTY_TYPE.NUMBER;
+  return {
+    type,
+    structure: resolvePhysicalStructure(type, prop.STRUCTURE),
+    length: resolvePhysicalLength(type, prop.LENGTH),
+    modelName: canLinkModel
+      ? String(prop.MODELNAME ?? "")
+          .trim()
+          .toUpperCase()
+      : "",
+    required: Boolean(prop.REQUIRED),
+  };
+}
+
+/** Columns are matched by name (case-insensitive), which is what the stored table knows them by. */
+function checkSavedColumns(
+  next: readonly ModelProperty[],
+  saved: readonly ModelProperty[],
+  basePath: (string | number)[],
+  issues: SavedModelIssue[],
+): void {
+  const byName = new Map(
+    next.map((prop, idx) => [
+      String(prop.NAME ?? "")
+        .trim()
+        .toUpperCase(),
+      idx,
+    ]),
+  );
+  for (const old of saved) {
+    const name = String(old.NAME ?? "").trim();
+    if (!name) continue;
+    const idx = byName.get(name.toUpperCase());
+    if (idx === undefined) {
+      issues.push({
+        path: basePath,
+        message: `Saved column "${name}" can't be removed or renamed.`,
+      });
+      continue;
+    }
+    const add = (key: string, message: string) =>
+      issues.push({ path: [...basePath, idx, key], message });
+    const was = physicalColumn(old);
+    const now = physicalColumn(next[idx]);
+
+    if (now.type !== was.type) {
+      add("TYPE", `Saved column "${name}" can't change type (saved as ${was.type}).`);
+      continue;
+    }
+    if (now.structure !== was.structure) {
+      add(
+        "STRUCTURE",
+        `Saved column "${name}" can't change structure (saved as ${was.structure}).`,
+      );
+    }
+    if (now.length < was.length) {
+      add("LENGTH", `Length of "${name}" can't be shorter than the saved ${was.length}.`);
+    }
+    if (now.modelName !== was.modelName) {
+      add(
+        "MODELNAME",
+        `Saved column "${name}" can't change its linked model (saved as "${was.modelName}").`,
+      );
+    }
+    if (now.required && !was.required) {
+      add(
+        "REQUIRED",
+        `Saved optional column "${name}" can't become required: stored rows may be empty.`,
+      );
+    }
+    if (now.type === CBS_PROPERTY_TYPE.ARRAY) {
+      checkSavedColumns(next[idx].PROP ?? [], old.PROP ?? [], [...basePath, idx, "PROP"], issues);
+    }
+  }
+}
+
+/**
+ * Rules a save must keep against the model already stored, because the table and its rows depend
+ * on it: the table name and prefix stay, and every saved column (and sub-column) stays with the
+ * same name, type, structure and linked model, a length that only grows, and no new "required".
+ * The screen checks it against the record it loaded; `/api/proxy` against the live model.
+ */
+export function savedModelIssues(
+  next: ModelConfigRecord,
+  saved: ModelConfigRecord,
+): SavedModelIssue[] {
+  const issues: SavedModelIssue[] = [];
+  if (!sameText(next.TABLENAME, saved.TABLENAME)) {
+    issues.push({
+      path: ["TABLENAME"],
+      message: `Table Name can't change once created (saved as ${saved.TABLENAME}).`,
+    });
+  }
+  if (!sameText(next.PREFIX, saved.PREFIX)) {
+    issues.push({
+      path: ["PREFIX"],
+      message: `Table Prefix can't change once created (saved as "${saved.PREFIX ?? ""}").`,
+    });
+  }
+  checkSavedColumns(next.PROPERTIES ?? [], saved.PROPERTIES ?? [], ["PROPERTIES"], issues);
+  return issues;
+}

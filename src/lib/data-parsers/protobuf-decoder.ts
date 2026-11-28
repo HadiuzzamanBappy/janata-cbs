@@ -95,3 +95,26 @@ export function unwrapRecordsPayload<T = unknown>(data: unknown): T[] {
 
   return [];
 }
+
+/**
+ * The maker (`recInputter`) of a single-record response, wherever the core puts the audit block:
+ * on the record, under `data` or `record`, or on the first of `records`; as `auditData` or
+ * `auditFields`. Undefined when no maker is recorded.
+ */
+export function extractRecordInputter(data: unknown): string | undefined {
+  const asObject = (v: unknown) =>
+    v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : undefined;
+  const root = asObject(data);
+  const candidates = [
+    root,
+    asObject(root?.data),
+    asObject(root?.record),
+    asObject(unwrapRecordsPayload(data)[0]),
+  ];
+  for (const candidate of candidates) {
+    const audit = asObject(candidate?.auditData) ?? asObject(candidate?.auditFields);
+    const inputter = typeof audit?.recInputter === "string" ? audit.recInputter.trim() : "";
+    if (inputter) return inputter;
+  }
+  return undefined;
+}

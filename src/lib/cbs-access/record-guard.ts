@@ -9,6 +9,20 @@ export function isRecordEditable(mode: CbsScreenMode): boolean {
   return mode === CbsRecordFunction.INPUT;
 }
 
+/** Why the maker can't authorize: the Authorize tooltip and the proxy's 403 message. */
+export const FOUR_EYES_REASON =
+  "Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction.";
+
+/**
+ * Four-Eyes: true when `userId` is the record's maker (`recInputter`), compared without case or
+ * spaces. The screen uses it to disable Authorize, and `/api/proxy` to refuse the request.
+ */
+export function isRecordMaker(userId?: string | null, recordInputter?: string | null): boolean {
+  return Boolean(
+    userId && recordInputter && userId.trim().toUpperCase() === recordInputter.trim().toUpperCase(),
+  );
+}
+
 /**
  * Pure, deterministic banking capability evaluator.
  * Evaluates user profile rights against record lifecycle state and Four-Eyes Maker-Checker compliance.
@@ -27,9 +41,7 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
   const isIdle = mode === CBS_IDLE_MODE;
 
   // Four-Eyes Rule: If the record has an inputter, the Maker cannot authorize their own transaction
-  const isFourEyesViolation = Boolean(
-    userId && recordInputter && userId.trim().toUpperCase() === recordInputter.trim().toUpperCase(),
-  );
+  const isFourEyesViolation = isRecordMaker(userId, recordInputter);
 
   // 1. Can See: Requires 'S' right
   const canSee = hasRight(CbsRecordFunction.SEE);
@@ -81,7 +93,7 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
 
     if (action === CbsRecordFunction.AUTHORIZE) {
       if (isFourEyesViolation) {
-        return "Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction.";
+        return FOUR_EYES_REASON;
       }
       if (cleanStatus && cleanStatus !== CbsRecordStatus.UA) {
         return `Cannot Authorize: Record status is '${cleanStatus}' (must be pending '${CbsRecordStatus.UA}').`;

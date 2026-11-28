@@ -72,9 +72,12 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
  * Handles Mutations (PUT, AUT, DEL, HLD, REV, TRV, SFC, ATT, CTT, AFT)
  * with consistent dual-control audit status transitions.
  */
-/** Mutations reach the mock as the proxy's envelope, which carries the session branch. */
+/**
+ * Mutations reach the mock as the proxy's envelope, which carries the session branch and user.
+ * Like the core, the maker and checker are the session user, never a value in `data`.
+ */
 export function handleMutation(
-  payload: CbsWirePayload & Partial<Pick<GrpcEnvelope, "branchCode">>,
+  payload: CbsWirePayload & Partial<Pick<GrpcEnvelope, "branchCode" | "userId">>,
 ): ApiResponse {
   const reqType = (payload.requestType || "").trim().toUpperCase();
   const statusMap: Record<string, { label: string; code: string }> = {
@@ -99,8 +102,7 @@ export function handleMutation(
     ? { label: "saved and authorized", code: "AU" }
     : transition;
   const inputStamp = {
-    recInputter:
-      (payload.data?.recInputter as string) || (payload.data?.userId as string) || "MAKER",
+    recInputter: payload.userId || "MAKER",
     recInputTime: nowIsoDateTime(),
   };
 
@@ -132,10 +134,7 @@ export function handleMutation(
       ...(code === "AU"
         ? {
             ...(isZeroAuthSave ? inputStamp : {}),
-            recAuthorizer:
-              (payload.data?.recAuthorizer as string) ||
-              (payload.data?.userId as string) ||
-              "CHECKER",
+            recAuthorizer: payload.userId || "CHECKER",
             recAuthTime: nowIsoDateTime(),
           }
         : inputStamp),

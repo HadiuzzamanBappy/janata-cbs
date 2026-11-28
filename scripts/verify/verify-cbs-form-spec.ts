@@ -3,7 +3,7 @@
  *
  * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
  * capability exposed by `@/lib/cbs-form-spec` with explicit Input and Output visualization:
- * 1. Semantic Width Mapping (defaultWidthForLength: xs, sm, md, lg, full)
+ * 1. Semantic Width Mapping (deriveSemanticWidth: xs, sm, md, lg, full)
  * 2. Model Preview Layout (buildFallbackSections: one card of every model field; MODEL.CONFIG preview only)
  * 3. Custom Layout Compilation & Model Rules Merging (compileFormSpec: preserves layout, enforces model constraints)
  * 4. Headless Value Validation (validateValues: required, numeric/digits, date, length, clean state,

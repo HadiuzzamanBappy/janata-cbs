@@ -232,7 +232,7 @@ flowchart LR
 ```
 
 - Containers are in `components/containers/`, fields in `components/fields/` (`object-field.tsx` handles object groups), widgets in `components/widgets/`.
-- Options and lookups come from `hooks/use-field-options.ts` and `hooks/use-model-lookup.ts`.
+- Options and lookups come from `hooks/use-field-options.ts` and `hooks/use-model-lookup.ts`; lookup rows become options in `resolveLookupOptions` (`src/lib/cbs-form-spec/lookup-options.ts`). A lookup `condition` the engine can't read shows no options (and the save rules refuse it).
 - Field rules (`TRANSFORM`, `CASCADE`, `ON_CHANGE`, conditions) are evaluated in `src/lib/cbs-form-spec/field-rules.ts`, and values are validated in `validation.ts`.
 - Radio Group and Segmented select an option only on an exact code or label match (`radio-widget.tsx`).
 - The same engine also draws the inspectors of FORM.CONFIG, MODEL.CONFIG, INQUIRY.CONFIG and MENU.DESIGN, so an engine change must keep all four working.
@@ -248,19 +248,31 @@ flowchart LR
 
 Each rule below has exactly one definition. To prove it, search for the name: you should find one definition and only callers elsewhere.
 
-| Rule                                                   | Single home                                                                            |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Lookup or options of a field                           | `resolveFieldParameter`, `hasFieldOptions`, `isArrayLookup` in `form-engine-schema.ts` |
-| Field ↔ model column, by name (runtime and save check) | `modelPropertyMatcher` in `cbs-form-spec/compile.ts`                                   |
-| Field ↔ model column, by `SN` at any depth (designer)  | `findModelPropDeep` in `form-config/hooks/fc-field-tree.ts`                            |
-| Widget for a field                                     | `resolveWidgetType` in `cbs-form-spec/field-normalizer.ts`                             |
-| Widget sets (choice, inline width)                     | `CHOICE_WIDGETS`, `INLINE_WIDTH_WIDGETS` in `form-widget-schema.ts`                    |
-| Density and layout values                              | `FORM_DENSITIES`, `FORM_LAYOUTS` in `form-engine-schema.ts`                            |
-| Which tab's settings govern a tab group                | `resolveTabGroupConfig` in `cbs-form-spec/layout-blocks.ts`                            |
-| Badge colour of a container                            | `containerBadgeTone` in `cbs-form-engine/components/form-layout-context.tsx`           |
-| Loose value equality in rules                          | `looseEquals` in `cbs-form-spec/field-rules.ts` (private)                              |
-| Designer drag data                                     | `designerDragPayloadSchema` + `readDragPayload`                                        |
-| Save rules (screen and proxy)                          | `formConfigSaveSchema`                                                                 |
+| Rule                                                   | Single home                                                                              |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Lookup or options of a field                           | `resolveFieldParameter`, `hasFieldOptions`, `isArrayLookup` in `form-engine-schema.ts`   |
+| A lookup's `condition` (save rule and runtime)         | `parseLookupCondition` in `form-engine-schema.ts`                                        |
+| Lookup rows → options                                  | `resolveLookupOptions` in `cbs-form-spec/lookup-options.ts`                              |
+| Field ↔ model column, by name (runtime and save check) | `modelPropertyMatcher` in `cbs-form-spec/compile.ts`                                     |
+| Which layout fields run (the model decides)            | `mergeKnownFields` in `cbs-form-spec/compile.ts` (private)                               |
+| Field ↔ model column, by `SN` at any depth (designer)  | `findModelPropDeep` in `form-config/hooks/fc-field-tree.ts`                              |
+| A new designer field (click or drop)                   | `createDesignerField` in `form-config/hooks/fc-field-tree.ts`                            |
+| A tab group left with one tab becomes a card           | `dissolveLoneTabGroup` in `form-config/hooks/fc-field-tree.ts`                           |
+| Canvas gap drop targets                                | `canvasGapId`, `isCanvasGapId` in `designer/canvas/canvas-types.ts`                      |
+| A field dropped past a section's last field            | `dropsAfterLastField` in `designer/canvas/use-canvas-drag.ts`                            |
+| Widget for a field                                     | `resolveWidgetType` in `cbs-form-spec/field-normalizer.ts`                               |
+| Why a widget can't be picked                           | `widgetIneligibleReason`, `TEXTAREA_MIN_LENGTH` in `form-widget-schema.ts`               |
+| Widget sets (choice, inline width)                     | `CHOICE_WIDGETS`, `INLINE_WIDTH_WIDGETS` in `form-widget-schema.ts`                      |
+| Density and layout values                              | `FORM_DENSITIES`, `FORM_LAYOUTS` in `form-engine-schema.ts`                              |
+| Which tab's settings govern a tab group                | `resolveTabGroupConfig` in `cbs-form-spec/layout-blocks.ts`                              |
+| Badge colour of a container                            | `containerBadgeTone` in `cbs-form-engine/components/form-layout-context.tsx`             |
+| Loose value equality in rules                          | `looseEquals` in `cbs-form-spec/field-rules.ts` (private)                                |
+| Designer drag data                                     | `designerDragPayloadSchema` + `readDragPayload`                                          |
+| Save rules (screen and proxy)                          | `formConfigSaveSchema`                                                                   |
+| The record function a screen mode reads with           | `recordFunctionOfMode` in `cbs-access/record-guard.ts`                                   |
+| Four-Eyes (screen tooltip and proxy refusal)           | `isRecordMaker`, `FOUR_EYES_REASON` in `cbs-access/record-guard.ts`                      |
+| Audit fields a save may carry (only `recCurrNumber`)   | `withoutClientAudit` in `app/api/_lib/record-guards.ts`                                  |
+| A tab's errors as a `FormRenderer` map; the warning    | `fieldErrorMap`, `tabFieldErrors` in `cbs-screen/validation.ts`; `toastValidationIssues` |
 
 ---
 
@@ -280,32 +292,49 @@ All clean, except `verify:schemas` **`10d`**, which you have chosen to keep fail
 
 **Manual smoke test** (there is no browser test suite):
 
-1. In FC, drop a model field, an object group, a card and a tab group. Reorder them and move a tab between groups.
-2. Set a short field to width `md`, save, reload, and check the width.
+1. In FC, drop a model field, an object group, a card and a tab group. Reorder them, move a tab between groups, drop a field on a gap, and close one of two tabs.
+2. Set a short field to width `md`, save, reload, and check the width. Change something and Hold, then reopen: the change is still there.
 3. Open the Preview tab, then open the form by its command and compare.
-4. Open MODEL.CONFIG, INQUIRY.CONFIG and MENU.DESIGN.
+4. In the running form: amend record A and save, then New, enter B and save, and view B (every field is there). Edit an object group's inner field and save. Change a field and Reset.
+5. Save as one user, then try to authorize as the same user: the button is disabled, and a forced request gets a 403.
+6. Open MODEL.CONFIG, INQUIRY.CONFIG and MENU.DESIGN: their inspectors still render and save.
 
 ---
 
 ## 12. What the audit changed, and what is still open
 
-| Phase                | Commit        | Result                                                                                                                                           |
-| -------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1. Bugs              | `75f120c`     | `md` width kept on save; inspector shows the engine's widget; deep model match; no draft on a failed GFC; inner fields checked against the model |
-| 2. Schema constants  | `c1f9af1`     | Parameter types, densities, layouts and widget sets defined once; dead aliases and exports removed                                               |
-| 3. Compiler rules    | `cb77910`     | `PARAMETER` rules, name matching, tab group settings and rule equality defined once; only `type: "A"` is an array lookup                         |
-| 4. Engine API        | `e0f3a34`     | Dead renderer props and the 12-column path removed; one `errors` prop; AUTO width                                                                |
-| 5. Drag and sections | `c16e703`     | Checked drag data; explicit drop targets; 3 drop fixes; no inspector defaults                                                                    |
-| 6. Parser and client | `3f2abc3`     | GFC parsed per schema; checked model fallback; `recordId` required on save                                                                       |
-| 7. Boundary          | `edb237b`     | Unknown field keys removed; proxy forwards checked data; radio prefix alias and model widget reads removed                                       |
-| 8. Size budget       | `82135dc`     | Inspector, section grid, tab specs and field badges split; every file within budget                                                              |
-| 9. Docs              | not committed | READMEs, runbook and AGENTS §2 (`pnpm deprecated`) match the code; dead `combobox` widget case removed                                           |
+**First audit**
+
+| Phase                | Commit    | Result                                                                                                                                           |
+| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Bugs              | `75f120c` | `md` width kept on save; inspector shows the engine's widget; deep model match; no draft on a failed GFC; inner fields checked against the model |
+| 2. Schema constants  | `c1f9af1` | Parameter types, densities, layouts and widget sets defined once; dead aliases and exports removed                                               |
+| 3. Compiler rules    | `cb77910` | `PARAMETER` rules, name matching, tab group settings and rule equality defined once; only `type: "A"` is an array lookup                         |
+| 4. Engine API        | `e0f3a34` | Dead renderer props and the 12-column path removed; one `errors` prop; AUTO width                                                                |
+| 5. Drag and sections | `c16e703` | Checked drag data; explicit drop targets; 3 drop fixes; no inspector defaults                                                                    |
+| 6. Parser and client | `3f2abc3` | GFC parsed per schema; checked model fallback; `recordId` required on save                                                                       |
+| 7. Boundary          | `edb237b` | Unknown field keys removed; proxy forwards checked data; radio prefix alias and model widget reads removed                                       |
+| 8. Size budget       | `82135dc` | Inspector, section grid, tab specs and field badges split; every file within budget                                                              |
+| 9. Docs              | `6b476b6` | READMEs, runbook and AGENTS §2 (`pnpm deprecated`) match the code; dead `combobox` widget case removed                                           |
+
+**Second audit (steps 1 to 9, line by line)**
+
+| Steps                      | Commit     | Result                                                                                                                                                                                                                       |
+| -------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1–2 Open and load          | `ec55307d` | GFC reads the copy the mode acts on (Authorize reviews the pending layout); stored layouts read leniently and repaired; "Form Not Found" outside Input; one model key for copy/paste; dead screen props removed              |
+| 3 Designer                 | `2b7478e8` | One field builder for every add; pure state updaters; shared drop rules, gap ids and tab-group dissolve; widget reasons from the widget rules; semantic badge colours                                                        |
+| 4 Validation               | `61e72052` | The compiler leaves out fields the model lacks; validation flags a multi-value field on a single-value column                                                                                                                |
+| 5–7 Save, proxy, lifecycle | `5b1251b0` | The proxy strips the browser's audit fields from every save (keeps `recCurrNumber`); Hold sends the draft, checked with the read schema                                                                                      |
+| 8–9 Run and draw           | `0fb6b991` | A new record sends every field (baseline reset); Reset reverts to the loaded record; load failures told apart; object-group edits saved as nested values; an unreadable lookup condition fails closed and is refused on save |
+
+Regression cases added: `verify:form-spec` 3.3 (fields the model lacks are left out); `verify:access` 12.x (server Four-Eyes); `verify:schemas` 4d (saved-model rules), 7b (unknown request types).
 
 **Still open:**
 
-- [ ] **`verify:api` against a live core**, before shipping Phase 7 (step 6).
+- [ ] **`verify:api` against a live core** (`DATA_SOURCE=grpc`, dev server running), before shipping. It confirms the wire changes of both audits.
+- [ ] **`GET CONFIG.FORM` with function `A`** on the live core. The proxy's Four-Eyes check reads the pending form that way (the mock supports it). If the core serves forms only through GFC, every form authorize is refused, and the check must read `FORMCONTROL.auditData` instead (GFC's top-level audit block is the model's).
+- [ ] **Core team: audit fields on save.** The proxy now forwards only `recCurrNumber` from a save's audit block. Confirm the core needs nothing else from it.
 - [ ] **`authNumber`**: stored on CONFIG.FORM and edited on the General tab, but nothing in the frontend reads it (authorization comes from the model's `AUTHLEVEL`). Waiting on the core team to say whether the Java core uses it.
-- [ ] **Regression cases** for `verify:*` (need your approval): `md` width kept on save, a lookup field resolves to `select`, tab clustering order, an inner field missing from the model is flagged, unknown field keys are removed, a foreign drag is rejected, save needs `recordId`.
+- [ ] **Regression cases** still to propose for `verify:*` (need your approval): a new record after a loaded one sends every field; an object group's inner field saves nested; Hold sends the draft; a client audit block is stripped to `recCurrNumber`; an unreadable lookup condition shows no options.
 - [ ] **`10d`**: decide whether to keep it red (see section 11).
-- [ ] **Numbered colours** in the canvas rule badges (`field-override-badges.ts`, for example `bg-sky-500/15`) should become semantic tokens (AGENTS §3.6).
-- [ ] A comment in `scripts/verify/verify-cbs-form-spec.ts` still names `defaultWidthForLength`, which is no longer an export.
+- [ ] **Shared designer kit**: the four designers (model, form, inquiry, menu) still each have their own actions hook and issue-to-tab mapper. One shared unit in `src/lib/cbs-screen` would remove that duplication.

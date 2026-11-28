@@ -1,4 +1,10 @@
-import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
+import {
+  CBS_FUNCTION_CODES,
+  CBS_IDLE_MODE,
+  CbsRecordFunction,
+  CbsRecordStatus,
+  type CbsScreenMode,
+} from "@/types";
 import type { CbsAccessContext, CbsAccessResult } from "./types";
 
 /**
@@ -14,7 +20,7 @@ export function isRecordEditable(mode: CbsScreenMode): boolean {
  * Authorize, Hold, Reverse... get the copy they act on), otherwise See (Idle).
  */
 export function recordFunctionOfMode(mode: CbsScreenMode): CbsRecordFunction {
-  return (Object.values(CbsRecordFunction) as string[]).includes(mode)
+  return (CBS_FUNCTION_CODES as readonly string[]).includes(mode)
     ? (mode as CbsRecordFunction)
     : CbsRecordFunction.SEE;
 }

@@ -53,6 +53,7 @@ These are starting values: the operator can still edit `LENGTH`. Which widgets a
 4. **Model references (`MODELNAME`).** Both the inspector and `modelConfigSaveSchema` restrict `MODELNAME` to String and Number properties, and switching to another type clears it.
 5. **Loading.** A model is read like any other record: a plain `GET` (record function `S`) on MODEL.CONFIG with the model name as the record ID, for example `BRANCH`; it is saved with `PUT` and authorized with `AUT`. Only a model the core reports as missing (`ModelConfigNotFoundError` from `@/lib/cbs-client`) opens a new draft. Any other load failure shows an error and keeps the screen as it is, so an outage never turns an existing model into a blank draft that could be saved over it.
 6. **Canonical modes.** Screen modes use `CbsRecordFunction`.
+   Note: when **User Defined ID** (`USERDEFINEID`) is on, the ID generation fields (`IDDEF`: prefix, pattern, sequence length, sequence reset) are disabled but keep their values and are saved. This is intended: the core ignores `IDDEF` for a user-defined ID, and switching back to generated IDs restores the earlier settings.
 
 ---
 

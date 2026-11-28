@@ -72,6 +72,7 @@ Before you finish any change, run `pnpm lint:fix`, `pnpm typecheck` and `pnpm ve
 ### 01. Engineering Reference
 
 - [Project Roadmap](PROJECT_ROADMAP.md) — A guided path through the codebase, from first run to building a screen offline.
+- [Model & Form Config](MODEL_AND_FORM_CONFIG.md) — How a table is described (Model Config), how its screen is laid out (Form Config), and how they meet in a running form: flow, files, server checks, lifecycle, where to change what.
 - [Project Tree](PROJECT_TREE.md) — Annotated repository and `src/` layer structure.
 - [Architecture & Security Audit Checklist](ARCHITECTURE_AUDIT_CHECKLIST.md) — Checklist for security, single-source logic, layer discipline, dead code and simplicity.
 - [Production Operations](PRODUCTION_OPERATIONS.md) — Production settings, clearing the cache through `DELETE /api/cache`, Redis outages, unlocking a user, release checks.

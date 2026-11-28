@@ -27,6 +27,20 @@ export const DEV_NAV_GROUPS: NavGroup[] = [
         keywords: ["roadmap", "onboarding", "walkthrough", "learning", "levels", "request path"],
       },
       {
+        label: "Model & Form Config",
+        href: "/devs/MODEL_AND_FORM_CONFIG",
+        keywords: [
+          "model config",
+          "form config",
+          "designer",
+          "compiler",
+          "form engine",
+          "gfc",
+          "sfc",
+          "walkthrough",
+        ],
+      },
+      {
         label: "Production Operations",
         href: "/devs/PRODUCTION_OPERATIONS",
         keywords: [

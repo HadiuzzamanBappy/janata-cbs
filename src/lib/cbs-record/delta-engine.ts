@@ -77,3 +77,19 @@ export function computeDelta<T extends Record<string, unknown>>(
     isDirty: dirtyKeys.length > 0,
   };
 }
+
+/**
+ * The data a record save sends. An amendment (`isAmendment`, with a loaded baseline) sends only
+ * the fields that differ from the baseline; a new entry (empty baseline) sends every field, so a
+ * value that happens to equal the last record shown is never left out. An amendment with no
+ * change sends the whole record.
+ */
+export function recordSaveData(
+  baseline: Record<string, unknown>,
+  values: Record<string, unknown>,
+  isAmendment: boolean,
+): Record<string, unknown> {
+  if (!isAmendment || Object.keys(baseline).length === 0) return values;
+  const delta = computeDelta(baseline, values).modifiedFields;
+  return Object.keys(delta).length > 0 ? delta : values;
+}

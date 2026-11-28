@@ -14,7 +14,7 @@
  * 8. Diagnostic Tooltip Explanations (getDisableReason)
  * 9. hasAccessibilityRight Predicate Helper
  * 10-11. Designer field lock and the proxy's rights gate
- * 12. Server-side Four-Eyes (verifyFourEyes, the proxy's check before every authorize)
+ * 12. Server-side Four-Eyes (verifyFourEyes) and the audit fields a save may carry (withoutClientAudit)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-access.ts
@@ -424,6 +424,36 @@ async function verifyServerFourEyes() {
       results.save === "allowed" &&
       reads.length === 4 &&
       reads.every((r) => r === "GET A"),
+  );
+
+  // 12.3 Regression: config saves forwarded the browser's audit block, so a maker could name
+  // someone else as inputter and then pass Four-Eyes on their own record. Only the edited
+  // version (recCurrNumber) may reach the core.
+  const { withoutClientAudit } = await import("../../src/app/api/_lib/record-guards");
+  const forged = {
+    recStatus: "AU",
+    recInputter: "SOMEONE.ELSE",
+    recInputTime: "2026-01-01T00:00:00Z",
+    recAuthorizer: "CHECKER",
+    recAuthTime: "2026-01-01T00:00:00Z",
+    recBranchCode: "999",
+    recCurrNumber: 4,
+  };
+  const stripped = {
+    withVersion: withoutClientAudit({ title: "x", auditData: forged }),
+    coreName: withoutClientAudit({ title: "x", auditFields: { recInputter: "SOMEONE.ELSE" } }),
+    noAudit: withoutClientAudit({ title: "x" }),
+  };
+  recordTest(
+    "12.3 A save's audit block keeps only recCurrNumber: maker, authorizer, times, status and branch never reach the core",
+    { auditData: forged, auditFields: { recInputter: "SOMEONE.ELSE" } },
+    stripped,
+    JSON.stringify(stripped) ===
+      JSON.stringify({
+        withVersion: { title: "x", auditData: { recCurrNumber: 4 } },
+        coreName: { title: "x" },
+        noAudit: { title: "x" },
+      }),
   );
 }
 

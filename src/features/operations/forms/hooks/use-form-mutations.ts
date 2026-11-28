@@ -4,7 +4,7 @@ import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { computeDelta } from "@/lib/cbs-record";
+import { recordSaveData } from "@/lib/cbs-record";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import {
   type ApiResponse,
@@ -76,12 +76,7 @@ export function useFormMutations({
 
       // An amendment sends only what changed from the loaded record; a new entry (empty
       // baseline) sends every field
-      const delta =
-        screenMode === CbsRecordFunction.INPUT && Object.keys(baseline).length > 0
-          ? computeDelta(baseline, values).modifiedFields
-          : values;
-
-      const commitData = Object.keys(delta).length > 0 ? delta : values;
+      const commitData = recordSaveData(baseline, values, screenMode === CbsRecordFunction.INPUT);
       const targetId = (searchRecordId || (values.id as string) || "").trim();
 
       await executeTransaction(targetId, () =>

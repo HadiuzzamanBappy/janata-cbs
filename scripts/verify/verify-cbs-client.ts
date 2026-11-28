@@ -249,6 +249,30 @@ async function runSuite() {
       inqConfig.requestType === CbsRequestType.GET,
   );
 
+  // Regression: FORM.CONFIG and MODEL.CONFIG held without the draft, so unsaved edits were lost
+  // (and the form designer marked them saved). Hold parks the draft the screen sends with it.
+  const heldForm = { title: "User Form", frmElements: { sections: [] } };
+  const heldModel = { TABLENAME: "BRANCH", PROPERTIES: [] };
+  const holds = {
+    form: cbs.formConfig.hold("USER.MGT,V1", heldForm),
+    model: cbs.modelConfig.hold("BRANCH", heldModel),
+  };
+  recordTest(
+    "3.4 Hold: config holds are HLD with function H and carry the draft they park",
+    'cbs.formConfig.hold("USER.MGT,V1", draft) · cbs.modelConfig.hold("BRANCH", draft)',
+    {
+      form: [holds.form.requestType, holds.form.recordFunction, holds.form.data],
+      model: [holds.model.requestType, holds.model.recordFunction, holds.model.data],
+    },
+    Object.values(holds).every(
+      (p) => p.requestType === CbsRequestType.HLD && p.recordFunction === CbsRecordFunction.HOLD,
+    ) &&
+      holds.form.data === heldForm &&
+      holds.model.data === heldModel &&
+      holds.form.controlName === CbsControlTable.FORM_CONFIG &&
+      holds.model.controlName === CbsControlTable.MODEL_CONFIG,
+  );
+
   // --- 4. Runtime Inquiries (cbs.inquiry) ---
   console.log("\n── 4. Runtime Inquiries (cbs.inquiry) ──");
   const inqRun = cbs.inquiry.executeQuery(" get.txns ", [

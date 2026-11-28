@@ -327,7 +327,7 @@ All clean, except `verify:schemas` **`10d`**, which you have chosen to keep fail
 | 5–7 Save, proxy, lifecycle | `5b1251b0` | The proxy strips the browser's audit fields from every save (keeps `recCurrNumber`); Hold sends the draft, checked with the read schema                                                                                      |
 | 8–9 Run and draw           | `0fb6b991` | A new record sends every field (baseline reset); Reset reverts to the loaded record; load failures told apart; object-group edits saved as nested values; an unreadable lookup condition fails closed and is refused on save |
 
-Regression cases added: `verify:form-spec` 3.3 (fields the model lacks are left out); `verify:access` 12.x (server Four-Eyes); `verify:schemas` 4d (saved-model rules), 7b (unknown request types).
+Regression cases added: `verify:form-spec` 3.3 (fields the model lacks are left out), 9.4 (object-group edits saved nested), 9.5 (lookup conditions); `verify:access` 12.2 (server Four-Eyes), 12.3 (audit fields stripped); `verify:schemas` 4d (saved-model rules), 5e (unreadable lookup condition refused), 7b (unknown request types); `verify:client` 3.4 (Hold carries the draft); `verify:record` 7.1 (a new record sends every field, `recordSaveData`).
 
 **Still open:**
 
@@ -335,6 +335,5 @@ Regression cases added: `verify:form-spec` 3.3 (fields the model lacks are left 
 - [ ] **`GET CONFIG.FORM` with function `A`** on the live core. The proxy's Four-Eyes check reads the pending form that way (the mock supports it). If the core serves forms only through GFC, every form authorize is refused, and the check must read `FORMCONTROL.auditData` instead (GFC's top-level audit block is the model's).
 - [ ] **Core team: audit fields on save.** The proxy now forwards only `recCurrNumber` from a save's audit block. Confirm the core needs nothing else from it.
 - [ ] **`authNumber`**: stored on CONFIG.FORM and edited on the General tab, but nothing in the frontend reads it (authorization comes from the model's `AUTHLEVEL`). Waiting on the core team to say whether the Java core uses it.
-- [ ] **Regression cases** still to propose for `verify:*` (need your approval): a new record after a loaded one sends every field; an object group's inner field saves nested; Hold sends the draft; a client audit block is stripped to `recCurrNumber`; an unreadable lookup condition shows no options.
 - [ ] **`10d`**: decide whether to keep it red (see section 11).
 - [ ] **Shared designer kit**: the four designers (model, form, inquiry, menu) still each have their own actions hook and issue-to-tab mapper. One shared unit in `src/lib/cbs-screen` would remove that duplication.

@@ -10,6 +10,7 @@
  * 5. Reversible Keystroke Dirty Tracking (evaluateDirty: returns to clean when value is reverted)
  * 6. Baseline Snapshot & Rebaseline Lifecycle (createBaseline & rebaseline)
  * 7. Line-by-Line Myers Text Diff (computeLineDiff: insert, delete, equal with line counts)
+ * 8. Record Save Data (recordSaveData: new entry sends every field, amendment only its changes)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-record.ts
@@ -21,6 +22,7 @@ import {
   createBaseline,
   evaluateDirty,
   rebaseline,
+  recordSaveData,
 } from "@/lib/cbs-record";
 
 interface TestCase {
@@ -182,6 +184,24 @@ async function runSuite() {
     diffResult.additions === 1 &&
       diffResult.deletions === 1 &&
       diffResult.items.some((i) => i.type === "insert" && i.text.includes("75000")),
+  );
+
+  // ── 7. Record Save Data (recordSaveData) ──
+  // Regression: "New" after a loaded record kept that record as the baseline, so the new record
+  // was saved as a diff against it and every field equal to the old record's was left out.
+  console.log("\n── 7. Record Save Data (recordSaveData) ──");
+  const recordA = { branchCode: "001", currency: "BDT", accountTitle: "Record A" };
+  const recordB = { branchCode: "001", currency: "BDT", accountTitle: "Record B" };
+  const newEntry = recordSaveData({}, recordB, true);
+  const amendment = recordSaveData(recordA, recordB, true);
+  const unchanged = recordSaveData(recordA, recordA, true);
+  recordTest(
+    "7.1 A new entry (empty baseline) sends every field; an amendment sends only its changes; an unchanged amendment sends the record",
+    { baselineA: recordA, draftB: recordB },
+    { newEntry, amendment, unchanged },
+    JSON.stringify(newEntry) === JSON.stringify(recordB) &&
+      JSON.stringify(amendment) === JSON.stringify({ accountTitle: "Record B" }) &&
+      JSON.stringify(unchanged) === JSON.stringify(recordA),
   );
 
   // Consolidated Summary

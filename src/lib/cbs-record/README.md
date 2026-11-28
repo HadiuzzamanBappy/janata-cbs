@@ -8,7 +8,7 @@ It powers the Dual-Tier Form State architecture by computing minimal mutation pa
 
 ## 📦 What It Contains
 
-Five pure functions in three files (`baseline.ts`, `delta-engine.ts`, `line-diff.ts`), with the `CbsDeltaPatch` result type (`modifiedFields`, `originalFields`, `dirtyKeys`, `isDirty`) in `types.ts`. No React dependencies:
+Six pure functions in three files (`baseline.ts`, `delta-engine.ts`, `line-diff.ts`), with the `CbsDeltaPatch` result type (`modifiedFields`, `originalFields`, `dirtyKeys`, `isDirty`) in `types.ts`. No React dependencies:
 
 1. **`createBaseline(record, ignoredKeys?)`**:
    Creates an immutable, deep-cloned snapshot (`RecordBaseline<T>`) using native `structuredClone`.
@@ -21,6 +21,9 @@ Five pure functions in three files (`baseline.ts`, `delta-engine.ts`, `line-diff
 
 4. **`computeDelta(original, current, ignoredKeys?)`**:
    Pure deep-comparison function that isolates modified fields between any two record states.
+
+4b. **`recordSaveData(baseline, values, isAmendment)`**:
+The data a record save sends: an amendment sends only what differs from the loaded baseline, a new entry (empty baseline) sends every field, and an amendment with no change sends the whole record.
 
 5. **`computeLineDiff(oldText, newText)`**:
    Pure Myers line-diff algorithm that computes shortest edit sequences for visual git-style diffs in audit and inspection tabs.
@@ -89,19 +92,15 @@ evaluateDirty(baseline, workingDraft).isDirty; // false
 This is how `useFormMutations` (`src/features/operations/forms/hooks/use-form-mutations.ts`) builds a save:
 
 ```typescript
-import { computeDelta } from "@/lib/cbs-record";
+import { recordSaveData } from "@/lib/cbs-record";
 
-// Input mode on an existing record: send only the changed fields
-const delta =
-  screenMode === CbsRecordFunction.INPUT && Object.keys(baseSnapshot).length > 0
-    ? computeDelta(baseSnapshot, values).modifiedFields
-    : values;
-const commitData = Object.keys(delta).length > 0 ? delta : values; // nothing changed: send everything
+// Input mode on a loaded record: only the changed fields; a new entry (empty baseline): every field
+const commitData = recordSaveData(baseline, values, screenMode === CbsRecordFunction.INPUT);
 
 await sendMutation(cbs.model(modelCode).save(commitData, { recordId: targetId }));
 ```
 
-A new record, or a save where nothing changed, sends the full values. Mutations always go through `sendMutation()` from `useIdempotentSend()` (see `@/lib/cbs-client`).
+A new record, or a save where nothing changed, sends the full values. The baseline must be empty for a new entry: `useFormState` resets it on New, after a save and on Return. Mutations always go through `sendMutation()` from `useIdempotentSend()` (see `@/lib/cbs-client`).
 
 ---
 

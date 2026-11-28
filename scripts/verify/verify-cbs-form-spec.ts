@@ -41,6 +41,7 @@ import {
   isLiveTransform,
   normalizeRecordDates,
   resolveFieldDateRange,
+  resolveLookupOptions,
   resolveWidgetType,
   setFieldValue,
   toBooleanValue,
@@ -947,6 +948,59 @@ async function runSuite() {
     },
     getFieldValue(deletedRecord, "CUSTOMER.profile.name") === undefined &&
       getFieldValue(addedArrayElem, "CUSTOMER.profile.name") === "John Smith",
+  );
+
+  // Regression: running forms stored an object group's inner-field edit under a flat dotted key,
+  // so the save sent the old nested value plus a key the core doesn't know. OpsForm writes every
+  // field change through setFieldValue, which must update the nested row only.
+  const loadedWithGroup = {
+    accountTitle: "A",
+    nominees: [
+      { nomineeName: "OLD", share: 60 },
+      { nomineeName: "SECOND", share: 40 },
+    ],
+  };
+  const innerEdit = setFieldValue(loadedWithGroup, "nominees.0.nomineeName", "NEW");
+  recordTest(
+    "9.4 An object group's inner-field edit updates its nested row, keeps the other rows, and adds no flat key",
+    { path: "nominees.0.nomineeName", value: "NEW" },
+    innerEdit,
+    JSON.stringify(innerEdit) ===
+      JSON.stringify({
+        accountTitle: "A",
+        nominees: [
+          { nomineeName: "NEW", share: 60 },
+          { nomineeName: "SECOND", share: 40 },
+        ],
+      }) &&
+      !("nominees.0.nomineeName" in innerEdit) &&
+      loadedWithGroup.nominees[0].nomineeName === "OLD",
+  );
+
+  // Regression: a lookup condition in an unsupported form was skipped, so the dropdown showed every
+  // option (inactive ones included). A readable condition filters; an unreadable one shows none.
+  const lookupRows = [
+    { id: "BR1", name: "Motijheel", status: "ACTIVE" },
+    { id: "BR2", name: "Closed Branch", status: "CLOSED" },
+  ];
+  const branchLookup = { type: "M" as const, modelName: "BRANCH", data: [] };
+  const lookupCases = {
+    noCondition: resolveLookupOptions(lookupRows, branchLookup).map((o) => o.code),
+    readable: resolveLookupOptions(lookupRows, {
+      ...branchLookup,
+      condition: "status == 'ACTIVE'",
+    }).map((o) => o.code),
+    unreadable: resolveLookupOptions(lookupRows, {
+      ...branchLookup,
+      condition: "status = ACTIVE",
+    }).map((o) => o.code),
+  };
+  recordTest(
+    "9.5 Lookup condition: none lists every row, a readable one filters, an unreadable one shows no options",
+    { conditions: ["", "status == 'ACTIVE'", "status = ACTIVE"] },
+    lookupCases,
+    JSON.stringify(lookupCases) ===
+      JSON.stringify({ noCondition: ["BR1", "BR2"], readable: ["BR1"], unreadable: [] }),
   );
 
   // ── 10. Designer Settings Honoured by the Engine (FORM.CONFIG 1:1) ──

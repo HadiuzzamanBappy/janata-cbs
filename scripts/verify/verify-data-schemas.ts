@@ -517,6 +517,50 @@ async function runSuite() {
     JSON.stringify(objectGroupIssues) === JSON.stringify(expectedObjectGroupIssues),
   );
 
+  // 5e. A lookup condition the engine can't read is refused on save (the engine would show no
+  // options for it); a readable one, and none, save
+  const lookupForm = (condition?: string) => ({
+    title: "Lookup Form",
+    frmElements: {
+      sections: [
+        {
+          id: "sec_lookup",
+          containerType: "card",
+          fields: [
+            {
+              SN: "1",
+              NAME: "branchCode",
+              LABEL: "Branch",
+              TYPE: "String",
+              STRUCTURE: "S",
+              LENGTH: 4,
+              WIDGET: "select",
+              PARAMETER: { type: "M", modelName: "BRANCH", data: [], condition },
+            },
+          ],
+        },
+      ],
+    },
+  });
+  const conditionIssues = (condition?: string) =>
+    formConfigSaveSchema
+      .safeParse(lookupForm(condition))
+      .error?.issues.map((i) => i.path.join(".")) ?? [];
+  const lookupConditionCases = {
+    none: conditionIssues(),
+    readable: conditionIssues("status == 'ACTIVE'"),
+    unreadable: conditionIssues("status = ACTIVE"),
+  };
+  recordTest(
+    "5e. Form Save Schema: an unreadable lookup condition is refused; a readable one, or none, saves",
+    { conditions: ["(none)", "status == 'ACTIVE'", "status = ACTIVE"] },
+    lookupConditionCases,
+    lookupConditionCases.none.length === 0 &&
+      lookupConditionCases.readable.length === 0 &&
+      JSON.stringify(lookupConditionCases.unreadable) ===
+        JSON.stringify(["frmElements.sections.0.fields.0.PARAMETER.condition"]),
+  );
+
   // 6. Navigation Menu Hierarchy Schema Contract
   const sampleMenuTree = {
     recordId: "MENU.ONE",
